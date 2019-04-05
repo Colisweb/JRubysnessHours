@@ -4,11 +4,6 @@ ThisBuild / scalafmtOnCompile := true
 ThisBuild / scalafmtCheck     := true
 ThisBuild / scalafmtSbtCheck  := true
 
-val testKitLibs = Seq(
-  "org.scalactic"  %% "scalactic"  % "3.0.7",
-  "org.scalatest"  %% "scalatest"  % "3.0.7",
-  "org.mockito" %% "mockito-scala" % "1.2.1"
-).map(_ % Test)
 
 lazy val root = Project(id = "JRubysnessHours", base = file("."))
   .settings(moduleName := "root")
@@ -21,8 +16,8 @@ lazy val core =
     .settings(moduleName := "JRubysnessHours")
     .settings(
       libraryDependencies ++= Seq(
-        "com.lightbend.akka" %% "akka-stream-alpakka-amqp" % "0.20"
-      ) ++ testKitLibs
+        "org.scalatest"  %% "scalatest"  % "3.0.7" % Test
+      )
     )
 
 lazy val jruby =
