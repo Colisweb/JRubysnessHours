@@ -1,13 +1,47 @@
 package com.colisweb.jrubysnesshours.core
 
 import java.time._
-import java.util.Date
+import TimeOrderings._
 
 object Core {
 
+
+
   case class Interval(startTime: LocalTime, endTime: LocalTime)
   case class BusinessHour(dayOfWeek: DayOfWeek, interval: Interval)
-  case class TimeSegment(date: LocalDate, start_time: LocalDateTime, end_time: LocalDateTime)
+  case class TimeSegment(date: LocalDate, startTime: LocalDateTime, endTime: LocalDateTime) {
+
+    def splitFromExceptionTimeSegments(exceptionTimeSegments: Seq[TimeSegment]): Seq[TimeSegment] = {
+      val validExceptionSegments = TimeSegment.mergeTimeSegmentsForDate(this.date, exceptionTimeSegments)
+
+      validExceptionSegments.foldLeft(List(this)) { (acc, exceptionSegment) =>
+        acc match {
+          case Nil => Nil
+          case head :: tail =>
+
+            val startComp = head.startTime.compareTo(exceptionSegment.startTime)
+            val endComp = head.endTime.compareTo(exceptionSegment.endTime)
+
+            if (startComp >= 0 && endComp <= 0) {
+              tail
+            } else if (startComp < 0 && endComp < 0) {
+              TimeSegment(head.date, head.startTime, exceptionSegment.startTime) +: tail
+            } else if (startComp > 0 && endComp > 0) {
+              TimeSegment(head.date, exceptionSegment.endTime, head.endTime) +: tail
+            } else if (startComp < 0 && endComp > 0) {
+              List(
+                TimeSegment(head.date, exceptionSegment.endTime, head.endTime), // the order here is reversed, as we use prepend everywhere in the fold
+                TimeSegment(head.date, head.startTime, exceptionSegment.startTime)
+              ) ++ tail
+            } else if (head.startTime.isBefore(exceptionSegment.startTime) && head.endTime.isAfter(exceptionSegment.endTime)) {
+              acc
+            } else {
+              Nil // que faire ici ? On estime qu'on a gérer tous les cas ??
+            }
+        }
+      }.reverse // reverse or sortBy start ?
+    }
+  }
 
   type BusinessHoursByDayOfWeek = Map[DayOfWeek, List[Interval]]
 
@@ -19,7 +53,7 @@ object Core {
   }
 
   object TimeSegment {
-    def segmentBetween(
+    private[core] def segmentBetween(
                         start: LocalDateTime,
                         end: LocalDateTime,
                         businessHoursByDayOfWeek: BusinessHoursByDayOfWeek,
@@ -79,23 +113,40 @@ object Core {
       val period = Period.between(start.toLocalDate, end.toLocalDate)
       val numOfDays = period.getDays + 1
 
-      println(intervalExceptions)
-
-      (for {
-        dateTime <- Range(0, numOfDays).map(i => start.plusDays(i.toLong))
-        date = dateTime.toLocalDate
-        interval <- businessHoursByDayOfWeek.getOrElse(dateTime.getDayOfWeek, Nil)
-        intervalStartInDateTime = interval.startTime.atDate(date)
-        intervalEndInDateTime = interval.endTime.atDate(date)
-      } yield {
+      (
         for {
-          startSegment <- computeTimeSegmentStart(date, intervalStartInDateTime, intervalEndInDateTime)
-          endSegment <- computeTimeSegmentEnd(date, intervalStartInDateTime, intervalEndInDateTime)
-        } yield TimeSegment(date, startSegment, endSegment)
-      })
-        .map() // traiter les intervalException ici ?
+          dateTime <- Range(0, numOfDays).map(i => start.plusDays(i.toLong))
+          date = dateTime.toLocalDate
+          interval <- businessHoursByDayOfWeek.getOrElse(dateTime.getDayOfWeek, Nil)
+          intervalStartInDateTime = interval.startTime.atDate(date)
+          intervalEndInDateTime = interval.endTime.atDate(date)
+        } yield {
+          for {
+            startSegment <- computeTimeSegmentStart(date, intervalStartInDateTime, intervalEndInDateTime)
+            endSegment <- computeTimeSegmentEnd(date, intervalStartInDateTime, intervalEndInDateTime)
+          } yield TimeSegment(date, startSegment, endSegment)
+        }
+      )
         .flatten
-        .map
+        .flatMap(_.splitFromExceptionTimeSegments(intervalExceptions))
+    }
+
+    private[core] def mergeTimeSegmentsForDate(date: LocalDate, exceptionTimeSegments: Seq[TimeSegment]): Seq[TimeSegment] = {
+      exceptionTimeSegments
+        .filter(_.date.isEqual(date))
+        .sortBy(_.startTime)
+        .foldLeft(Nil: List[TimeSegment]) { (acc, exceptionSegment) => // Merge exceptions if some overlap
+          acc match { // always use preprend to simplify code here
+            case Nil => exceptionSegment +: acc
+            case head :: tail => {
+              if (exceptionSegment.startTime.isAfter(head.endTime)) {
+                exceptionSegment +: acc
+              } else {
+                TimeSegment(head.date, head.startTime, exceptionSegment.endTime) +: tail
+              }
+            }
+          }
+        }.reverse //reverse because we use prepend in our fold --- // reverse or sortBy start ?
     }
   }
 
