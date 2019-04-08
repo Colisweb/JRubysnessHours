@@ -1,18 +1,17 @@
 package com.colisweb.jrubysnesshours.core
 
 import java.time._
-import TimeOrderings._
+
 import scala.math.Ordering.Implicits._
 
 object Core {
 
   case class Interval(startTime: LocalTime, endTime: LocalTime)
   case class BusinessHour(dayOfWeek: DayOfWeek, interval: Interval)
-  case class TimeSegment(
-      date: LocalDate,
-      startTime: LocalDateTime,
-      endTime: LocalDateTime
-  ) { // TODO replace with interval
+  case class TimeSegment(date: LocalDate, interval: Interval) {
+
+    def startTime: LocalTime = interval.startTime
+    def endTime: LocalTime = interval.endTime
 
     def splitFromExceptionTimeSegments(
         exceptionTimeSegments: Seq[TimeSegment]
@@ -31,25 +30,25 @@ object Core {
 
                 TimeSegment(
                   head.date,
-                  head.startTime,
-                  exceptionSegment.startTime
+                  Interval(head.startTime, exceptionSegment.startTime)
                 ) +: tail
 
               } else if (head.startTime > exceptionSegment.startTime && head.endTime > exceptionSegment.endTime) {
 
-                TimeSegment(head.date, exceptionSegment.endTime, head.endTime) +: tail
+                TimeSegment(
+                  head.date,
+                  Interval(exceptionSegment.endTime, head.endTime)
+                ) +: tail
 
               } else if (head.startTime < exceptionSegment.startTime && head.endTime > exceptionSegment.endTime) {
                 List(
                   TimeSegment(
                     head.date,
-                    exceptionSegment.endTime,
-                    head.endTime
+                    Interval(exceptionSegment.endTime, head.endTime)
                   ), // the order here is reversed, as we use prepend everywhere in the fold
                   TimeSegment(
                     head.date,
-                    head.startTime,
-                    exceptionSegment.startTime
+                    Interval(head.startTime, exceptionSegment.startTime)
                   )
                 ) ++ tail
               } else if (head.startTime < exceptionSegment.startTime && head.endTime > exceptionSegment.endTime) {
@@ -111,6 +110,7 @@ object Core {
           case _                => Some(intervalEndInDateTime)
         }
 
+      // TODO: return LocalTime
       def computeTimeSegmentStart(
           date: LocalDate,
           intervalStartInDateTime: LocalDateTime,
@@ -127,6 +127,7 @@ object Core {
         }
       }
 
+      // TODO: return LocalTime
       def computeTimeSegmentEnd(
           date: LocalDate,
           intervalStartInDateTime: LocalDateTime,
@@ -166,7 +167,11 @@ object Core {
                   intervalStartInDateTime,
                   intervalEndInDateTime
                 )
-              } yield TimeSegment(date, startSegment, endSegment)
+              } yield
+                TimeSegment(
+                  date,
+                  Interval(startSegment.toLocalTime, endSegment.toLocalTime)
+                )
             }
 
         }
@@ -193,7 +198,10 @@ object Core {
               } else if (segment.endTime.isBefore(head.endTime)) {
                 acc
               } else {
-                TimeSegment(head.date, head.startTime, segment.endTime) +: tail
+                TimeSegment(
+                  head.date,
+                  Interval(head.startTime, segment.endTime)
+                ) +: tail
               }
             }
           }

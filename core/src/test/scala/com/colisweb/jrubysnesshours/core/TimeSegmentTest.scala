@@ -54,8 +54,10 @@ class TimeSegmentTest extends WordSpec with Matchers {
     val intervalException = List(
       TimeSegment(
         LocalDate.of(2019, 4, 8),
-        LocalDateTime.of(2019, 4, 8, 13, 0),
-        LocalDateTime.of(2019, 4, 8, 16, 0)
+        Interval(
+          LocalTime.of(13, 0),
+          LocalTime.of(16, 0)
+        )
       )
     )
     // TODO do one test with and without exceptions
@@ -75,33 +77,27 @@ class TimeSegmentTest extends WordSpec with Matchers {
         Vector(
           TimeSegment(
             LocalDate.of(2019, 4, 5),
-            LocalDateTime.of(2019, 4, 5, 13, 40),
-            LocalDateTime.of(2019, 4, 5, 19, 0)
+            Interval(LocalTime.of(13, 40), LocalTime.of(19, 0))
           ),
           TimeSegment(
             LocalDate.of(2019, 4, 6),
-            LocalDateTime.of(2019, 4, 6, 9, 0),
-            LocalDateTime.of(2019, 4, 6, 14, 0)
+            Interval(LocalTime.of(9, 0), LocalTime.of(14, 0))
           ),
           TimeSegment(
             LocalDate.of(2019, 4, 6),
-            LocalDateTime.of(2019, 4, 6, 15, 0),
-            LocalDateTime.of(2019, 4, 6, 19, 0)
+            Interval(LocalTime.of(15, 0), LocalTime.of(19, 0))
           ),
           TimeSegment(
             LocalDate.of(2019, 4, 8),
-            LocalDateTime.of(2019, 4, 8, 9, 0),
-            LocalDateTime.of(2019, 4, 8, 13, 0)
+            Interval(LocalTime.of(9, 0), LocalTime.of(13, 0))
           ),
           TimeSegment(
             LocalDate.of(2019, 4, 8),
-            LocalDateTime.of(2019, 4, 8, 16, 0),
-            LocalDateTime.of(2019, 4, 8, 19, 0)
+            Interval(LocalTime.of(16, 0), LocalTime.of(19, 0))
           ),
           TimeSegment(
             LocalDate.of(2019, 4, 9),
-            LocalDateTime.of(2019, 4, 9, 9, 30),
-            LocalDateTime.of(2019, 4, 9, 13, 40)
+            Interval(LocalTime.of(9, 30), LocalTime.of(13, 40))
           )
         )
 
@@ -119,23 +115,19 @@ class TimeSegmentTest extends WordSpec with Matchers {
         Seq(
           TimeSegment(
             LocalDate.of(2019, 4, 8),
-            LocalDateTime.of(2019, 4, 8, 2, 0),
-            LocalDateTime.of(2019, 4, 8, 5, 0)
+            Interval(LocalTime.of(2, 0), LocalTime.of(5, 0))
           ),
           TimeSegment(
             LocalDate.of(2019, 4, 8),
-            LocalDateTime.of(2019, 4, 8, 4, 0),
-            LocalDateTime.of(2019, 4, 8, 8, 0)
+            Interval(LocalTime.of(4, 0), LocalTime.of(8, 0))
           ),
           TimeSegment(
             LocalDate.of(2019, 4, 8),
-            LocalDateTime.of(2019, 4, 8, 9, 0),
-            LocalDateTime.of(2019, 4, 8, 19, 0)
+            Interval(LocalTime.of(9, 0), LocalTime.of(19, 0))
           ),
           TimeSegment(
             LocalDate.of(2019, 4, 8),
-            LocalDateTime.of(2019, 4, 8, 13, 0),
-            LocalDateTime.of(2019, 4, 8, 16, 0)
+            Interval(LocalTime.of(13, 0), LocalTime.of(16, 0))
           ),
         )
 
@@ -143,13 +135,11 @@ class TimeSegmentTest extends WordSpec with Matchers {
         List(
           TimeSegment(
             LocalDate.of(2019, 4, 8),
-            LocalDateTime.of(2019, 4, 8, 2, 0),
-            LocalDateTime.of(2019, 4, 8, 8, 0)
+            Interval(LocalTime.of(2, 0), LocalTime.of(8, 0))
           ),
           TimeSegment(
             LocalDate.of(2019, 4, 8),
-            LocalDateTime.of(2019, 4, 8, 9, 0),
-            LocalDateTime.of(2019, 4, 8, 19, 0)
+            Interval(LocalTime.of(9, 0), LocalTime.of(19, 0))
           )
         )
 
