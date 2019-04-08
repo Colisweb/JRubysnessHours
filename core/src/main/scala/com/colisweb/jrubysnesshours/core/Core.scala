@@ -131,9 +131,12 @@ object Core {
         .flatMap(_.splitFromExceptionTimeSegments(intervalExceptions))
     }
 
-    private[core] def mergeTimeSegmentsForDate(date: LocalDate, exceptionTimeSegments: Seq[TimeSegment]): Seq[TimeSegment] = {
-      exceptionTimeSegments
-        .filter(_.date.isEqual(date))
+    private[core] def mergeTimeSegmentsForDate(date: LocalDate, timeSegments: Seq[TimeSegment]): Seq[TimeSegment] =
+      mergeTimeSegments(timeSegments.filter(_.date.isEqual(date)))
+
+
+    private[core] def mergeTimeSegments(timeSegments: Seq[TimeSegment]): Seq[TimeSegment] =
+      timeSegments
         .sortBy(_.startTime)
         .foldLeft(Nil: List[TimeSegment]) { (acc, exceptionSegment) => // Merge exceptions if some overlap
           acc match { // always use preprend to simplify code here
@@ -147,7 +150,6 @@ object Core {
             }
           }
         }.reverse //reverse because we use prepend in our fold --- // reverse or sortBy start ?
-    }
   }
 
 }
