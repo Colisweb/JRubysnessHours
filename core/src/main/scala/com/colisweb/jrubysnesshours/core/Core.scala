@@ -138,14 +138,16 @@ object Core {
     private[core] def mergeTimeSegments(timeSegments: Seq[TimeSegment]): Seq[TimeSegment] =
       timeSegments
         .sortBy(_.startTime)
-        .foldLeft(Nil: List[TimeSegment]) { (acc, exceptionSegment) => // Merge exceptions if some overlap
+        .foldLeft(Nil: List[TimeSegment]) { (acc, segment) => // Merge exceptions if some overlap
           acc match { // always use preprend to simplify code here
-            case Nil => exceptionSegment +: acc
+            case Nil => segment +: acc
             case head :: tail => {
-              if (exceptionSegment.startTime.isAfter(head.endTime)) {
-                exceptionSegment +: acc
+              if (segment.startTime.isAfter(head.endTime)) {
+                segment +: acc
+              } else if (segment.endTime.isBefore(head.endTime)) {
+                head +: tail
               } else {
-                TimeSegment(head.date, head.startTime, exceptionSegment.endTime) +: tail
+                TimeSegment(head.date, head.startTime, segment.endTime) +: tail
               }
             }
           }
