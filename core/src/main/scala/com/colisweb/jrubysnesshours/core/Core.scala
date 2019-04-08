@@ -2,6 +2,7 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time._
 import TimeOrderings._
+import scala.math.Ordering.Implicits._
 
 object Core {
 
@@ -9,7 +10,7 @@ object Core {
 
   case class Interval(startTime: LocalTime, endTime: LocalTime)
   case class BusinessHour(dayOfWeek: DayOfWeek, interval: Interval)
-  case class TimeSegment(date: LocalDate, startTime: LocalDateTime, endTime: LocalDateTime) {
+  case class TimeSegment(date: LocalDate, startTime: LocalDateTime, endTime: LocalDateTime) { // TODO replace with interval
 
     def splitFromExceptionTimeSegments(exceptionTimeSegments: Seq[TimeSegment]): Seq[TimeSegment] = {
       val validExceptionSegments = TimeSegment.mergeTimeSegmentsForDate(this.date, exceptionTimeSegments)
@@ -19,21 +20,22 @@ object Core {
           case Nil => Nil
           case head :: tail =>
 
-            val startComp = head.startTime.compareTo(exceptionSegment.startTime)
-            val endComp = head.endTime.compareTo(exceptionSegment.endTime)
-
-            if (startComp >= 0 && endComp <= 0) {
+            if (head.startTime >= exceptionSegment.startTime && head.endTime <= exceptionSegment.endTime) {
               tail
-            } else if (startComp < 0 && endComp < 0) {
+            } else if (head.startTime < exceptionSegment.startTime && head.endTime < exceptionSegment.endTime) {
+
               TimeSegment(head.date, head.startTime, exceptionSegment.startTime) +: tail
-            } else if (startComp > 0 && endComp > 0) {
+
+            } else if (head.startTime > exceptionSegment.startTime && head.endTime > exceptionSegment.endTime) {
+
               TimeSegment(head.date, exceptionSegment.endTime, head.endTime) +: tail
-            } else if (startComp < 0 && endComp > 0) {
+
+            } else if (head.startTime < exceptionSegment.startTime && head.endTime > exceptionSegment.endTime) {
               List(
                 TimeSegment(head.date, exceptionSegment.endTime, head.endTime), // the order here is reversed, as we use prepend everywhere in the fold
                 TimeSegment(head.date, head.startTime, exceptionSegment.startTime)
               ) ++ tail
-            } else if (head.startTime.isBefore(exceptionSegment.startTime) && head.endTime.isAfter(exceptionSegment.endTime)) {
+            } else if (head.startTime < exceptionSegment.startTime && head.endTime > exceptionSegment.endTime) {
               acc
             } else {
               Nil // que faire ici ? On estime qu'on a gérer tous les cas ??
@@ -53,11 +55,12 @@ object Core {
   }
 
   object TimeSegment {
+
     private[core] def segmentBetween(
                         start: LocalDateTime,
                         end: LocalDateTime,
                         businessHoursByDayOfWeek: BusinessHoursByDayOfWeek,
-                        intervalExceptions: Seq[TimeSegment]
+                        intervalExceptions: Seq[TimeSegment] // TODO : maybe replace with a Map
     ): Seq[TimeSegment] = {
 
       // assuming that an intervalStart is always <= intervalEnd
@@ -92,43 +95,27 @@ object Core {
         }
       }
 
-      /*Range(0, numOfDays)
+      val numOfDays = Period.between(start.toLocalDate, end.toLocalDate).getDays + 1
+
+      Range(0, numOfDays)
         .map(i => start.plusDays(i.toLong))
-        .flatMap { rangeDateTime =>
-          val rangeDate = rangeDateTime.toLocalDate
-          businessHoursByDayOfWeek(rangeDateTime.getDayOfWeek)
+        .flatMap { dateTime =>
+
+          val date = dateTime.toLocalDate
+
+          businessHoursByDayOfWeek.getOrElse(dateTime.getDayOfWeek, Nil)
             .flatMap { interval =>
 
-              val intervalStartInDateTime = interval.startTime.atDate(rangeDate)
-              val intervalEndInDateTime = interval.endTime.atDate(rangeDate)
+              val intervalStartInDateTime = interval.startTime.atDate(date)
+              val intervalEndInDateTime = interval.endTime.atDate(date)
 
               for {
-                startSegment <- computeTimeSegmentStart(rangeDateTime, intervalStartInDateTime, intervalEndInDateTime)
-                endSegment <- computeTimeSegmentEnd(rangeDateTime, intervalStartInDateTime, intervalEndInDateTime)
-              } yield (startSegment, endSegment)
-
+                startSegment <- computeTimeSegmentStart(date, intervalStartInDateTime, intervalEndInDateTime)
+                endSegment <- computeTimeSegmentEnd(date, intervalStartInDateTime, intervalEndInDateTime)
+              } yield TimeSegment(date, startSegment, endSegment)
             }
-        }*/
 
-      val period = Period.between(start.toLocalDate, end.toLocalDate)
-      val numOfDays = period.getDays + 1
-
-      (
-        for {
-          dateTime <- Range(0, numOfDays).map(i => start.plusDays(i.toLong))
-          date = dateTime.toLocalDate
-          interval <- businessHoursByDayOfWeek.getOrElse(dateTime.getDayOfWeek, Nil)
-          intervalStartInDateTime = interval.startTime.atDate(date)
-          intervalEndInDateTime = interval.endTime.atDate(date)
-        } yield {
-          for {
-            startSegment <- computeTimeSegmentStart(date, intervalStartInDateTime, intervalEndInDateTime)
-            endSegment <- computeTimeSegmentEnd(date, intervalStartInDateTime, intervalEndInDateTime)
-          } yield TimeSegment(date, startSegment, endSegment)
-        }
-      )
-        .flatten
-        .flatMap(_.splitFromExceptionTimeSegments(intervalExceptions))
+        }.flatMap(_.splitFromExceptionTimeSegments(intervalExceptions))
     }
 
     private[core] def mergeTimeSegmentsForDate(date: LocalDate, timeSegments: Seq[TimeSegment]): Seq[TimeSegment] =
@@ -145,7 +132,7 @@ object Core {
               if (segment.startTime.isAfter(head.endTime)) {
                 segment +: acc
               } else if (segment.endTime.isBefore(head.endTime)) {
-                head +: tail
+                acc
               } else {
                 TimeSegment(head.date, head.startTime, segment.endTime) +: tail
               }
