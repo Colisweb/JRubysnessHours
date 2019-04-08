@@ -56,4 +56,51 @@ class TimeSegmentTest  extends WordSpec with Matchers {
     }
   }
 
+  LocalDate.of(2019, 4, 8)
+
+
+  "Merging mergeTimeSegments" when {
+
+
+    "Some overlapping TimeSegments ( for the same day )" in {
+
+      val timeSegments =
+        Seq(
+          TimeSegment(
+            LocalDate.of(2019, 4, 8),
+            LocalDateTime.of(2019, 4, 8, 2, 0),
+            LocalDateTime.of(2019, 4, 8, 5, 0)
+          ),
+          TimeSegment(
+            LocalDate.of(2019, 4, 8),
+            LocalDateTime.of(2019, 4, 8, 4, 0),
+            LocalDateTime.of(2019, 4, 8, 8, 0)
+          ),
+          TimeSegment(
+            LocalDate.of(2019, 4, 8),
+            LocalDateTime.of(2019, 4, 8, 9, 0),
+            LocalDateTime.of(2019, 4, 8, 19, 0)
+          ),
+          TimeSegment(
+            LocalDate.of(2019, 4, 8),
+            LocalDateTime.of(2019, 4, 8, 13, 0),
+            LocalDateTime.of(2019, 4, 8, 16, 0)
+          ),
+        )
+
+      val expected =
+        List(
+          TimeSegment(LocalDate.of(2019, 4, 8), LocalDateTime.of(2019, 4, 8, 2, 0), LocalDateTime.of(2019, 4, 8, 8, 0)),
+          TimeSegment(LocalDate.of(2019, 4, 8), LocalDateTime.of(2019, 4, 8, 9, 0), LocalDateTime.of(2019, 4, 8, 19, 0))
+        )
+
+      TimeSegment.mergeTimeSegments(timeSegments) shouldEqual expected
+
+
+
+
+
+    }
+  }
+
 }
