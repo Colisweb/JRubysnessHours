@@ -62,3 +62,6 @@ inThisBuild(
       )
   )
 )
+
+// TODO: wip for debug logs
+parallelExecution in test := false
