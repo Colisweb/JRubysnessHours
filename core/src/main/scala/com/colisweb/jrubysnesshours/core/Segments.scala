@@ -21,23 +21,35 @@ object Segments {
 
     val localStart = start.withZoneSameInstant(planningTimeZone).toLocalDateTime
     val localEnd = end.withZoneSameInstant(planningTimeZone).toLocalDateTime
-    val exceptionsByDate: Map[LocalDate, List[TimeSegment]] = exceptionSegments.groupBy(_.date)
+    segmentsBetween(planning, exceptionSegments)(localStart, localEnd)
+  }
 
-    if (localStart.toLocalDate == localEnd.toLocalDate) {
+  def segmentsBetween(
+      planning: BusinessHoursByDayOfWeek,
+      exceptionSegments: List[TimeSegment]
+  )(start: LocalDateTime, end: LocalDateTime): List[TimeSegment] = {
+
+    val exceptionsByDate: Map[LocalDate, List[TimeSegment]] =
+      exceptionSegments.groupBy(_.date)
+
+    if (start.toLocalDate == end.toLocalDate) {
       segmentsInOneDay(planning, exceptionsByDate)(
-        localStart.toLocalDate,
-        Interval(localStart.toLocalTime, localEnd.toLocalTime)
+        start.toLocalDate,
+        Interval(start.toLocalTime, end.toLocalTime)
       )
     } else {
-      val startDaySegments = segmentsInStartDay(planning, exceptionsByDate)(localStart)
-      val endDaySegments = segmentsInEndDay(planning, exceptionsByDate)(localEnd)
+      val startDaySegments =
+        segmentsInStartDay(planning, exceptionsByDate)(start)
+      val endDaySegments = segmentsInEndDay(planning, exceptionsByDate)(end)
 
       val numberOfDays =
-        Period.between(localStart.toLocalDate, localEnd.toLocalDate).getDays
+        Period.between(start.toLocalDate, end.toLocalDate).getDays
       val dayRangeSegments = Range(1, numberOfDays)
         .foldLeft(Nil: List[TimeSegment]) { (allSegments, i) =>
-          val date = localStart.plusDays(i.toLong)
-          allSegments ++ allSegmentsInDay(planning, exceptionsByDate)(date.toLocalDate)
+          val date = start.plusDays(i.toLong)
+          allSegments ++ allSegmentsInDay(planning, exceptionsByDate)(
+            date.toLocalDate
+          )
         }
 
       startDaySegments ++ dayRangeSegments ++ endDaySegments

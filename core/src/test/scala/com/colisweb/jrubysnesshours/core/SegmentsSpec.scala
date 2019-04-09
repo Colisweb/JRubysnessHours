@@ -116,7 +116,6 @@ class SegmentsSpec extends WordSpec with Matchers {
       }
     }
 
-
     "With exception" should {
 
       "the exception is not in the first or last day" should {
@@ -124,7 +123,8 @@ class SegmentsSpec extends WordSpec with Matchers {
           aSegment("2019-03-18", "13:00", "16:00")
         )
 
-        val segmentsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
+        val segmentsBetween
+          : (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
           Segments.segmentsBetween(planning, zoneId, exceptionSegments)
 
         "compute 6 segments between Friday 15 13:40 to Tuesday 19 13:40 INCLUDING and exception the 2019-03-18 between 13:00 and 16:00" in {
@@ -149,7 +149,8 @@ class SegmentsSpec extends WordSpec with Matchers {
           aSegment("2019-03-15", "13:00", "16:00")
         )
 
-        val segmentsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
+        val segmentsBetween
+          : (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
           Segments.segmentsBetween(planning, zoneId, exceptionSegments)
 
         "compute 6 segments between Friday 15 13:40 to Tuesday 19 13:40 INCLUDING and exception the  019-03-15 between 13:00 and 16:00" in {
@@ -173,7 +174,8 @@ class SegmentsSpec extends WordSpec with Matchers {
           aSegment("2019-03-19", "13:00", "16:00")
         )
 
-        val segmentsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
+        val segmentsBetween
+          : (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
           Segments.segmentsBetween(planning, zoneId, exceptionSegments)
 
         "compute 6 segments between Friday 15 13:40 to Tuesday 19 13:40 INCLUDING and exception the 2019-03-19 between 13:00 and 16:00" in {
@@ -197,7 +199,8 @@ class SegmentsSpec extends WordSpec with Matchers {
           aSegment("2019-03-15", "14:00", "16:00")
         )
 
-        val segmentsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
+        val segmentsBetween
+          : (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
           Segments.segmentsBetween(planning, zoneId, exceptionSegments)
 
         "compute 2 segments between Friday 15 13:40 to Friday 15 19:00 INCLUDING and exception the 2019-03-18 between 14:00 and 16:00" in {
@@ -214,7 +217,6 @@ class SegmentsSpec extends WordSpec with Matchers {
       }
 
     }
-
 
   }
 

@@ -52,4 +52,52 @@ object Core {
         }
         .reverse //reverse because we use prepend in our fold --- // reverse or sortBy start ?
   }
+
+  def within(
+      planning: BusinessHoursByDayOfWeek,
+      planningTimeZone: ZoneId,
+      exceptionSegments: List[TimeSegment]
+  )(start: ZonedDateTime, end: ZonedDateTime): Duration = {
+    Segments
+      .segmentsBetween(planning, planningTimeZone, exceptionSegments)(
+        start,
+        end
+      )
+      .foldLeft(Duration.ZERO)(
+        (total, segment) =>
+          total.plus(Duration.between(segment.startTime, segment.endTime))
+      )
+  }
+
+  def isOpenForDurationInDate(
+      planning: BusinessHoursByDayOfWeek,
+      exceptionSegments: List[TimeSegment]
+  )(date: LocalDate, duration: Duration): Boolean = {
+
+    val start = LocalDateTime.of(date, LocalTime.MIN)
+    val end = LocalDateTime.of(date, LocalTime.MAX)
+
+    Segments
+      .segmentsBetween(planning, exceptionSegments)(start, end)
+      .exists(
+        segment =>
+          Duration
+            .between(segment.startTime, segment.endTime)
+            .compareTo(duration) >= 0
+      )
+  }
+
+  def isOpen(
+      planning: BusinessHoursByDayOfWeek,
+      planningTimeZone: ZoneId,
+      exceptionSegments: List[TimeSegment]
+  )(instant: ZonedDateTime): Boolean = {
+
+    Segments
+      .segmentsBetween(planning, planningTimeZone, exceptionSegments)(
+        instant,
+        instant
+      )
+      .nonEmpty
+  }
 }
