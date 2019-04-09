@@ -107,4 +107,49 @@ object Segments {
   )(date: LocalDate): List[TimeSegment] = {
     planning.getOrElse(date.getDayOfWeek, Nil).map(TimeSegment(date, _))
   }
+
+  private[core] def mergeSegments(segments: Seq[TimeSegment]): List[TimeSegment] = {
+    segments
+      .sortBy(_.startTime)
+      .foldLeft(Nil: List[TimeSegment]) { (result, segment) =>
+        result.dropRight(1) ++ result.lastOption.map(mergeTwoSegment(_, segment)).getOrElse(List(segment))
+      }
+  }
+
+  private[core] def mergeSegments2(segments: Seq[TimeSegment]): List[TimeSegment] = {
+    segments
+      .sortBy(_.startTime)
+      .foldLeft(Nil: List[TimeSegment]) { (result, segment) =>
+        result.lastOption.map { s =>
+          mergeTwoSegmentOpt(s, segment) match {
+            case (Some(_), Some(seg2)) => result :+ seg2
+            case (Some(_), None) => result
+            case (None, Some(mergeResult)) => result.dropRight(1) :+ mergeResult
+            case _ => result // normalement ca devrait pas arriver.. donc je suis pas fan :/
+          }
+        }.getOrElse(List(segment))
+      }
+  }
+
+  // assuming seg1.startTime is always >= seg2.startTime ( and the same day )
+  private[core] def mergeTwoSegment(seg1: TimeSegment, seg2: TimeSegment): List[TimeSegment] = {
+    if (seg2.startTime > seg1.endTime) {
+      List(seg1, seg2)
+    } else if (seg2.endTime < seg1.endTime) {
+      List(seg1)
+    } else {
+      List(TimeSegment(seg1.date, Interval(seg1.startTime, seg2.endTime)))
+    }
+  }
+
+  // assuming seg1.startTime is always >= seg2.startTime ( and the same day )
+  private[core] def mergeTwoSegmentOpt(seg1: TimeSegment, seg2: TimeSegment): (Option[TimeSegment], Option[TimeSegment]) = {
+    if (seg2.startTime > seg1.endTime) {
+      (Some(seg1), Some(seg2))
+    } else if (seg2.endTime < seg1.endTime) {
+      (Some(seg1), None)
+    } else {
+      (None, Some(TimeSegment(seg1.date, Interval(seg1.startTime, seg2.endTime))))
+    }
+  }
 }

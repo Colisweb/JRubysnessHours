@@ -125,4 +125,28 @@ class SegmentsSpec extends WordSpec with Matchers {
         LocalTime.parse(s"$endTime:00")
       )
     )
+
+  "Merging mergeTimeSegments" should {
+
+    "Some overlapping TimeSegments ( for the same day ) with method merge1" in {
+
+      val timeSegments =
+        List(
+          aSegment("2019-04-08", "02:00", "05:00"),
+          aSegment("2019-04-08", "04:00", "08:00"),
+          aSegment("2019-04-08", "09:00", "19:00"),
+          aSegment("2019-04-08", "13:00", "16:00"),
+        )
+
+      val expected =
+        List(
+          aSegment("2019-04-08", "02:00", "08:00"),
+          aSegment("2019-04-08", "09:00", "19:00")
+        )
+
+      Segments.mergeSegments(timeSegments) should contain theSameElementsInOrderAs expected
+      Segments.mergeSegments2(timeSegments) should contain theSameElementsInOrderAs expected
+
+    }
+  }
 }
