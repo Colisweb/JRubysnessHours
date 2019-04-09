@@ -17,24 +17,23 @@ object Segments {
 
     val localStart = start.withZoneSameInstant(planningTimeZone).toLocalDateTime
     val localEnd = end.withZoneSameInstant(planningTimeZone).toLocalDateTime
-    val exceptionsByDate = exceptionSegments.groupBy(_.date)
-    println(exceptionsByDate)
+    val exceptionsByDate: Map[LocalDate, List[TimeSegment]] = exceptionSegments.groupBy(_.date)
 
     if (localStart.toLocalDate == localEnd.toLocalDate) {
-      segmentsInOneDay(planning)(
+      segmentsInOneDay(planning, exceptionsByDate)(
         localStart.toLocalDate,
         Interval(localStart.toLocalTime, localEnd.toLocalTime)
       )
     } else {
-      val startDaySegments = segmentsInStartDay(planning)(localStart)
-      val endDaySegments = segmentsInEndDay(planning)(localEnd)
+      val startDaySegments = segmentsInStartDay(planning, exceptionsByDate)(localStart)
+      val endDaySegments = segmentsInEndDay(planning, exceptionsByDate)(localEnd)
 
       val numberOfDays =
         Period.between(localStart.toLocalDate, localEnd.toLocalDate).getDays
       val dayRangeSegments = Range(1, numberOfDays)
         .foldLeft(Nil: List[TimeSegment]) { (allSegments, i) =>
           val date = localStart.plusDays(i.toLong)
-          allSegments ++ allSegmentsInDay(planning)(date.toLocalDate)
+          allSegments ++ allSegmentsInDay(planning, exceptionsByDate)(date.toLocalDate)
         }
 
       startDaySegments ++ dayRangeSegments ++ endDaySegments
@@ -42,70 +41,84 @@ object Segments {
   }
 
   private def segmentsInStartDay(
-      planning: BusinessHoursByDayOfWeek
+      planning: BusinessHoursByDayOfWeek,
+      exceptionsSegmentByDate: Map[LocalDate, List[TimeSegment]]
   )(start: LocalDateTime): List[TimeSegment] = {
+
+    val partialSplitTimeSegmentFromExceptions = splitTimeSegmentFromExceptions(exceptionsSegmentByDate, start.toLocalDate) _
+
     planning
       .getOrElse(start.getDayOfWeek, Nil)
       .foldLeft(Nil: List[TimeSegment]) { (result, interval) =>
         if (interval.endTime < start.toLocalTime)
           result
         else if (interval.startTime < start.toLocalTime)
-          result :+ TimeSegment(
-            start.toLocalDate,
-            Interval(start.toLocalTime, interval.endTime)
-          )
+          result ++ partialSplitTimeSegmentFromExceptions(TimeSegment(start.toLocalDate, Interval(start.toLocalTime, interval.endTime)))
         else
-          result :+ TimeSegment(start.toLocalDate, interval)
+          result ++ partialSplitTimeSegmentFromExceptions(TimeSegment(start.toLocalDate, interval))
       }
   }
 
   private def segmentsInEndDay(
-      planning: BusinessHoursByDayOfWeek
+      planning: BusinessHoursByDayOfWeek,
+      exceptionsSegmentByDate: Map[LocalDate, List[TimeSegment]]
   )(end: LocalDateTime): List[TimeSegment] = {
+
+    val partialSplitTimeSegmentFromExceptions = splitTimeSegmentFromExceptions(exceptionsSegmentByDate, end.toLocalDate) _
+
     planning
       .getOrElse(end.getDayOfWeek, Nil)
       .foldLeft(Nil: List[TimeSegment]) { (result, interval) =>
         if (interval.startTime > end.toLocalTime)
           result
         else if (interval.endTime > end.toLocalTime)
-          result :+ TimeSegment(
-            end.toLocalDate,
-            Interval(interval.startTime, end.toLocalTime)
-          )
+          result ++ partialSplitTimeSegmentFromExceptions(TimeSegment(end.toLocalDate, Interval(interval.startTime, end.toLocalTime)))
         else
-          result :+ TimeSegment(end.toLocalDate, interval)
+          result ++ partialSplitTimeSegmentFromExceptions(TimeSegment(end.toLocalDate, interval))
       }
   }
 
   private def segmentsInOneDay(
-      planning: BusinessHoursByDayOfWeek
+      planning: BusinessHoursByDayOfWeek,
+      exceptionsSegmentByDate: Map[LocalDate, List[TimeSegment]]
   )(date: LocalDate, query: Interval): List[TimeSegment] = {
+
+    val partialSplitTimeSegmentFromExceptions = splitTimeSegmentFromExceptions(exceptionsSegmentByDate, date) _
+
     planning
       .getOrElse(date.getDayOfWeek, Nil)
       .foldLeft(Nil: List[TimeSegment]) { (result, interval) =>
         if (interval.endTime < query.startTime || interval.startTime > query.endTime)
           result
         else if (interval.startTime < query.startTime && interval.endTime > query.endTime)
-          result :+ TimeSegment(date, Interval(query.startTime, query.endTime))
+          result ++ partialSplitTimeSegmentFromExceptions(TimeSegment(date, Interval(query.startTime, query.endTime)))
         else if (interval.startTime < query.startTime)
-          result :+ TimeSegment(
-            date,
-            Interval(query.startTime, interval.endTime)
-          )
+          result ++ partialSplitTimeSegmentFromExceptions(TimeSegment(date, Interval(query.startTime, interval.endTime)))
         else if (interval.endTime > query.endTime)
-          result :+ TimeSegment(
-            date,
-            Interval(interval.startTime, query.endTime)
-          )
+          result ++ partialSplitTimeSegmentFromExceptions(TimeSegment(date, Interval(interval.startTime, query.endTime)))
         else
-          result :+ TimeSegment(date, interval)
+          result ++ partialSplitTimeSegmentFromExceptions(TimeSegment(date, interval))
       }
   }
 
   private def allSegmentsInDay(
-      planning: BusinessHoursByDayOfWeek
+      planning: BusinessHoursByDayOfWeek,
+      exceptionsSegmentByDate: Map[LocalDate, List[TimeSegment]]
   )(date: LocalDate): List[TimeSegment] = {
-    planning.getOrElse(date.getDayOfWeek, Nil).map(TimeSegment(date, _))
+    planning.getOrElse(date.getDayOfWeek, Nil).flatMap{ interval =>
+      splitTimeSegmentFromExceptions(exceptionsSegmentByDate, date)(TimeSegment(date, interval))
+    }
+  }
+
+  private[core] def splitTimeSegmentFromExceptions(exceptionsSegmentByDate: Map[LocalDate, List[TimeSegment]], date: LocalDate)(initialSegment: TimeSegment) = {
+    exceptionsSegmentByDate.getOrElse(date, Nil)
+      .sortBy(_.startTime)
+      .foldLeft(List(initialSegment)) { (result, exceptionSegment) => //TODO replace it with recursion to end faster
+        result match {
+          case Nil => Nil
+          case _ => result.dropRight(1) ++ excludingSegmentFromAnother(result.last, exceptionSegment)
+        }
+      }
   }
 
   private[core] def mergeSegmentsForDate(
