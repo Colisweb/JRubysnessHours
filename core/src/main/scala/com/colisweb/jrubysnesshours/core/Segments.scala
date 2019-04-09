@@ -3,7 +3,11 @@ package com.colisweb.jrubysnesshours.core
 import java.time._
 
 import com.colisweb.jrubysnesshours.core.Core.TimeSegment.mergeTimeSegments
-import com.colisweb.jrubysnesshours.core.Core.{BusinessHoursByDayOfWeek, Interval, TimeSegment}
+import com.colisweb.jrubysnesshours.core.Core.{
+  BusinessHoursByDayOfWeek,
+  Interval,
+  TimeSegment
+}
 
 import scala.math.Ordering.Implicits._
 
