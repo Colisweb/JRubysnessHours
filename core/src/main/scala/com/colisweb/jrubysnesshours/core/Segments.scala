@@ -35,8 +35,9 @@ object Segments {
         }
 
     def segmentsInEndDay(
-        exceptionsSegmentByDate: Map[LocalDate, List[TimeSegment]]
-    )(end: LocalDateTime): ListBuffer[TimeSegment] =
+        exceptionsSegmentByDate: Map[LocalDate, List[TimeSegment]],
+        end: LocalDateTime
+    ): ListBuffer[TimeSegment] =
       planning
         .getOrElse(end.getDayOfWeek, List.empty)
         .filter(_.startTime > end.toLocalTime)
@@ -73,7 +74,7 @@ object Segments {
       )
     } else {
       val startDaySegments = segmentsInStartDay(exceptionsByDate, localStart)
-      val endDaySegments   = segmentsInEndDay(exceptionsByDate)(localEnd)
+      val endDaySegments   = segmentsInEndDay(exceptionsByDate, localEnd)
 
       val numberOfDays = Period.between(localStart.toLocalDate, localEnd.toLocalDate).getDays
       val dayRangeSegments =
