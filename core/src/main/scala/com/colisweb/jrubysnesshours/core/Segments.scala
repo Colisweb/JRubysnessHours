@@ -2,11 +2,8 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time._
 
-import com.colisweb.jrubysnesshours.core.Core.{
-  BusinessHoursByDayOfWeek,
-  Interval,
-  TimeSegment
-}
+import com.colisweb.jrubysnesshours.core.Core.TimeSegment.mergeTimeSegments
+import com.colisweb.jrubysnesshours.core.Core.{BusinessHoursByDayOfWeek, Interval, TimeSegment}
 
 import scala.math.Ordering.Implicits._
 
@@ -108,6 +105,11 @@ object Segments {
     planning.getOrElse(date.getDayOfWeek, Nil).map(TimeSegment(date, _))
   }
 
+  private[core] def mergeSegmentsForDate(
+    date: LocalDate,
+    timeSegments: Seq[TimeSegment]
+  ): Seq[TimeSegment] = mergeTimeSegments(timeSegments.filter(_.date.isEqual(date)))
+
   private[core] def mergeSegments(segments: Seq[TimeSegment]): List[TimeSegment] = {
     segments
       .sortBy(_.startTime)
@@ -150,6 +152,32 @@ object Segments {
       (Some(seg1), None)
     } else {
       (None, Some(TimeSegment(seg1.date, Interval(seg1.startTime, seg2.endTime))))
+    }
+  }
+
+  private[core] def excludingSegmentFromAnother(segment: TimeSegment, toExclude: TimeSegment) = {
+    if (segment.startTime >= toExclude.startTime && segment.endTime <= toExclude.endTime) {
+      Nil
+    } else if(segment.endTime <= toExclude.startTime || segment.startTime >= toExclude.endTime) {
+
+      List(segment)
+
+    } else if (segment.startTime < toExclude.startTime && segment.endTime < toExclude.endTime) {
+
+      List(TimeSegment(segment.date, Interval(segment.startTime, toExclude.startTime)))
+
+    } else if (segment.startTime >= toExclude.startTime && segment.endTime > toExclude.endTime) {
+
+      List(TimeSegment(segment.date, Interval(toExclude.endTime, segment.endTime)))
+
+    } else if (segment.startTime < toExclude.startTime && segment.endTime > toExclude.endTime) {
+      List(
+        TimeSegment(segment.date, Interval(segment.startTime, toExclude.startTime)),
+        TimeSegment(segment.date, Interval(toExclude.endTime, segment.endTime))
+      )
+    } else {
+      println(s"should not append. segment: $segment, toExclude: $toExclude")
+      Nil
     }
   }
 }
