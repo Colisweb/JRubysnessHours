@@ -34,84 +34,116 @@ class SegmentsSpec extends WordSpec with Matchers {
 
   "segments" should {
 
-    val segmentsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
-      Segments.segmentsBetween(planning, zoneId, Nil)
+    "without exception" should {
 
-    "compute 2 segments between Thursday 18:00 to Friday 10:00" in {
-      val s1 = segmentsBetween(
-        aDayAt("2019-03-21", "18:00"),
-        aDayAt("2019-03-22", "10:00")
-      )
-      s1 should contain theSameElementsInOrderAs List(
-        aSegment("2019-03-21", "18:00", "19:00"),
-        aSegment("2019-03-22", "09:30", "10:00")
-      )
-    }
-    "compute 2 segments between Saturday 13:00 to same Saturday 16:00" in {
-      val s2 =
-        segmentsBetween(
-          aDayAt("2019-03-23", "13:00"),
-          aDayAt("2019-03-23", "16:00")
+      val segmentsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
+        Segments.segmentsBetween(planning, zoneId, Nil)
+
+      "compute 2 segments between Thursday 18:00 to Friday 10:00" in {
+        val s1 = segmentsBetween(
+          aDayAt("2019-03-21", "18:00"),
+          aDayAt("2019-03-22", "10:00")
         )
-      s2 should contain theSameElementsInOrderAs List(
-        aSegment("2019-03-23", "13:00", "14:00"),
-        aSegment("2019-03-23", "15:00", "16:00")
-      )
-    }
-    "compute 3 segments between Saturday 13:00 to Monday 10:00" in {
-      val s3 =
-        segmentsBetween(
-          aDayAt("2019-03-23", "13:00"),
-          aDayAt("2019-03-25", "10:00")
+        s1 should contain theSameElementsInOrderAs List(
+          aSegment("2019-03-21", "18:00", "19:00"),
+          aSegment("2019-03-22", "09:30", "10:00")
         )
-      s3 should contain theSameElementsInOrderAs List(
-        aSegment("2019-03-23", "13:00", "14:00"),
-        aSegment("2019-03-23", "15:00", "19:00"),
-        aSegment("2019-03-25", "09:00", "10:00")
-      )
-    }
-    "compute 5 segments betweenSaturday 13:00 to Tuesday 16:00" in {
-      val s4 =
-        segmentsBetween(
-          aDayAt("2019-03-23", "13:00"),
-          aDayAt("2019-03-26", "16:00")
+      }
+      "compute 2 segments between Saturday 13:00 to same Saturday 16:00" in {
+        val s2 =
+          segmentsBetween(
+            aDayAt("2019-03-23", "13:00"),
+            aDayAt("2019-03-23", "16:00")
+          )
+        s2 should contain theSameElementsInOrderAs List(
+          aSegment("2019-03-23", "13:00", "14:00"),
+          aSegment("2019-03-23", "15:00", "16:00")
         )
-      s4 should contain theSameElementsInOrderAs List(
-        aSegment("2019-03-23", "13:00", "14:00"),
-        aSegment("2019-03-23", "15:00", "19:00"),
-        aSegment("2019-03-25", "09:00", "19:00"),
-        aSegment("2019-03-26", "09:30", "14:00"),
-        aSegment("2019-03-26", "15:00", "16:00")
-      )
-    }
-    "compute 2 segments between Sunday 13:00 to Tuesday 10:00" in {
-      val s5 =
-        segmentsBetween(
-          aDayAt("2019-03-24", "13:00"),
-          aDayAt("2019-03-26", "10:00")
+      }
+      "compute 3 segments between Saturday 13:00 to Monday 10:00" in {
+        val s3 =
+          segmentsBetween(
+            aDayAt("2019-03-23", "13:00"),
+            aDayAt("2019-03-25", "10:00")
+          )
+        s3 should contain theSameElementsInOrderAs List(
+          aSegment("2019-03-23", "13:00", "14:00"),
+          aSegment("2019-03-23", "15:00", "19:00"),
+          aSegment("2019-03-25", "09:00", "10:00")
         )
-      s5 should contain theSameElementsInOrderAs List(
-        aSegment("2019-03-25", "09:00", "19:00"),
-        aSegment("2019-03-26", "09:30", "10:00")
-      )
-    }
-    "compute 8 segments between Monday 09:00 to Sunday 23:00" in {
-      val s6 =
-        segmentsBetween(
-          aDayAt("2019-03-18", "09:00"),
-          aDayAt("2019-03-24", "23:00")
+      }
+      "compute 5 segments betweenSaturday 13:00 to Tuesday 16:00" in {
+        val s4 =
+          segmentsBetween(
+            aDayAt("2019-03-23", "13:00"),
+            aDayAt("2019-03-26", "16:00")
+          )
+        s4 should contain theSameElementsInOrderAs List(
+          aSegment("2019-03-23", "13:00", "14:00"),
+          aSegment("2019-03-23", "15:00", "19:00"),
+          aSegment("2019-03-25", "09:00", "19:00"),
+          aSegment("2019-03-26", "09:30", "14:00"),
+          aSegment("2019-03-26", "15:00", "16:00")
         )
-      s6 should contain theSameElementsInOrderAs List(
-        aSegment("2019-03-18", "09:00", "19:00"),
-        aSegment("2019-03-19", "09:30", "14:00"),
-        aSegment("2019-03-19", "15:00", "19:00"),
-        aSegment("2019-03-20", "09:30", "20:00"),
-        aSegment("2019-03-21", "09:30", "19:00"),
-        aSegment("2019-03-22", "09:30", "19:00"),
-        aSegment("2019-03-23", "09:00", "14:00"),
-        aSegment("2019-03-23", "15:00", "19:00")
-      )
+      }
+      "compute 2 segments between Sunday 13:00 to Tuesday 10:00" in {
+        val s5 =
+          segmentsBetween(
+            aDayAt("2019-03-24", "13:00"),
+            aDayAt("2019-03-26", "10:00")
+          )
+        s5 should contain theSameElementsInOrderAs List(
+          aSegment("2019-03-25", "09:00", "19:00"),
+          aSegment("2019-03-26", "09:30", "10:00")
+        )
+      }
+      "compute 8 segments between Monday 09:00 to Sunday 23:00" in {
+        val s6 =
+          segmentsBetween(
+            aDayAt("2019-03-18", "09:00"),
+            aDayAt("2019-03-24", "23:00")
+          )
+        s6 should contain theSameElementsInOrderAs List(
+          aSegment("2019-03-18", "09:00", "19:00"),
+          aSegment("2019-03-19", "09:30", "14:00"),
+          aSegment("2019-03-19", "15:00", "19:00"),
+          aSegment("2019-03-20", "09:30", "20:00"),
+          aSegment("2019-03-21", "09:30", "19:00"),
+          aSegment("2019-03-22", "09:30", "19:00"),
+          aSegment("2019-03-23", "09:00", "14:00"),
+          aSegment("2019-03-23", "15:00", "19:00")
+        )
+      }
     }
+
+
+    "With exception" should {
+
+      val exceptionSegments = List(
+        aSegment("2019-03-18", "13:00", "16:00")
+      )
+
+      val segmentsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
+        Segments.segmentsBetween(planning, zoneId, exceptionSegments)
+
+      "compute 6 segments between Friday 15 13:40 to Tuesday 19 13:40 INCLUDING and exception the 2019-03-18 between 13:00 and 16:00" in {
+        val s7 =
+          segmentsBetween(
+            aDayAt("2019-03-15", "13:40"),
+            aDayAt("2019-03-19", "13:40")
+          )
+        s7 should contain theSameElementsInOrderAs List(
+          aSegment("2019-03-15", "13:40", "19:00"),
+          aSegment("2019-03-16", "09:00", "14:00"),
+          aSegment("2019-03-16", "15:00", "19:00"),
+          aSegment("2019-03-18", "09:00", "13:00"),
+          aSegment("2019-03-18", "16:00", "19:00"),
+          aSegment("2019-03-19", "09:30", "13:40"),
+        )
+      }
+    }
+
+
   }
 
   def aDayAt(day: String, time: String): ZonedDateTime =
