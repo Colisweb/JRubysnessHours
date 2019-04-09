@@ -35,7 +35,7 @@ class SegmentsSpec extends WordSpec with Matchers {
   "segments" should {
 
     val segmentsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
-      Segments.segmentsBetween(planning, zoneId)
+      Segments.segmentsBetween(planning, zoneId, Nil)
 
     "compute 2 segments between Thursday 18:00 to Friday 10:00" in {
       val s1 = segmentsBetween(

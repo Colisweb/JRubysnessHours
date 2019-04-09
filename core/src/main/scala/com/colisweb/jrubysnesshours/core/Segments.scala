@@ -11,11 +11,14 @@ object Segments {
 
   def segmentsBetween(
       planning: BusinessHoursByDayOfWeek,
-      planningTimeZone: ZoneId
+      planningTimeZone: ZoneId,
+      exceptionSegments: List[TimeSegment]
   )(start: ZonedDateTime, end: ZonedDateTime): List[TimeSegment] = {
 
     val localStart = start.withZoneSameInstant(planningTimeZone).toLocalDateTime
     val localEnd = end.withZoneSameInstant(planningTimeZone).toLocalDateTime
+    val exceptionsByDate = exceptionSegments.groupBy(_.date)
+    println(exceptionsByDate)
 
     if (localStart.toLocalDate == localEnd.toLocalDate) {
       segmentsInOneDay(planning)(
@@ -162,7 +165,7 @@ object Segments {
 
       List(segment)
 
-    } else if (segment.startTime < toExclude.startTime && segment.endTime < toExclude.endTime) {
+    } else if (segment.startTime < toExclude.startTime && segment.endTime <= toExclude.endTime) {
 
       List(TimeSegment(segment.date, Interval(segment.startTime, toExclude.startTime)))
 
