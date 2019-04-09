@@ -3,11 +3,7 @@ package com.colisweb.jrubysnesshours.core
 import java.time.DayOfWeek._
 import java.time._
 
-import com.colisweb.jrubysnesshours.core.Core.{
-  BusinessHoursByDayOfWeek,
-  Interval,
-  TimeSegment
-}
+import com.colisweb.jrubysnesshours.core.Core.{BusinessHoursByDayOfWeek, Interval, TimeSegment}
 import org.scalatest.{Matchers, WordSpec}
 
 class SegmentsSpec extends WordSpec with Matchers {
@@ -23,8 +19,8 @@ class SegmentsSpec extends WordSpec with Matchers {
       Interval("15:00".toLocalTime, "19:00".toLocalTime)
     ),
     WEDNESDAY -> List(Interval("09:30".toLocalTime, "20:00".toLocalTime)),
-    THURSDAY -> List(Interval("09:30".toLocalTime, "19:00".toLocalTime)),
-    FRIDAY -> List(Interval("09:30".toLocalTime, "19:00".toLocalTime)),
+    THURSDAY  -> List(Interval("09:30".toLocalTime, "19:00".toLocalTime)),
+    FRIDAY    -> List(Interval("09:30".toLocalTime, "19:00".toLocalTime)),
     SATURDAY -> List(
       Interval("09:00".toLocalTime, "14:00".toLocalTime),
       Interval("15:00".toLocalTime, "19:00".toLocalTime)
@@ -115,7 +111,6 @@ class SegmentsSpec extends WordSpec with Matchers {
         )
       }
     }
-
 
     "With exception" should {
 
@@ -214,7 +209,6 @@ class SegmentsSpec extends WordSpec with Matchers {
       }
 
     }
-
 
   }
 
