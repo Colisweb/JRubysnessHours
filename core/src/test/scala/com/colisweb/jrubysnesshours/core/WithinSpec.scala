@@ -1,12 +1,9 @@
 package com.colisweb.jrubysnesshours.core
 
 import java.time.DayOfWeek._
-import java.time.{Duration, LocalTime, ZoneId, ZonedDateTime}
+import java.time._
 
-import com.colisweb.jrubysnesshours.core.Core.{
-  TimeIntervalsByDayOfWeek,
-  TimeInterval
-}
+import com.colisweb.jrubysnesshours.core.Core.{Schedule, TimeInterval}
 import org.scalatest.{Matchers, WordSpec}
 
 class WithinSpec extends WordSpec with Matchers {
@@ -15,7 +12,7 @@ class WithinSpec extends WordSpec with Matchers {
     def toLocalTime: LocalTime = LocalTime.parse(str)
   }
 
-  val planning: TimeIntervalsByDayOfWeek = Map(
+  val planning: Map[DayOfWeek, List[TimeInterval]] = Map(
     MONDAY -> List(TimeInterval("09:00".toLocalTime, "19:00".toLocalTime)),
     TUESDAY -> List(
       TimeInterval("09:30".toLocalTime, "14:00".toLocalTime),
@@ -30,11 +27,12 @@ class WithinSpec extends WordSpec with Matchers {
     )
   )
   val zoneId: ZoneId = ZoneId.of("Europe/Paris")
+  val schedule = Schedule(planning, Map.empty, zoneId)
 
   "within" should {
 
     val within: (ZonedDateTime, ZonedDateTime) => Duration =
-      Core.within(planning, zoneId, Nil)
+      Core.within(schedule)
 
     "compute duration between Thursday 18:00 to Friday 10:00" in {
       val d1 = within(

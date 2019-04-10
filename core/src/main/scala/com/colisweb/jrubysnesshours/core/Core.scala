@@ -6,7 +6,10 @@ object Core {
 
   case class TimeInterval(start: LocalTime, end: LocalTime)
 
-  case class TimeIntervalForWeekDay(dayOfWeek: DayOfWeek, interval: TimeInterval)
+  case class TimeIntervalForWeekDay(
+      dayOfWeek: DayOfWeek,
+      interval: TimeInterval
+  )
 
   case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
 
@@ -16,29 +19,31 @@ object Core {
   }
 
   case class Schedule(
-    planning: Map[DayOfWeek, List[TimeInterval]],
-    exceptions: Map[LocalDate, List[TimeInterval]],
-    timeZone: ZoneId
+      planning: Map[DayOfWeek, List[TimeInterval]],
+      exceptions: Map[LocalDate, List[TimeInterval]],
+      timeZone: ZoneId
   )
 
   object Schedule {
 
-    def apply(
-      plannings: List[TimeIntervalForWeekDay],
-      exceptions: List[TimeIntervalForDate],
-      timeZone: ZoneId
-    ): Schedule = {
-
-      Schedule(
-        plannings.groupBy(_.dayOfWeek).map {
-          case (dayOfWeek, intervals) => dayOfWeek -> ??? // flatten, sort and merge segments
-        },
-        exceptions.groupBy(_.date).map {
-          case (date, intervals) => date -> ??? // flatten, sort and merge segments
-        },
-        timeZone
-      )
-    }
+//    def build(
+//        plannings: List[TimeIntervalForWeekDay],
+//        exceptions: List[TimeIntervalForDate],
+//        timeZone: ZoneId
+//    ): Schedule = {
+//
+//      Schedule(
+//        plannings.groupBy(_.dayOfWeek).map {
+//          case (dayOfWeek, intervals) =>
+//            dayOfWeek -> ??? // flatten, sort and merge segments
+//        },
+//        exceptions.groupBy(_.date).map {
+//          case (date, intervals) =>
+//            date -> ??? // flatten, sort and merge segments
+//        },
+//        timeZone
+//      )
+//    }
   }
 
   object TimeIntervalForWeekDay {
@@ -78,15 +83,10 @@ object Core {
   }
 
   def within(
-              planning: Map[DayOfWeek, List[TimeInterval]],
-              planningTimeZone: ZoneId,
-              exceptionSegments: List[TimeIntervalForDate]
+      schedule: Schedule
   )(start: ZonedDateTime, end: ZonedDateTime): Duration = {
     Segments
-      .segmentsBetween(planning, planningTimeZone, exceptionSegments)(
-        start,
-        end
-      )
+      .segmentsBetween(schedule)(start, end)
       .foldLeft(Duration.ZERO)(
         (total, segment) =>
           total.plus(Duration.between(segment.startTime, segment.endTime))
@@ -94,15 +94,14 @@ object Core {
   }
 
   def isOpenForDurationInDate(
-                               planning: Map[DayOfWeek, List[TimeInterval]],
-                               exceptionSegments: List[TimeIntervalForDate]
+      schedule: Schedule
   )(date: LocalDate, duration: Duration): Boolean = {
 
-    val start = LocalDateTime.of(date, LocalTime.MIN)
-    val end = LocalDateTime.of(date, LocalTime.MAX)
+    val start = ZonedDateTime.of(date, LocalTime.MIN, schedule.timeZone)
+    val end = ZonedDateTime.of(date, LocalTime.MAX, schedule.timeZone)
 
     Segments
-      .segmentsBetween(planning, exceptionSegments)(start, end)
+      .segmentsBetween(schedule)(start, end)
       .exists(
         segment =>
           Duration
@@ -111,17 +110,10 @@ object Core {
       )
   }
 
-  def isOpen(
-              planning: Map[DayOfWeek, List[TimeInterval]],
-              planningTimeZone: ZoneId,
-              exceptionSegments: List[TimeIntervalForDate]
-  )(instant: ZonedDateTime): Boolean = {
+  def isOpen(schedule: Schedule)(instant: ZonedDateTime): Boolean = {
 
     Segments
-      .segmentsBetween(planning, planningTimeZone, exceptionSegments)(
-        instant,
-        instant
-      )
+      .segmentsBetween(schedule)(instant, instant)
       .nonEmpty
   }
 }
