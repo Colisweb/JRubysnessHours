@@ -3,12 +3,13 @@ package com.colisweb.jrubysnesshours.core
 import java.time._
 
 import com.colisweb.jrubysnesshours.core.Core.TimeSegment
+import com.colisweb.jrubysnesshours.core.Segments.excludingSegmentFromAnother
 import com.colisweb.jrubysnesshours.core.SpecUtils._
 import org.scalatest.{Matchers, WordSpec}
 
 class SegmentsSpec extends WordSpec with Matchers {
 
-  "segments" should {
+  "segments" when {
 
     "without exception" should {
 
@@ -87,7 +88,7 @@ class SegmentsSpec extends WordSpec with Matchers {
       }
     }
 
-    "With exception" should {
+    "With exception" when {
 
       "the exception is not in the first or last day" should {
         val exceptionSegments = List(
@@ -140,7 +141,7 @@ class SegmentsSpec extends WordSpec with Matchers {
         }
       }
 
-      "the exception is during the last day" should {
+      "the exception is during the last day" when {
         val exceptionSegments = List(
           "2019-03-19" at "13:00" - "16:00"
         )
@@ -192,21 +193,22 @@ class SegmentsSpec extends WordSpec with Matchers {
   }
 
   "Merging mergeTimeSegments" should {
+    val day = "2019-04-08"
 
     "Some overlapping TimeSegments ( for the same day ) with method merge1" in {
 
       val timeSegments =
         List(
-          "2019-04-08" at "02:00" - "05:00",
-          "2019-04-08" at "04:00" - "08:00",
-          "2019-04-08" at "09:00" - "19:00",
-          "2019-04-08" at "13:00" - "16:00",
+          day at "02:00" - "05:00",
+          day at "04:00" - "08:00",
+          day at "09:00" - "19:00",
+          day at "13:00" - "16:00",
         )
 
       val expected =
         List(
-          "2019-04-08" at "02:00" - "08:00",
-          "2019-04-08" at "09:00" - "19:00"
+          day at "02:00" - "08:00",
+          day at "09:00" - "19:00"
         )
 
       Segments.mergeSegments(timeSegments) should contain theSameElementsInOrderAs expected
@@ -215,129 +217,75 @@ class SegmentsSpec extends WordSpec with Matchers {
     }
   }
 
-  "Excluding a timeSegment from another" should {
+  "Excluding a timeSegment from another" when {
+    val day = "2019-04-08"
 
     // TODO : generators with random could be great to check that the last case never append
 
-    "Will return Nil" should {
-      "including is 05:00 -> 10:00 and excluding is 04:00 -> 11:00" in {
+    "05:00 -> 10:00" when {
+      val includingSeg = day at "05:00" - "10:00"
 
-        val includingSeg = "2019-04-08" at "05:00" - "10:00"
-        val excludingSeg = "2019-04-08" at "04:00" - "11:00"
-
-        val res =
-          Segments.excludingSegmentFromAnother(includingSeg, excludingSeg)
-        res should contain theSameElementsInOrderAs Nil
+      "excluding 04:00 -> 11:00 is empty" in {
+        excludingSegmentFromAnother(includingSeg, day at "04:00" - "11:00") shouldBe empty
       }
 
-      "including is 05:00 -> 10:00 and excluding is 05:00 -> 10:00" in {
-
-        val includingSeg = "2019-04-08" at "05:00" - "10:00"
-        val excludingSeg = "2019-04-08" at "05:00" - "10:00"
-
-        val res =
-          Segments.excludingSegmentFromAnother(includingSeg, excludingSeg)
-        res should contain theSameElementsInOrderAs Nil
-      }
-    }
-
-    "Will return List(includingSeg)" should {
-      "including is 05:00 -> 10:00 and excluding is 01:00 -> 04:00" in {
-
-        val includingSeg = "2019-04-08" at "05:00" - "10:00"
-        val excludingSeg = "2019-04-08" at "01:00" - "04:00"
-
-        val res =
-          Segments.excludingSegmentFromAnother(includingSeg, excludingSeg)
-        res should contain theSameElementsInOrderAs List(includingSeg)
+      "excluding 05:00 -> 10:00 is empty" in {
+        excludingSegmentFromAnother(includingSeg, day at "05:00" - "10:00") shouldBe empty
       }
 
-      "including is 01:00 -> 04:00 and excluding is 05:00 -> 10:00" in {
-
-        val includingSeg = "2019-04-08" at "01:00" - "04:00"
-        val excludingSeg = "2019-04-08" at "05:00" - "10:00"
-
-        val res =
-          Segments.excludingSegmentFromAnother(includingSeg, excludingSeg)
-        res should contain theSameElementsInOrderAs List(includingSeg)
-      }
-
-      "including is 01:00 -> 04:00 and excluding is 04:00 -> 10:00" in {
-
-        val includingSeg = "2019-04-08" at "01:00" - "04:00"
-        val excludingSeg = "2019-04-08" at "04:00" - "10:00"
-
-        val res =
-          Segments.excludingSegmentFromAnother(includingSeg, excludingSeg)
-        res should contain theSameElementsInOrderAs List(includingSeg)
-      }
-    }
-
-    "Will return including start -> excluding start segment" should {
-      "including is 05:00 -> 10:00 and excluding is 06:00 -> 11:00" in {
-
-        val includingSeg = "2019-04-08" at "05:00" - "10:00"
-        val excludingSeg = "2019-04-08" at "06:00" - "11:00"
-
-        val res =
-          Segments.excludingSegmentFromAnother(includingSeg, excludingSeg)
-        res should contain theSameElementsInOrderAs List(
-          "2019-04-08" at "05:00" - "06:00"
+      "excluding 01:00 -> 04:00 is 01:00 -> 04:00" in {
+        excludingSegmentFromAnother(includingSeg, day at "01:00" - "04:00") shouldBe List(
+          includingSeg
         )
       }
 
-      "including is 05:00 -> 10:00 and excluding is 06:00 -> 10:00" in {
+      "excluding 06:00 -> 11:00 is 05:00 -> 06:00" in {
+        excludingSegmentFromAnother(includingSeg, day at "06:00" - "11:00") shouldBe List(
+          day at "05:00" - "06:00"
+        )
+      }
 
-        val includingSeg = "2019-04-08" at "05:00" - "10:00"
-        val excludingSeg = "2019-04-08" at "06:00" - "10:00"
+      "excluding 06:00 -> 10:00 is 05:00 -> 06:00" in {
+        excludingSegmentFromAnother(includingSeg, day at "06:00" - "10:00") shouldBe List(
+          day at "05:00" - "06:00"
+        )
+      }
 
-        val res =
-          Segments.excludingSegmentFromAnother(includingSeg, excludingSeg)
-        res should contain theSameElementsInOrderAs List(
-          "2019-04-08" at "05:00" - "06:00"
+      "excluding 04:00 -> 09:00 is 09:00 -> 10:00" in {
+        excludingSegmentFromAnother(includingSeg, day at "04:00" - "09:00") shouldBe List(
+          day at "09:00" - "10:00"
+        )
+      }
+
+      "excluding 05:00 -> 09:00 is 09:00 -> 10:00" in {
+        excludingSegmentFromAnother(includingSeg, day at "05:00" - "09:00") shouldBe List(
+          day at "09:00" - "10:00"
+        )
+      }
+
+      "excluding is 06:00 -> 08:00 is 2 segments" in {
+        excludingSegmentFromAnother(includingSeg, day at "06:00" - "08:00") shouldBe List(
+          day at "05:00" - "06:00",
+          day at "08:00" - "10:00"
         )
       }
     }
 
-    "Will return excluding end -> including end segment" should {
-      "including is 05:00 -> 10:00 and excluding is 04:00 -> 09:00" in {
+    "01:00 -> 04:00" when {
+      val includingSeg = day at "01:00" - "04:00"
 
-        val includingSeg = "2019-04-08" at "05:00" - "10:00"
-        val excludingSeg = "2019-04-08" at "04:00" - "09:00"
-
-        val res =
-          Segments.excludingSegmentFromAnother(includingSeg, excludingSeg)
-        res should contain theSameElementsInOrderAs List(
-          "2019-04-08" at "09:00" - "10:00"
+      "excluding 05:00 -> 10:00 is 01:00 -> 04:00" in {
+        excludingSegmentFromAnother(includingSeg, day at "05:00" - "10:00") shouldBe List(
+          includingSeg
         )
       }
 
-      "including is 05:00 -> 10:00 and excluding is 05:00 -> 09:00" in {
-
-        val includingSeg = "2019-04-08" at "05:00" - "10:00"
-        val excludingSeg = "2019-04-08" at "05:00" - "09:00"
-
-        val res =
-          Segments.excludingSegmentFromAnother(includingSeg, excludingSeg)
-        res should contain theSameElementsInOrderAs List(
-          "2019-04-08" at "09:00" - "10:00"
+      "excluding 04:00 -> 10:00 is 01:00 -> 04:00" in {
+        excludingSegmentFromAnother(includingSeg, day at "04:00" - "10:00") shouldBe List(
+          includingSeg
         )
       }
     }
 
-    "Will return two segment : (including.start -> excluding.start), (excluding.end -> including.end)" should {
-      "including is 05:00 -> 10:00 and excluding is 06:00 -> 08:00" in {
-
-        val includingSeg = "2019-04-08" at "05:00" - "10:00"
-        val excludingSeg = "2019-04-08" at "06:00" - "08:00"
-
-        val res =
-          Segments.excludingSegmentFromAnother(includingSeg, excludingSeg)
-        res should contain theSameElementsInOrderAs List(
-          "2019-04-08" at "05:00" - "06:00",
-          "2019-04-08" at "08:00" - "10:00"
-        )
-      }
-    }
   }
 }
