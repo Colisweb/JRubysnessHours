@@ -6,6 +6,7 @@ import com.colisweb.jrubysnesshours.core.Core.Schedule
 
 import scala.annotation.tailrec
 import scala.math.Ordering.Implicits._
+import TimeInterval.TimeIntervalOps
 
 object Segments {
 
@@ -43,6 +44,21 @@ object Segments {
 
       startDaySegments ++ dayRangeSegments ++ endDaySegments
     }
+  }
+
+  def contains(schedule: Schedule)(instant: ZonedDateTime): Boolean = {
+    val localInstant = instant.withZoneSameInstant(schedule.timeZone)
+
+    schedule.planning
+      .get(localInstant.getDayOfWeek)
+      .exists(
+        interval =>
+          if (interval.exists(_.contains(localInstant.toLocalTime))) {
+            schedule.exceptions
+              .get(localInstant.toLocalDate)
+              .forall(_.forall(_.containsNot(localInstant.toLocalTime)))
+          } else false
+      )
   }
 
   private[core] def segmentsInStartDay(

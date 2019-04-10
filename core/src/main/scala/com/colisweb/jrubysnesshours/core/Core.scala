@@ -101,4 +101,6 @@ object Core {
       .segmentsBetween(schedule)(instant, instant)
       .nonEmpty
   }
+
+  // TODO: next business hour
 }
