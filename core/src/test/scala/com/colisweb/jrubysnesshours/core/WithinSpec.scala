@@ -1,13 +1,11 @@
 package com.colisweb.jrubysnesshours.core
 
-import java.time.{Duration, ZoneId, ZonedDateTime}
+import java.time.{Duration, ZonedDateTime}
 
 import com.colisweb.jrubysnesshours.core.SpecUtils._
 import org.scalatest.{Matchers, WordSpec}
 
 class WithinSpec extends WordSpec with Matchers {
-
-  val zoneId: ZoneId = ZoneId.of("Europe/Paris")
 
   "within" should {
 
@@ -63,15 +61,4 @@ class WithinSpec extends WordSpec with Matchers {
     }
   }
 
-  def aDayAt(day: String, time: String): ZonedDateTime =
-    ZonedDateTime.parse(s"${day}T$time:00.000+01:00[$zoneId]")
-
-  def aDuration(hours: Int, minutes: Int = 0): Duration =
-    Duration.ofHours(hours.toLong).plusMinutes(minutes.toLong)
-
-  def aDuration(days: Int, hours: Int, minutes: Int): Duration =
-    Duration
-      .ofDays(days.toLong)
-      .plusHours(hours.toLong)
-      .plusMinutes(minutes.toLong)
 }

@@ -2,13 +2,11 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time._
 
-import com.colisweb.jrubysnesshours.core.Core.{Interval, TimeSegment}
+import com.colisweb.jrubysnesshours.core.Core.TimeSegment
 import com.colisweb.jrubysnesshours.core.SpecUtils._
 import org.scalatest.{Matchers, WordSpec}
 
 class SegmentsSpec extends WordSpec with Matchers {
-
-  val zoneId: ZoneId = ZoneId.of("Europe/Paris")
 
   "segments" should {
 
@@ -197,18 +195,6 @@ class SegmentsSpec extends WordSpec with Matchers {
     }
 
   }
-
-  def aDayAt(day: String, time: String): ZonedDateTime =
-    ZonedDateTime.parse(s"${day}T$time:00.000+01:00[$zoneId]")
-
-  def aSegment(date: String, startTime: String, endTime: String) =
-    TimeSegment(
-      LocalDate.parse(date),
-      Interval(
-        LocalTime.parse(s"$startTime:00"),
-        LocalTime.parse(s"$endTime:00")
-      )
-    )
 
   "Merging mergeTimeSegments" should {
 

@@ -1,11 +1,12 @@
 package com.colisweb.jrubysnesshours.core
 
 import java.time.DayOfWeek._
-import java.time.LocalTime
+import java.time.{Duration, LocalDate, LocalTime, ZoneId, ZonedDateTime}
 
 import com.colisweb.jrubysnesshours.core.Core.{
   BusinessHoursByDayOfWeek,
-  Interval
+  Interval,
+  TimeSegment
 }
 
 object SpecUtils {
@@ -14,6 +15,29 @@ object SpecUtils {
 
     def -(to: String): Interval = Interval(str.toLocalTime, to.toLocalTime)
   }
+
+  val zoneId: ZoneId = ZoneId.of("Europe/Paris")
+
+  def aDayAt(day: String, time: String): ZonedDateTime =
+    ZonedDateTime.parse(s"${day}T$time:00.000+01:00[$zoneId]")
+
+  def aSegment(date: String, startTime: String, endTime: String) =
+    TimeSegment(
+      LocalDate.parse(date),
+      Interval(
+        LocalTime.parse(s"$startTime:00"),
+        LocalTime.parse(s"$endTime:00")
+      )
+    )
+
+  def aDuration(hours: Int, minutes: Int = 0): Duration =
+    Duration.ofHours(hours.toLong).plusMinutes(minutes.toLong)
+
+  def aDuration(days: Int, hours: Int, minutes: Int): Duration =
+    Duration
+      .ofDays(days.toLong)
+      .plusHours(hours.toLong)
+      .plusMinutes(minutes.toLong)
 
   val planning: BusinessHoursByDayOfWeek = Map(
     MONDAY -> List("09:00" - "19:00"),
