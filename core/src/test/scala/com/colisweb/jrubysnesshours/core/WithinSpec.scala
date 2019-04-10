@@ -3,7 +3,7 @@ package com.colisweb.jrubysnesshours.core
 import java.time.DayOfWeek._
 import java.time._
 
-import com.colisweb.jrubysnesshours.core.Core.{Schedule, TimeInterval}
+import com.colisweb.jrubysnesshours.core.Core.Schedule
 import org.scalatest.{Matchers, WordSpec}
 
 class WithinSpec extends WordSpec with Matchers {

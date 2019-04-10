@@ -3,11 +3,7 @@ package com.colisweb.jrubysnesshours.core
 import java.time.DayOfWeek._
 import java.time._
 
-import com.colisweb.jrubysnesshours.core.Core.{
-  Schedule,
-  TimeInterval,
-  TimeIntervalForDate
-}
+import com.colisweb.jrubysnesshours.core.Core.Schedule
 import org.scalatest.{Matchers, WordSpec}
 
 class SegmentsSpec extends WordSpec with Matchers {
@@ -279,33 +275,37 @@ class SegmentsSpec extends WordSpec with Matchers {
 
     // TODO : generators with random could be great to check that the last case never append
 
-
     "Will return Nil" should {
       "including is 05:00 -> 10:00 and excluding is 04:00 -> 11:00" in {
 
-        val includingInterval = aTimeInterval( "05:00", "10:00")
-        val excludingInterval = aTimeInterval( "04:00", "11:00")
-        
-        val date = aDate("2019-04-08")
-        
+        val includingInterval = aTimeInterval("05:00", "10:00")
+        val excludingInterval = aTimeInterval("04:00", "11:00")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] = Map(date -> List(excludingInterval))
+        val date = aDate("2019-04-08")
+
+        val exceptions: Map[LocalDate, List[TimeInterval]] =
+          Map(date -> List(excludingInterval))
 
         val res =
-          Segments.applyExceptionsToInterval(exceptions, date)(includingInterval)
+          Segments.applyExceptionsToInterval(exceptions, date)(
+            includingInterval
+          )
         res should contain theSameElementsInOrderAs Nil
       }
 
       "including is 05:00 -> 10:00 and excluding is 05:00 -> 10:00" in {
 
-        val includingInterval = aTimeInterval( "05:00", "10:00")
-        val excludingInterval = aTimeInterval( "05:00", "10:00")
+        val includingInterval = aTimeInterval("05:00", "10:00")
+        val excludingInterval = aTimeInterval("05:00", "10:00")
         val date = aDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] = Map(date -> List(excludingInterval))
+        val exceptions: Map[LocalDate, List[TimeInterval]] =
+          Map(date -> List(excludingInterval))
 
         val res =
-          Segments.applyExceptionsToInterval(exceptions, date)(includingInterval)
+          Segments.applyExceptionsToInterval(exceptions, date)(
+            includingInterval
+          )
         res should contain theSameElementsInOrderAs Nil
       }
     }
@@ -313,55 +313,73 @@ class SegmentsSpec extends WordSpec with Matchers {
     "Will return List(includingInterval)" should {
       "including is 05:00 -> 10:00 and excluding is 01:00 -> 04:00" in {
 
-        val includingInterval = aTimeInterval( "05:00", "10:00")
-        val excludingInterval = aTimeInterval( "01:00", "04:00")
+        val includingInterval = aTimeInterval("05:00", "10:00")
+        val excludingInterval = aTimeInterval("01:00", "04:00")
         val date = aDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] = Map(date -> List(excludingInterval))
+        val exceptions: Map[LocalDate, List[TimeInterval]] =
+          Map(date -> List(excludingInterval))
 
         val res =
-          Segments.applyExceptionsToInterval(exceptions, date)(includingInterval)
-        res should contain theSameElementsInOrderAs List(TimeIntervalForDate(date, includingInterval))
+          Segments.applyExceptionsToInterval(exceptions, date)(
+            includingInterval
+          )
+        res should contain theSameElementsInOrderAs List(
+          TimeIntervalForDate(date, includingInterval)
+        )
       }
 
       "including is 01:00 -> 04:00 and excluding is 05:00 -> 10:00" in {
 
-        val includingInterval = aTimeInterval( "01:00", "04:00")
-        val excludingInterval = aTimeInterval( "05:00", "10:00")
+        val includingInterval = aTimeInterval("01:00", "04:00")
+        val excludingInterval = aTimeInterval("05:00", "10:00")
         val date = aDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] = Map(date -> List(excludingInterval))
+        val exceptions: Map[LocalDate, List[TimeInterval]] =
+          Map(date -> List(excludingInterval))
 
         val res =
-          Segments.applyExceptionsToInterval(exceptions, date)(includingInterval)
-        res should contain theSameElementsInOrderAs List(TimeIntervalForDate(date, includingInterval))
+          Segments.applyExceptionsToInterval(exceptions, date)(
+            includingInterval
+          )
+        res should contain theSameElementsInOrderAs List(
+          TimeIntervalForDate(date, includingInterval)
+        )
       }
 
       "including is 01:00 -> 04:00 and excluding is 04:00 -> 10:00" in {
 
-        val includingInterval = aTimeInterval( "01:00", "04:00")
-        val excludingInterval = aTimeInterval( "04:00", "10:00")
+        val includingInterval = aTimeInterval("01:00", "04:00")
+        val excludingInterval = aTimeInterval("04:00", "10:00")
         val date = aDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] = Map(date -> List(excludingInterval))
+        val exceptions: Map[LocalDate, List[TimeInterval]] =
+          Map(date -> List(excludingInterval))
 
         val res =
-          Segments.applyExceptionsToInterval(exceptions, date)(includingInterval)
-        res should contain theSameElementsInOrderAs List(TimeIntervalForDate(date, includingInterval))
+          Segments.applyExceptionsToInterval(exceptions, date)(
+            includingInterval
+          )
+        res should contain theSameElementsInOrderAs List(
+          TimeIntervalForDate(date, includingInterval)
+        )
       }
     }
 
     "Will return including start -> excluding start segment" should {
       "including is 05:00 -> 10:00 and excluding is 06:00 -> 11:00" in {
 
-        val includingInterval = aTimeInterval( "05:00", "10:00")
-        val excludingInterval = aTimeInterval( "06:00", "11:00")
+        val includingInterval = aTimeInterval("05:00", "10:00")
+        val excludingInterval = aTimeInterval("06:00", "11:00")
         val date = aDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] = Map(date -> List(excludingInterval))
+        val exceptions: Map[LocalDate, List[TimeInterval]] =
+          Map(date -> List(excludingInterval))
 
         val res =
-          Segments.applyExceptionsToInterval(exceptions, date)(includingInterval)
+          Segments.applyExceptionsToInterval(exceptions, date)(
+            includingInterval
+          )
         res should contain theSameElementsInOrderAs List(
           aTimeIntervalForDate("2019-04-08", "05:00", "06:00")
         )
@@ -369,14 +387,17 @@ class SegmentsSpec extends WordSpec with Matchers {
 
       "including is 05:00 -> 10:00 and excluding is 06:00 -> 10:00" in {
 
-        val includingInterval = aTimeInterval( "05:00", "10:00")
-        val excludingInterval = aTimeInterval( "06:00", "10:00")
+        val includingInterval = aTimeInterval("05:00", "10:00")
+        val excludingInterval = aTimeInterval("06:00", "10:00")
         val date = aDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] = Map(date -> List(excludingInterval))
+        val exceptions: Map[LocalDate, List[TimeInterval]] =
+          Map(date -> List(excludingInterval))
 
         val res =
-          Segments.applyExceptionsToInterval(exceptions, date)(includingInterval)
+          Segments.applyExceptionsToInterval(exceptions, date)(
+            includingInterval
+          )
         res should contain theSameElementsInOrderAs List(
           aTimeIntervalForDate("2019-04-08", "05:00", "06:00")
         )
@@ -386,14 +407,17 @@ class SegmentsSpec extends WordSpec with Matchers {
     "Will return excluding end -> including end segment" should {
       "including is 05:00 -> 10:00 and excluding is 04:00 -> 09:00" in {
 
-        val includingInterval = aTimeInterval( "05:00", "10:00")
-        val excludingInterval = aTimeInterval( "04:00", "09:00")
+        val includingInterval = aTimeInterval("05:00", "10:00")
+        val excludingInterval = aTimeInterval("04:00", "09:00")
         val date = aDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] = Map(date -> List(excludingInterval))
+        val exceptions: Map[LocalDate, List[TimeInterval]] =
+          Map(date -> List(excludingInterval))
 
         val res =
-          Segments.applyExceptionsToInterval(exceptions, date)(includingInterval)
+          Segments.applyExceptionsToInterval(exceptions, date)(
+            includingInterval
+          )
         res should contain theSameElementsInOrderAs List(
           aTimeIntervalForDate("2019-04-08", "09:00", "10:00")
         )
@@ -401,14 +425,17 @@ class SegmentsSpec extends WordSpec with Matchers {
 
       "including is 05:00 -> 10:00 and excluding is 05:00 -> 09:00" in {
 
-        val includingInterval = aTimeInterval( "05:00", "10:00")
-        val excludingInterval = aTimeInterval( "05:00", "09:00")
+        val includingInterval = aTimeInterval("05:00", "10:00")
+        val excludingInterval = aTimeInterval("05:00", "09:00")
         val date = aDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] = Map(date -> List(excludingInterval))
+        val exceptions: Map[LocalDate, List[TimeInterval]] =
+          Map(date -> List(excludingInterval))
 
         val res =
-          Segments.applyExceptionsToInterval(exceptions, date)(includingInterval)
+          Segments.applyExceptionsToInterval(exceptions, date)(
+            includingInterval
+          )
         res should contain theSameElementsInOrderAs List(
           aTimeIntervalForDate("2019-04-08", "09:00", "10:00")
         )
@@ -419,13 +446,16 @@ class SegmentsSpec extends WordSpec with Matchers {
 
       "including is 05:00 -> 10:00 and excluding is 06:00 -> 08:00" in {
 
-        val includingInterval = aTimeInterval( "05:00", "10:00")
+        val includingInterval = aTimeInterval("05:00", "10:00")
         val date = aDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] = Map(date -> List(aTimeInterval( "06:00", "08:00")))
+        val exceptions: Map[LocalDate, List[TimeInterval]] =
+          Map(date -> List(aTimeInterval("06:00", "08:00")))
 
         val res =
-          Segments.applyExceptionsToInterval(exceptions, date)(includingInterval)
+          Segments.applyExceptionsToInterval(exceptions, date)(
+            includingInterval
+          )
         res should contain theSameElementsInOrderAs List(
           aTimeIntervalForDate("2019-04-08", "05:00", "06:00"),
           aTimeIntervalForDate("2019-04-08", "08:00", "10:00")
@@ -433,18 +463,22 @@ class SegmentsSpec extends WordSpec with Matchers {
       }
 
       "Will return 3 segment " in {
-        val includingInterval = aTimeInterval( "05:00", "20:00")
+        val includingInterval = aTimeInterval("05:00", "20:00")
         val date = aDate("2019-04-08")
 
         val exceptions: Map[LocalDate, List[TimeInterval]] =
-          Map(date -> List(
-            aTimeInterval( "06:00", "08:00"),
-            aTimeInterval( "09:30", "16:00"),
-            aTimeInterval( "19:00", "22:00"),
-          ))
+          Map(
+            date -> List(
+              aTimeInterval("06:00", "08:00"),
+              aTimeInterval("09:30", "16:00"),
+              aTimeInterval("19:00", "22:00"),
+            )
+          )
 
         val res =
-          Segments.applyExceptionsToInterval(exceptions, date)(includingInterval)
+          Segments.applyExceptionsToInterval(exceptions, date)(
+            includingInterval
+          )
 
         res should contain theSameElementsInOrderAs List(
           aTimeIntervalForDate("2019-04-08", "05:00", "06:00"),
@@ -454,18 +488,22 @@ class SegmentsSpec extends WordSpec with Matchers {
       }
 
       "Will return 4 segment " in {
-        val includingInterval = aTimeInterval( "05:00", "20:00")
+        val includingInterval = aTimeInterval("05:00", "20:00")
         val date = aDate("2019-04-08")
 
         val exceptions: Map[LocalDate, List[TimeInterval]] =
-          Map(date -> List(
-            aTimeInterval( "06:00", "08:00"),
-            aTimeInterval( "09:30", "16:00"),
-            aTimeInterval( "18:00", "19:00")
-          ))
+          Map(
+            date -> List(
+              aTimeInterval("06:00", "08:00"),
+              aTimeInterval("09:30", "16:00"),
+              aTimeInterval("18:00", "19:00")
+            )
+          )
 
         val res =
-          Segments.applyExceptionsToInterval(exceptions, date)(includingInterval)
+          Segments.applyExceptionsToInterval(exceptions, date)(
+            includingInterval
+          )
 
         res should contain theSameElementsInOrderAs List(
           aTimeIntervalForDate("2019-04-08", "05:00", "06:00"),

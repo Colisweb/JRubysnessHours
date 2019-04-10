@@ -1,22 +1,9 @@
 package com.colisweb.jrubysnesshours.core
 
 import java.time._
+import scala.math.Ordering.Implicits._
 
 object Core {
-
-  case class TimeInterval(start: LocalTime, end: LocalTime)
-
-  case class TimeIntervalForWeekDay(
-      dayOfWeek: DayOfWeek,
-      interval: TimeInterval
-  )
-
-  case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
-
-    def startTime: LocalTime = interval.start
-
-    def endTime: LocalTime = interval.end
-  }
 
   case class Schedule(
       planning: Map[DayOfWeek, List[TimeInterval]],
@@ -26,60 +13,58 @@ object Core {
 
   object Schedule {
 
-//    def build(
-//        plannings: List[TimeIntervalForWeekDay],
-//        exceptions: List[TimeIntervalForDate],
-//        timeZone: ZoneId
-//    ): Schedule = {
-//
-//      Schedule(
-//        plannings.groupBy(_.dayOfWeek).map {
-//          case (dayOfWeek, intervals) =>
-//            dayOfWeek -> ??? // flatten, sort and merge segments
-//        },
-//        exceptions.groupBy(_.date).map {
-//          case (date, intervals) =>
-//            date -> ??? // flatten, sort and merge segments
-//        },
-//        timeZone
-//      )
-//    }
-  }
+    def build(
+        plannings: List[TimeIntervalForWeekDay],
+        exceptions: List[TimeIntervalForDate],
+        timeZone: ZoneId
+    ): Schedule = {
 
-  object TimeIntervalForWeekDay {
-
-    def toBusinessHoursForDayOfWeek(
-        businessHours: List[TimeIntervalForWeekDay]
-    ): Map[DayOfWeek, List[TimeInterval]] = {
-      businessHours.groupBy(_.dayOfWeek).mapValues(_.map(_.interval))
-    }
-  }
-
-  object TimeIntervalForDate {
-
-    private[core] def mergeTimeSegments(
-        timeSegments: Seq[TimeIntervalForDate]
-    ): Seq[TimeIntervalForDate] =
-      timeSegments
-        .sortBy(_.startTime)
-        .foldLeft(Nil: List[TimeIntervalForDate]) { (acc, segment) => // Merge exceptions if some overlap
-          acc match { // always use preprend to simplify code here
-            case Nil => segment +: acc
-            case head :: tail => {
-              if (segment.startTime.isAfter(head.endTime)) {
-                segment +: acc
-              } else if (segment.endTime.isBefore(head.endTime)) {
-                acc
-              } else {
-                TimeIntervalForDate(
-                  head.date,
-                  TimeInterval(head.startTime, segment.endTime)
-                ) +: tail
-              }
-            }
-          }
+      def mergeTwoIntervals(
+          interval1: TimeInterval,
+          interval2: TimeInterval
+      ): List[TimeInterval] = {
+        if (interval2.start > interval1.end) {
+          List(interval1, interval2)
+        } else if (interval2.end < interval1.end) {
+          List(interval1)
+        } else {
+          List(TimeInterval(interval1.start, interval2.end))
         }
-        .reverse //reverse because we use prepend in our fold --- // reverse or sortBy start ?
+      }
+
+      def prepareWeekDayIntervals(
+          intervals: List[TimeIntervalForWeekDay]
+      ): List[TimeInterval] =
+        intervals
+          .sortBy(_.interval.start)
+          .foldRight(List.empty[TimeInterval]) {
+            case (dayInterval, h :: t) =>
+              mergeTwoIntervals(dayInterval.interval, h) ::: t
+            case (dayInterval, Nil) => List(dayInterval.interval)
+          }
+
+      def prepareDateIntervals(
+          intervals: List[TimeIntervalForDate]
+      ): List[TimeInterval] =
+        intervals
+          .sortBy(_.interval.start)
+          .foldRight(List.empty[TimeInterval]) {
+            case (dateInterval, h :: t) =>
+              mergeTwoIntervals(dateInterval.interval, h) ::: t
+            case (dateInterval, Nil) => List(dateInterval.interval)
+          }
+
+      Schedule(
+        plannings.groupBy(_.dayOfWeek).map {
+          case (dayOfWeek, intervals) =>
+            dayOfWeek -> prepareWeekDayIntervals(intervals)
+        },
+        exceptions.groupBy(_.date).map {
+          case (date, intervals) => date -> prepareDateIntervals(intervals)
+        },
+        timeZone
+      )
+    }
   }
 
   def within(

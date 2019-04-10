@@ -2,11 +2,7 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time._
 
-import com.colisweb.jrubysnesshours.core.Core.{
-  Schedule,
-  TimeInterval,
-  TimeIntervalForDate
-}
+import com.colisweb.jrubysnesshours.core.Core.Schedule
 
 import scala.annotation.tailrec
 import scala.math.Ordering.Implicits._
@@ -14,8 +10,8 @@ import scala.math.Ordering.Implicits._
 object Segments {
 
   def segmentsBetween(
-                       schedule: Schedule
-                     )(start: ZonedDateTime, end: ZonedDateTime): List[TimeIntervalForDate] = {
+      schedule: Schedule
+  )(start: ZonedDateTime, end: ZonedDateTime): List[TimeIntervalForDate] = {
 
     val localStart =
       start.withZoneSameInstant(schedule.timeZone).toLocalDateTime
@@ -27,10 +23,13 @@ object Segments {
         TimeInterval(start.toLocalTime, end.toLocalTime)
       )
     } else {
-      val startDaySegments = segmentsInStartDay(schedule.planning, schedule.exceptions)(localStart)
-      val endDaySegments = segmentsInEndDay(schedule.planning, schedule.exceptions)(localEnd)
+      val startDaySegments =
+        segmentsInStartDay(schedule.planning, schedule.exceptions)(localStart)
+      val endDaySegments =
+        segmentsInEndDay(schedule.planning, schedule.exceptions)(localEnd)
 
-      val numberOfDays = Period.between(localStart.toLocalDate, localEnd.toLocalDate).getDays
+      val numberOfDays =
+        Period.between(localStart.toLocalDate, localEnd.toLocalDate).getDays
       val dayRangeSegments = Range(1, numberOfDays)
         .foldLeft(Nil: List[TimeIntervalForDate]) { (allSegments, i) =>
           val date = localStart.plusDays(i.toLong)
@@ -46,12 +45,13 @@ object Segments {
     }
   }
 
-  private def segmentsInStartDay(
-                                  planning: Map[DayOfWeek, List[TimeInterval]],
-                                  exceptions: Map[LocalDate, List[TimeInterval]]
-                                )(start: LocalDateTime): List[TimeIntervalForDate] = {
+  private[core] def segmentsInStartDay(
+      planning: Map[DayOfWeek, List[TimeInterval]],
+      exceptions: Map[LocalDate, List[TimeInterval]]
+  )(start: LocalDateTime): List[TimeIntervalForDate] = {
 
-    val applyExceptionsTo = applyExceptionsToInterval(exceptions, start.toLocalDate)(_)
+    val applyExceptionsTo =
+      applyExceptionsToInterval(exceptions, start.toLocalDate)(_)
 
     planning
       .getOrElse(start.getDayOfWeek, Nil)
@@ -67,10 +67,10 @@ object Segments {
       }
   }
 
-  private def segmentsInEndDay(
-                                planning: Map[DayOfWeek, List[TimeInterval]],
-                                exceptions: Map[LocalDate, List[TimeInterval]]
-                              )(end: LocalDateTime): List[TimeIntervalForDate] = {
+  private[core] def segmentsInEndDay(
+      planning: Map[DayOfWeek, List[TimeInterval]],
+      exceptions: Map[LocalDate, List[TimeInterval]]
+  )(end: LocalDateTime): List[TimeIntervalForDate] = {
 
     val applyExceptionsTo =
       applyExceptionsToInterval(exceptions, end.toLocalDate)(_)
@@ -89,10 +89,10 @@ object Segments {
       }
   }
 
-  private def segmentsInOneDay(
-                                planning: Map[DayOfWeek, List[TimeInterval]],
-                                exceptions: Map[LocalDate, List[TimeInterval]]
-                              )(date: LocalDate, query: TimeInterval): List[TimeIntervalForDate] = {
+  private[core] def segmentsInOneDay(
+      planning: Map[DayOfWeek, List[TimeInterval]],
+      exceptions: Map[LocalDate, List[TimeInterval]]
+  )(date: LocalDate, query: TimeInterval): List[TimeIntervalForDate] = {
 
     val applyExceptionsTo = applyExceptionsToInterval(exceptions, date)(_)
 
@@ -112,26 +112,26 @@ object Segments {
       }
   }
 
-  private def allSegmentsInDay(
-                                planning: Map[DayOfWeek, List[TimeInterval]],
-                                exceptions: Map[LocalDate, List[TimeInterval]]
-                              )(date: LocalDate): List[TimeIntervalForDate] = {
+  private[core] def allSegmentsInDay(
+      planning: Map[DayOfWeek, List[TimeInterval]],
+      exceptions: Map[LocalDate, List[TimeInterval]]
+  )(date: LocalDate): List[TimeIntervalForDate] = {
     planning
       .getOrElse(date.getDayOfWeek, Nil)
       .flatMap(applyExceptionsToInterval(exceptions, date))
   }
 
   private[core] def applyExceptionsToInterval(
-                                               exceptions: Map[LocalDate, List[TimeInterval]],
-                                               date: LocalDate
-                                             )(initialInterval: TimeInterval): List[TimeIntervalForDate] = {
+      exceptions: Map[LocalDate, List[TimeInterval]],
+      date: LocalDate
+  )(initialInterval: TimeInterval): List[TimeIntervalForDate] = {
 
     @tailrec
     def applyOneByOne(
-                       remainingExceptions: List[TimeInterval],
-                       interval: TimeInterval,
-                       newIntervals: List[TimeIntervalForDate]
-                     ): List[TimeIntervalForDate] = {
+        remainingExceptions: List[TimeInterval],
+        interval: TimeInterval,
+        newIntervals: List[TimeIntervalForDate]
+    ): List[TimeIntervalForDate] = {
       remainingExceptions match {
         case Nil => newIntervals :+ TimeIntervalForDate(date, interval)
         case exception :: remaining =>
@@ -165,36 +165,5 @@ object Segments {
     }
 
     applyOneByOne(exceptions.getOrElse(date, Nil), initialInterval, Nil)
-  }
-
-  private[core] def mergeSegments(
-                                   segments: Seq[TimeIntervalForDate]
-                                 ): List[TimeIntervalForDate] = {
-    segments
-      .sortBy(_.startTime)
-      .foldLeft(Nil: List[TimeIntervalForDate]) { (result, segment) =>
-        result.dropRight(1) ++ result.lastOption
-          .map(mergeTwoSegment(_, segment))
-          .getOrElse(List(segment))
-      }
-  }
-
-  // assuming seg1.startTime is always >= seg2.startTime ( and the same day )
-  private[core] def mergeTwoSegment(
-                                     seg1: TimeIntervalForDate,
-                                     seg2: TimeIntervalForDate
-                                   ): List[TimeIntervalForDate] = {
-    if (seg2.startTime > seg1.endTime) {
-      List(seg1, seg2)
-    } else if (seg2.endTime < seg1.endTime) {
-      List(seg1)
-    } else {
-      List(
-        TimeIntervalForDate(
-          seg1.date,
-          TimeInterval(seg1.startTime, seg2.endTime)
-        )
-      )
-    }
   }
 }
