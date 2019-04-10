@@ -16,45 +16,34 @@ class SegmentsSpec extends WordSpec with Matchers {
         Segments.segmentsBetween(planning, zoneId, exceptions)
 
       "compute 2 segments between Thursday 18:00 to Friday 10:00" in {
-        val s1 = segmentsBetween(
-          "2019-03-21" at "18:00",
-          "2019-03-22" at "10:00"
-        )
-        s1 should contain theSameElementsInOrderAs List(
+        val segments =
+          segmentsBetween("2019-03-21" at "18:00", "2019-03-22" at "10:00")
+        segments should contain theSameElementsInOrderAs List(
           "2019-03-21" at "18:00" - "19:00",
           "2019-03-22" at "09:30" - "10:00"
         )
       }
       "compute 2 segments between Saturday 13:00 to same Saturday 16:00" in {
-        val s2 =
-          segmentsBetween(
-            "2019-03-23" at "13:00",
-            "2019-03-23" at "16:00"
-          )
-        s2 should contain theSameElementsInOrderAs List(
+        val segments =
+          segmentsBetween("2019-03-23" at "13:00", "2019-03-23" at "16:00")
+        segments should contain theSameElementsInOrderAs List(
           "2019-03-23" at "13:00" - "14:00",
           "2019-03-23" at "15:00" - "16:00"
         )
       }
       "compute 3 segments between Saturday 13:00 to Monday 10:00" in {
-        val s3 =
-          segmentsBetween(
-            "2019-03-23" at "13:00",
-            "2019-03-25" at "10:00"
-          )
-        s3 should contain theSameElementsInOrderAs List(
+        val segments =
+          segmentsBetween("2019-03-23" at "13:00", "2019-03-25" at "10:00")
+        segments should contain theSameElementsInOrderAs List(
           "2019-03-23" at "13:00" - "14:00",
           "2019-03-23" at "15:00" - "19:00",
           "2019-03-25" at "09:00" - "10:00"
         )
       }
       "compute 5 segments betweenSaturday 13:00 to Tuesday 16:00" in {
-        val s4 =
-          segmentsBetween(
-            "2019-03-23" at "13:00",
-            "2019-03-26" at "16:00"
-          )
-        s4 should contain theSameElementsInOrderAs List(
+        val segments =
+          segmentsBetween("2019-03-23" at "13:00", "2019-03-26" at "16:00")
+        segments should contain theSameElementsInOrderAs List(
           "2019-03-23" at "13:00" - "14:00",
           "2019-03-23" at "15:00" - "19:00",
           "2019-03-25" at "09:00" - "19:00",
@@ -63,23 +52,17 @@ class SegmentsSpec extends WordSpec with Matchers {
         )
       }
       "compute 2 segments between Sunday 13:00 to Tuesday 10:00" in {
-        val s5 =
-          segmentsBetween(
-            "2019-03-24" at "13:00",
-            "2019-03-26" at "10:00"
-          )
-        s5 should contain theSameElementsInOrderAs List(
+        val segments =
+          segmentsBetween("2019-03-24" at "13:00", "2019-03-26" at "10:00")
+        segments should contain theSameElementsInOrderAs List(
           "2019-03-25" at "09:00" - "19:00",
           "2019-03-26" at "09:30" - "10:00"
         )
       }
       "compute 8 segments between Monday 09:00 to Sunday 23:00" in {
-        val s6 =
-          segmentsBetween(
-            "2019-03-18" at "09:00",
-            "2019-03-24" at "23:00"
-          )
-        s6 should contain theSameElementsInOrderAs List(
+        val segments =
+          segmentsBetween("2019-03-18" at "09:00", "2019-03-24" at "23:00")
+        segments should contain theSameElementsInOrderAs List(
           "2019-03-18" at "09:00" - "19:00",
           "2019-03-19" at "09:30" - "14:00",
           "2019-03-19" at "15:00" - "19:00",
@@ -88,6 +71,18 @@ class SegmentsSpec extends WordSpec with Matchers {
           "2019-03-22" at "09:30" - "19:00",
           "2019-03-23" at "09:00" - "14:00",
           "2019-03-23" at "15:00" - "19:00"
+        )
+      }
+      "compute segments in April between Friday 13:40 to Tuesday 13:40" in {
+        val segments =
+          segmentsBetween("2019-04-05" at "13:40", "2019-04-09" at "13:40")
+        segments should contain theSameElementsInOrderAs List(
+          "2019-04-05" at "13:40" - "19:00",
+          "2019-04-06" at "09:00" - "14:00",
+          "2019-04-06" at "15:00" - "19:00",
+          "2019-04-08" at "09:00" - "13:00",
+          "2019-04-08" at "16:00" - "19:00",
+          "2019-04-09" at "09:30" - "13:40"
         )
       }
     }
