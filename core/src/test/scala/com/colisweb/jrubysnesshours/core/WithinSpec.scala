@@ -1,34 +1,12 @@
 package com.colisweb.jrubysnesshours.core
 
-import java.time.DayOfWeek._
-import java.time.{Duration, LocalTime, ZoneId, ZonedDateTime}
+import java.time.{Duration, ZoneId, ZonedDateTime}
 
-import com.colisweb.jrubysnesshours.core.Core.{
-  BusinessHoursByDayOfWeek,
-  Interval
-}
+import com.colisweb.jrubysnesshours.core.SpecUtils._
 import org.scalatest.{Matchers, WordSpec}
 
 class WithinSpec extends WordSpec with Matchers {
 
-  implicit class StringToLocalTime(str: String) {
-    def toLocalTime: LocalTime = LocalTime.parse(str)
-  }
-
-  val planning: BusinessHoursByDayOfWeek = Map(
-    MONDAY -> List(Interval("09:00".toLocalTime, "19:00".toLocalTime)),
-    TUESDAY -> List(
-      Interval("09:30".toLocalTime, "14:00".toLocalTime),
-      Interval("15:00".toLocalTime, "19:00".toLocalTime)
-    ),
-    WEDNESDAY -> List(Interval("09:30".toLocalTime, "20:00".toLocalTime)),
-    THURSDAY -> List(Interval("09:30".toLocalTime, "19:00".toLocalTime)),
-    FRIDAY -> List(Interval("09:30".toLocalTime, "19:00".toLocalTime)),
-    SATURDAY -> List(
-      Interval("09:00".toLocalTime, "14:00".toLocalTime),
-      Interval("15:00".toLocalTime, "19:00".toLocalTime)
-    )
-  )
   val zoneId: ZoneId = ZoneId.of("Europe/Paris")
 
   "within" should {
