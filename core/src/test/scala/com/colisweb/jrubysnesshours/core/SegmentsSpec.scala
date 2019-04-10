@@ -4,9 +4,9 @@ import java.time.DayOfWeek._
 import java.time._
 
 import com.colisweb.jrubysnesshours.core.Core.{
-  BusinessHoursByDayOfWeek,
-  Interval,
-  TimeSegment
+  TimeIntervalsByDayOfWeek,
+  TimeInterval,
+  TimeIntervalForDate
 }
 import org.scalatest.{Matchers, WordSpec}
 
@@ -16,18 +16,18 @@ class SegmentsSpec extends WordSpec with Matchers {
     def toLocalTime: LocalTime = LocalTime.parse(str)
   }
 
-  val planning: BusinessHoursByDayOfWeek = Map(
-    MONDAY -> List(Interval("09:00".toLocalTime, "19:00".toLocalTime)),
+  val planning: TimeIntervalsByDayOfWeek = Map(
+    MONDAY -> List(TimeInterval("09:00".toLocalTime, "19:00".toLocalTime)),
     TUESDAY -> List(
-      Interval("09:30".toLocalTime, "14:00".toLocalTime),
-      Interval("15:00".toLocalTime, "19:00".toLocalTime)
+      TimeInterval("09:30".toLocalTime, "14:00".toLocalTime),
+      TimeInterval("15:00".toLocalTime, "19:00".toLocalTime)
     ),
-    WEDNESDAY -> List(Interval("09:30".toLocalTime, "20:00".toLocalTime)),
-    THURSDAY -> List(Interval("09:30".toLocalTime, "19:00".toLocalTime)),
-    FRIDAY -> List(Interval("09:30".toLocalTime, "19:00".toLocalTime)),
+    WEDNESDAY -> List(TimeInterval("09:30".toLocalTime, "20:00".toLocalTime)),
+    THURSDAY -> List(TimeInterval("09:30".toLocalTime, "19:00".toLocalTime)),
+    FRIDAY -> List(TimeInterval("09:30".toLocalTime, "19:00".toLocalTime)),
     SATURDAY -> List(
-      Interval("09:00".toLocalTime, "14:00".toLocalTime),
-      Interval("15:00".toLocalTime, "19:00".toLocalTime)
+      TimeInterval("09:00".toLocalTime, "14:00".toLocalTime),
+      TimeInterval("15:00".toLocalTime, "19:00".toLocalTime)
     )
   )
   val zoneId: ZoneId = ZoneId.of("Europe/Paris")
@@ -36,7 +36,7 @@ class SegmentsSpec extends WordSpec with Matchers {
 
     "without exception" should {
 
-      val segmentsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
+      val segmentsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
         Segments.segmentsBetween(planning, zoneId, Nil)
 
       "compute 2 segments between Thursday 18:00 to Friday 10:00" in {
@@ -124,7 +124,7 @@ class SegmentsSpec extends WordSpec with Matchers {
         )
 
         val segmentsBetween
-          : (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
+          : (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
           Segments.segmentsBetween(planning, zoneId, exceptionSegments)
 
         "compute 6 segments between Friday 15 13:40 to Tuesday 19 13:40 INCLUDING and exception the 2019-03-18 between 13:00 and 16:00" in {
@@ -150,7 +150,7 @@ class SegmentsSpec extends WordSpec with Matchers {
         )
 
         val segmentsBetween
-          : (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
+          : (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
           Segments.segmentsBetween(planning, zoneId, exceptionSegments)
 
         "compute 6 segments between Friday 15 13:40 to Tuesday 19 13:40 INCLUDING and exception the  019-03-15 between 13:00 and 16:00" in {
@@ -175,7 +175,7 @@ class SegmentsSpec extends WordSpec with Matchers {
         )
 
         val segmentsBetween
-          : (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
+          : (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
           Segments.segmentsBetween(planning, zoneId, exceptionSegments)
 
         "compute 6 segments between Friday 15 13:40 to Tuesday 19 13:40 INCLUDING and exception the 2019-03-19 between 13:00 and 16:00" in {
@@ -200,7 +200,7 @@ class SegmentsSpec extends WordSpec with Matchers {
         )
 
         val segmentsBetween
-          : (ZonedDateTime, ZonedDateTime) => List[TimeSegment] =
+          : (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
           Segments.segmentsBetween(planning, zoneId, exceptionSegments)
 
         "compute 2 segments between Friday 15 13:40 to Friday 15 19:00 INCLUDING and exception the 2019-03-18 between 14:00 and 16:00" in {
@@ -224,9 +224,9 @@ class SegmentsSpec extends WordSpec with Matchers {
     ZonedDateTime.parse(s"${day}T$time:00.000+01:00[$zoneId]")
 
   def aSegment(date: String, startTime: String, endTime: String) =
-    TimeSegment(
+    TimeIntervalForDate(
       LocalDate.parse(date),
-      Interval(
+      TimeInterval(
         LocalTime.parse(s"$startTime:00"),
         LocalTime.parse(s"$endTime:00")
       )

@@ -4,36 +4,60 @@ import java.time._
 
 object Core {
 
-  case class Interval(startTime: LocalTime, endTime: LocalTime)
+  case class TimeInterval(start: LocalTime, end: LocalTime)
 
-  case class BusinessHour(dayOfWeek: DayOfWeek, interval: Interval)
+  case class TimeIntervalForWeekDay(dayOfWeek: DayOfWeek, interval: TimeInterval)
 
-  case class TimeSegment(date: LocalDate, interval: Interval) {
+  case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
 
-    def startTime: LocalTime = interval.startTime
+    def startTime: LocalTime = interval.start
 
-    def endTime: LocalTime = interval.endTime
+    def endTime: LocalTime = interval.end
   }
 
-  type BusinessHoursByDayOfWeek = Map[DayOfWeek, List[Interval]]
+  case class Schedule(
+    planning: Map[DayOfWeek, List[TimeInterval]],
+    exceptions: Map[LocalDate, List[TimeInterval]],
+    timeZone: ZoneId
+  )
 
-  object BusinessHour {
+  object Schedule {
+
+    def apply(
+      plannings: List[TimeIntervalForWeekDay],
+      exceptions: List[TimeIntervalForDate],
+      timeZone: ZoneId
+    ): Schedule = {
+
+      Schedule(
+        plannings.groupBy(_.dayOfWeek).map {
+          case (dayOfWeek, intervals) => dayOfWeek -> ??? // flatten, sort and merge segments
+        },
+        exceptions.groupBy(_.date).map {
+          case (date, intervals) => date -> ??? // flatten, sort and merge segments
+        },
+        timeZone
+      )
+    }
+  }
+
+  object TimeIntervalForWeekDay {
 
     def toBusinessHoursForDayOfWeek(
-        businessHours: List[BusinessHour]
-    ): BusinessHoursByDayOfWeek = {
+        businessHours: List[TimeIntervalForWeekDay]
+    ): Map[DayOfWeek, List[TimeInterval]] = {
       businessHours.groupBy(_.dayOfWeek).mapValues(_.map(_.interval))
     }
   }
 
-  object TimeSegment {
+  object TimeIntervalForDate {
 
     private[core] def mergeTimeSegments(
-        timeSegments: Seq[TimeSegment]
-    ): Seq[TimeSegment] =
+        timeSegments: Seq[TimeIntervalForDate]
+    ): Seq[TimeIntervalForDate] =
       timeSegments
         .sortBy(_.startTime)
-        .foldLeft(Nil: List[TimeSegment]) { (acc, segment) => // Merge exceptions if some overlap
+        .foldLeft(Nil: List[TimeIntervalForDate]) { (acc, segment) => // Merge exceptions if some overlap
           acc match { // always use preprend to simplify code here
             case Nil => segment +: acc
             case head :: tail => {
@@ -42,9 +66,9 @@ object Core {
               } else if (segment.endTime.isBefore(head.endTime)) {
                 acc
               } else {
-                TimeSegment(
+                TimeIntervalForDate(
                   head.date,
-                  Interval(head.startTime, segment.endTime)
+                  TimeInterval(head.startTime, segment.endTime)
                 ) +: tail
               }
             }
@@ -54,9 +78,9 @@ object Core {
   }
 
   def within(
-      planning: BusinessHoursByDayOfWeek,
-      planningTimeZone: ZoneId,
-      exceptionSegments: List[TimeSegment]
+              planning: Map[DayOfWeek, List[TimeInterval]],
+              planningTimeZone: ZoneId,
+              exceptionSegments: List[TimeIntervalForDate]
   )(start: ZonedDateTime, end: ZonedDateTime): Duration = {
     Segments
       .segmentsBetween(planning, planningTimeZone, exceptionSegments)(
@@ -70,8 +94,8 @@ object Core {
   }
 
   def isOpenForDurationInDate(
-      planning: BusinessHoursByDayOfWeek,
-      exceptionSegments: List[TimeSegment]
+                               planning: Map[DayOfWeek, List[TimeInterval]],
+                               exceptionSegments: List[TimeIntervalForDate]
   )(date: LocalDate, duration: Duration): Boolean = {
 
     val start = LocalDateTime.of(date, LocalTime.MIN)
@@ -88,9 +112,9 @@ object Core {
   }
 
   def isOpen(
-      planning: BusinessHoursByDayOfWeek,
-      planningTimeZone: ZoneId,
-      exceptionSegments: List[TimeSegment]
+              planning: Map[DayOfWeek, List[TimeInterval]],
+              planningTimeZone: ZoneId,
+              exceptionSegments: List[TimeIntervalForDate]
   )(instant: ZonedDateTime): Boolean = {
 
     Segments
