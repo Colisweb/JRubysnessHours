@@ -1,8 +1,8 @@
-ThisBuild / organization      := "com.colisweb"
-ThisBuild / scalaVersion      := "2.12.8"
+ThisBuild / organization := "com.colisweb"
+ThisBuild / scalaVersion := "2.12.8"
 ThisBuild / scalafmtOnCompile := true
-ThisBuild / scalafmtCheck     := true
-ThisBuild / scalafmtSbtCheck  := true
+ThisBuild / scalafmtCheck := true
+ThisBuild / scalafmtSbtCheck := true
 
 
 lazy val root = Project(id = "JRubysnessHours", base = file("."))
@@ -16,7 +16,9 @@ lazy val core =
     .settings(moduleName := "JRubysnessHours")
     .settings(
       libraryDependencies ++= Seq(
-        "org.scalatest"  %% "scalatest"  % "3.0.7" % Test
+        "org.scalatest" %% "scalatest" % "3.0.7" % Test,
+        "com.47deg" %% "scalacheck-toolbox-datetime" % "0.2.5" % Test,
+        "org.scalacheck" %% "scalacheck" % "1.14.0" % Test
       )
     )
 
