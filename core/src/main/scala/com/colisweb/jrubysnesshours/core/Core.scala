@@ -98,11 +98,9 @@ object Core {
           }
       }
 
-      def dateTimeIntervalsToExceptions(
-          dateTimeIntervals: List[DateTimeInterval]
-      ): Map[LocalDate, List[TimeInterval]] = {
-        dateTimeIntervals
-          .flatMap { dateTimeInterval =>
+      def dateTimeIntervalsToExceptions: Map[LocalDate, List[TimeInterval]] = {
+        exceptions
+          .flatMap { dateTimeInterval: DateTimeInterval =>
             val numberOfDays =
               Period.between(dateTimeInterval.start.toLocalDate, dateTimeInterval.end.toLocalDate).getDays
 
@@ -144,7 +142,7 @@ object Core {
 
       Schedule(
         planning = plannings.groupBy(_.dayOfWeek).mapValues(intervals => mergeIntervals(intervals.map(_.interval))),
-        exceptions = dateTimeIntervalsToExceptions(exceptions),
+        exceptions = dateTimeIntervalsToExceptions,
         timeZone = timeZone
       )
     }
