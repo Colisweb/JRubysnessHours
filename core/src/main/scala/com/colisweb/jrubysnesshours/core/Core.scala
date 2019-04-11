@@ -15,31 +15,42 @@ object Core {
 
     def apply(
         plannings: List[TimeIntervalForWeekDay],
-        exceptions: List[TimeIntervalForDate],
+        exceptions: List[DateTimeInterval],
         timeZone: ZoneId
     ): Schedule = {
 
-      def mergeTwoIntervals(interval1: TimeInterval, interval2: TimeInterval): List[TimeInterval] = {
+      Schedule(
+        plannings.groupBy(_.dayOfWeek).map {
+          case (dayOfWeek, intervals) => dayOfWeek -> prepareWeekDayIntervals(intervals)
+        },
+        dateTimeIntervalsToExceptions(exceptions),
+        timeZone
+      )
+    }
 
-        if (interval2.start > interval1.end) {
-          List(interval1, interval2)
-        } else if (interval2.end < interval1.end) {
-          List(interval1)
-        } else {
-          List(TimeInterval(interval1.start, interval2.end))
-        }
+    def mergeTwoIntervals(interval1: TimeInterval, interval2: TimeInterval): List[TimeInterval] = {
+
+      if (interval2.start > interval1.end) {
+        List(interval1, interval2)
+      } else if (interval2.end < interval1.end) {
+        List(interval1)
+      } else {
+        List(TimeInterval(interval1.start, interval2.end))
       }
+    }
 
-      def prepareWeekDayIntervals(intervals: List[TimeIntervalForWeekDay]): List[TimeInterval] =
-        intervals
-          .sortBy(_.interval.start)
-          .foldRight(List.empty[TimeInterval]) {
-            case (dayInterval, h :: t) =>
-              mergeTwoIntervals(dayInterval.interval, h) ::: t
-            case (dayInterval, Nil) => List(dayInterval.interval)
-          }
+    def prepareWeekDayIntervals(intervals: List[TimeIntervalForWeekDay]): List[TimeInterval] =
+      intervals
+        .sortBy(_.interval.start)
+        .foldRight(List.empty[TimeInterval]) {
+          case (dayInterval, h :: t) =>
+            mergeTwoIntervals(dayInterval.interval, h) ::: t
+          case (dayInterval, Nil) => List(dayInterval.interval)
+        }
 
-      def prepareDateIntervals(intervals: List[TimeIntervalForDate]): List[TimeInterval] =
+    def dateTimeIntervalsToExceptions(dateTimeIntervals: List[DateTimeInterval]): Map[LocalDate, List[TimeInterval]] = {
+
+      def prepareTimeIntervalForDates(intervals: List[TimeIntervalForDate]): List[TimeInterval] =
         intervals
           .sortBy(_.interval.start)
           .foldRight(List.empty[TimeInterval]) {
@@ -48,17 +59,45 @@ object Core {
             case (dateInterval, Nil) => List(dateInterval.interval)
           }
 
-      Schedule(
-        plannings.groupBy(_.dayOfWeek).map {
-          case (dayOfWeek, intervals) =>
-            dayOfWeek -> prepareWeekDayIntervals(intervals)
-        },
-        exceptions.groupBy(_.date).map {
-          case (date, intervals) =>
-            date -> prepareDateIntervals(intervals)
-        },
-        timeZone
-      )
+      dateTimeIntervals
+        .flatMap { dateTimeInterval =>
+          val numberOfDays =
+            Period.between(dateTimeInterval.start.toLocalDate, dateTimeInterval.end.toLocalDate).getDays
+
+          if (numberOfDays == 0) {
+            List(
+              TimeIntervalForDate(
+                date = dateTimeInterval.start.toLocalDate,
+                TimeInterval(start = dateTimeInterval.start.toLocalTime, end = dateTimeInterval.end.toLocalTime)
+              )
+            )
+          } else {
+            val dayRangeIntervals = Range(1, numberOfDays)
+
+            val midDays =
+              dayRangeIntervals.map { i =>
+                val dateTime = dateTimeInterval.start.plusDays(i.toLong)
+                val date     = dateTime.toLocalDate
+
+                val newInterval = TimeInterval(start = LocalTime.MIDNIGHT, end = LocalTime.of(23, 59))
+
+                TimeIntervalForDate(date = date, interval = newInterval)
+              }
+
+            val firstDay = TimeIntervalForDate(
+              date = dateTimeInterval.start.toLocalDate,
+              TimeInterval(start = dateTimeInterval.start.toLocalTime, end = LocalTime.of(23, 59))
+            )
+            val lastDay = TimeIntervalForDate(
+              date = dateTimeInterval.start.toLocalDate,
+              TimeInterval(start = LocalTime.MIDNIGHT, end = dateTimeInterval.end.toLocalTime)
+            )
+
+            firstDay +: midDays :+ lastDay
+          }
+        }
+        .groupBy(_.date)
+        .mapValues(prepareTimeIntervalForDates)
     }
   }
 

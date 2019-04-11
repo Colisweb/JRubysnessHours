@@ -1,9 +1,12 @@
 package com.colisweb.jrubysnesshours.core
 
-import java.time.{DayOfWeek, LocalDate, LocalTime}
+import java.time.{DayOfWeek, LocalDate, LocalDateTime, LocalTime}
+
 import scala.math.Ordering.Implicits._
 
 case class TimeInterval(start: LocalTime, end: LocalTime)
+
+case class DateTimeInterval(start: LocalDateTime, end: LocalDateTime)
 
 case class TimeIntervalForWeekDay(dayOfWeek: DayOfWeek, interval: TimeInterval)
 
