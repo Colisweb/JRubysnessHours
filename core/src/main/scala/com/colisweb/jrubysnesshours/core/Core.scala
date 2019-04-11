@@ -28,7 +28,7 @@ object Core {
       )
     }
 
-    def mergeTwoIntervals(interval1: TimeInterval, interval2: TimeInterval): List[TimeInterval] = {
+    private def mergeTwoIntervals(interval1: TimeInterval, interval2: TimeInterval): List[TimeInterval] = {
 
       if (interval2.start > interval1.end) {
         List(interval1, interval2)
@@ -39,7 +39,7 @@ object Core {
       }
     }
 
-    def prepareWeekDayIntervals(intervals: List[TimeIntervalForWeekDay]): List[TimeInterval] =
+    private def prepareWeekDayIntervals(intervals: List[TimeIntervalForWeekDay]): List[TimeInterval] =
       intervals
         .sortBy(_.interval.start)
         .foldRight(List.empty[TimeInterval]) {
@@ -48,7 +48,9 @@ object Core {
           case (dayInterval, Nil) => List(dayInterval.interval)
         }
 
-    def dateTimeIntervalsToExceptions(dateTimeIntervals: List[DateTimeInterval]): Map[LocalDate, List[TimeInterval]] = {
+    private[core] def dateTimeIntervalsToExceptions(
+        dateTimeIntervals: List[DateTimeInterval]
+    ): Map[LocalDate, List[TimeInterval]] = {
 
       def prepareTimeIntervalForDates(intervals: List[TimeIntervalForDate]): List[TimeInterval] =
         intervals
@@ -89,7 +91,7 @@ object Core {
               TimeInterval(start = dateTimeInterval.start.toLocalTime, end = LocalTime.of(23, 59))
             )
             val lastDay = TimeIntervalForDate(
-              date = dateTimeInterval.start.toLocalDate,
+              date = dateTimeInterval.end.toLocalDate,
               TimeInterval(start = LocalTime.MIDNIGHT, end = dateTimeInterval.end.toLocalTime)
             )
 
