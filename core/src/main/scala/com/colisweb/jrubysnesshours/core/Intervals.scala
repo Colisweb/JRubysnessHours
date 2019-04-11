@@ -8,33 +8,31 @@ import scala.annotation.tailrec
 import scala.math.Ordering.Implicits._
 import TimeInterval.TimeIntervalOps
 
-object Segments {
+object Intervals {
 
-  def segmentsBetween(
-      schedule: Schedule
-  )(start: ZonedDateTime, end: ZonedDateTime): List[TimeIntervalForDate] = {
+  def intervalsBetween(schedule: Schedule)(start: ZonedDateTime, end: ZonedDateTime): List[TimeIntervalForDate] = {
 
     val localStart =
       start.withZoneSameInstant(schedule.timeZone).toLocalDateTime
     val localEnd = end.withZoneSameInstant(schedule.timeZone).toLocalDateTime
 
     if (start.toLocalDate == end.toLocalDate) {
-      segmentsInOneDay(schedule.planning, schedule.exceptions)(
+      intervalsInSameDay(schedule.planning, schedule.exceptions)(
         start.toLocalDate,
         TimeInterval(start.toLocalTime, end.toLocalTime)
       )
     } else {
-      val startDaySegments =
-        segmentsInStartDay(schedule.planning, schedule.exceptions)(localStart)
-      val endDaySegments =
-        segmentsInEndDay(schedule.planning, schedule.exceptions)(localEnd)
+      val startDayIntervals =
+        intervalsInStartDay(schedule.planning, schedule.exceptions)(localStart)
+      val endDayIntervals =
+        intervalsInEndDay(schedule.planning, schedule.exceptions)(localEnd)
 
       val numberOfDays =
         Period.between(localStart.toLocalDate, localEnd.toLocalDate).getDays
-      val dayRangeSegments = Range(1, numberOfDays)
-        .foldLeft(Nil: List[TimeIntervalForDate]) { (allSegments, i) =>
+      val dayRangeIntervals = Range(1, numberOfDays)
+        .foldLeft(Nil: List[TimeIntervalForDate]) { (allIntervals, i) =>
           val date = localStart.plusDays(i.toLong)
-          allSegments ++ allSegmentsInDay(
+          allIntervals ++ allIntervalsInDay(
             schedule.planning,
             schedule.exceptions
           )(
@@ -42,7 +40,7 @@ object Segments {
           )
         }
 
-      startDaySegments ++ dayRangeSegments ++ endDaySegments
+      startDayIntervals ++ dayRangeIntervals ++ endDayIntervals
     }
   }
 
@@ -61,7 +59,7 @@ object Segments {
       )
   }
 
-  private[core] def segmentsInStartDay(
+  private[core] def intervalsInStartDay(
       planning: Map[DayOfWeek, List[TimeInterval]],
       exceptions: Map[LocalDate, List[TimeInterval]]
   )(start: LocalDateTime): List[TimeIntervalForDate] = {
@@ -83,7 +81,7 @@ object Segments {
       }
   }
 
-  private[core] def segmentsInEndDay(
+  private[core] def intervalsInEndDay(
       planning: Map[DayOfWeek, List[TimeInterval]],
       exceptions: Map[LocalDate, List[TimeInterval]]
   )(end: LocalDateTime): List[TimeIntervalForDate] = {
@@ -105,7 +103,7 @@ object Segments {
       }
   }
 
-  private[core] def segmentsInOneDay(
+  private[core] def intervalsInSameDay(
       planning: Map[DayOfWeek, List[TimeInterval]],
       exceptions: Map[LocalDate, List[TimeInterval]]
   )(date: LocalDate, query: TimeInterval): List[TimeIntervalForDate] = {
@@ -128,7 +126,7 @@ object Segments {
       }
   }
 
-  private[core] def allSegmentsInDay(
+  private[core] def allIntervalsInDay(
       planning: Map[DayOfWeek, List[TimeInterval]],
       exceptions: Map[LocalDate, List[TimeInterval]]
   )(date: LocalDate): List[TimeIntervalForDate] = {
@@ -146,32 +144,32 @@ object Segments {
     def applyOneByOne(
         remainingExceptions: List[TimeInterval],
         interval: TimeInterval,
-        newIntervals: List[TimeIntervalForDate]
+        splittedIntervals: List[TimeIntervalForDate]
     ): List[TimeIntervalForDate] = {
       remainingExceptions match {
-        case Nil => newIntervals :+ TimeIntervalForDate(date, interval)
+        case Nil => splittedIntervals :+ TimeIntervalForDate(date, interval)
         case exception :: remaining =>
           if (interval.start >= exception.start && interval.end <= exception.end) { // interval included in exception -> killed
             Nil
           } else if (interval.end <= exception.start || interval.start >= exception.end) { // interval outside exception -> untouched
-            applyOneByOne(remaining, interval, newIntervals)
+            applyOneByOne(remaining, interval, splittedIntervals)
           } else if (interval.start < exception.start && interval.end <= exception.end) { // exception overlaps interval right -> shortened right
             applyOneByOne(
               remaining,
               TimeInterval(interval.start, exception.start),
-              newIntervals
+              splittedIntervals
             )
           } else if (interval.start >= exception.start && interval.end > exception.end) { // exception overlaps interval left -> shortened left
             applyOneByOne(
               remaining,
               TimeInterval(exception.end, interval.end),
-              newIntervals
+              splittedIntervals
             )
           } else { // () interval.start < toExclude.start && interval.end > toExclude.end //  // interval cut by exception -> cut in two
             applyOneByOne(
               remaining,
               TimeInterval(exception.end, interval.end),
-              newIntervals :+ TimeIntervalForDate(
+              splittedIntervals :+ TimeIntervalForDate(
                 date,
                 TimeInterval(interval.start, exception.start)
               )

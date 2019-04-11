@@ -5,7 +5,7 @@ import scala.math.Ordering.Implicits._
 
 object Core {
 
-  case class Schedule(
+  case class Schedule private[core] (
       planning: Map[DayOfWeek, List[TimeInterval]],
       exceptions: Map[LocalDate, List[TimeInterval]],
       timeZone: ZoneId
@@ -13,16 +13,14 @@ object Core {
 
   object Schedule {
 
-    def build(
+    def apply(
         plannings: List[TimeIntervalForWeekDay],
         exceptions: List[TimeIntervalForDate],
         timeZone: ZoneId
     ): Schedule = {
 
-      def mergeTwoIntervals(
-          interval1: TimeInterval,
-          interval2: TimeInterval
-      ): List[TimeInterval] = {
+      def mergeTwoIntervals(interval1: TimeInterval, interval2: TimeInterval): List[TimeInterval] = {
+
         if (interval2.start > interval1.end) {
           List(interval1, interval2)
         } else if (interval2.end < interval1.end) {
@@ -32,9 +30,7 @@ object Core {
         }
       }
 
-      def prepareWeekDayIntervals(
-          intervals: List[TimeIntervalForWeekDay]
-      ): List[TimeInterval] =
+      def prepareWeekDayIntervals(intervals: List[TimeIntervalForWeekDay]): List[TimeInterval] =
         intervals
           .sortBy(_.interval.start)
           .foldRight(List.empty[TimeInterval]) {
@@ -43,9 +39,7 @@ object Core {
             case (dayInterval, Nil) => List(dayInterval.interval)
           }
 
-      def prepareDateIntervals(
-          intervals: List[TimeIntervalForDate]
-      ): List[TimeInterval] =
+      def prepareDateIntervals(intervals: List[TimeIntervalForDate]): List[TimeInterval] =
         intervals
           .sortBy(_.interval.start)
           .foldRight(List.empty[TimeInterval]) {
@@ -60,45 +54,39 @@ object Core {
             dayOfWeek -> prepareWeekDayIntervals(intervals)
         },
         exceptions.groupBy(_.date).map {
-          case (date, intervals) => date -> prepareDateIntervals(intervals)
+          case (date, intervals) =>
+            date -> prepareDateIntervals(intervals)
         },
         timeZone
       )
     }
   }
 
-  def within(
-      schedule: Schedule
-  )(start: ZonedDateTime, end: ZonedDateTime): Duration = {
-    Segments
-      .segmentsBetween(schedule)(start, end)
+  def within(schedule: Schedule)(start: ZonedDateTime, end: ZonedDateTime): Duration = {
+
+    Intervals
+      .intervalsBetween(schedule)(start, end)
       .foldLeft(Duration.ZERO)(
-        (total, segment) =>
-          total.plus(Duration.between(segment.startTime, segment.endTime))
+        (total, segment) => total.plus(Duration.between(segment.startTime, segment.endTime))
       )
   }
 
-  def isOpenForDurationInDate(
-      schedule: Schedule
-  )(date: LocalDate, duration: Duration): Boolean = {
+  def isOpenForDurationInDate(schedule: Schedule)(date: LocalDate, duration: Duration): Boolean = {
 
     val start = ZonedDateTime.of(date, LocalTime.MIN, schedule.timeZone)
-    val end = ZonedDateTime.of(date, LocalTime.MAX, schedule.timeZone)
+    val end   = ZonedDateTime.of(date, LocalTime.MAX, schedule.timeZone)
 
-    Segments
-      .segmentsBetween(schedule)(start, end)
+    Intervals
+      .intervalsBetween(schedule)(start, end)
       .exists(
-        segment =>
-          Duration
-            .between(segment.startTime, segment.endTime)
-            .compareTo(duration) >= 0
+        segment => Duration.between(segment.startTime, segment.endTime) >= duration
       )
   }
 
   def isOpen(schedule: Schedule)(instant: ZonedDateTime): Boolean = {
 
-    Segments
-      .segmentsBetween(schedule)(instant, instant)
+    Intervals
+      .intervalsBetween(schedule)(instant, instant)
       .nonEmpty
   }
 

@@ -29,12 +29,12 @@ object SpecUtils {
   }
 
   val planning: Map[DayOfWeek, List[TimeInterval]] = Map(
-    MONDAY -> List("09:00" - "19:00"),
-    TUESDAY -> List("09:30" - "14:00", "15:00" - "19:00"),
+    MONDAY    -> List("09:00" - "19:00"),
+    TUESDAY   -> List("09:30" - "14:00", "15:00" - "19:00"),
     WEDNESDAY -> List("09:30" - "20:00"),
-    THURSDAY -> List("09:30" - "19:00"),
-    FRIDAY -> List("09:30" - "19:00"),
-    SATURDAY -> List("09:00" - "14:00", "15:00" - "19:00")
+    THURSDAY  -> List("09:30" - "19:00"),
+    FRIDAY    -> List("09:30" - "19:00"),
+    SATURDAY  -> List("09:00" - "14:00", "15:00" - "19:00")
   )
 
   val zoneId: ZoneId = ZoneId.of("Europe/Paris")
@@ -43,7 +43,7 @@ object SpecUtils {
 
   val schedule = Schedule(
     planning,
-    Map(MONDAY -> List("13:00" - "16:00")),
+    Map.empty[LocalDate, List[TimeInterval]],
     zoneId
   )
 

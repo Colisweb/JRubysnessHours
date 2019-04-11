@@ -7,7 +7,7 @@ import com.fortysevendeg.scalacheck.datetime.instances.jdk8._
 import org.scalacheck.Gen
 
 object Generators {
-  val from = ZonedDateTime.of(2000, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"))
+  val from  = ZonedDateTime.of(2000, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"))
   val range = Duration.ofDays(10000)
 
   val genDate: Gen[ZonedDateTime] = genDateTimeWithinRange(from, range)
