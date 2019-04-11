@@ -1,5 +1,7 @@
 package com.colisweb.jrubysnesshours.core
 
+import java.time.LocalDate
+
 import com.colisweb.jrubysnesshours.core.Segments.excludingSegmentFromAnother
 import com.colisweb.jrubysnesshours.core.SpecUtils._
 import org.scalatest.{Matchers, WordSpec}
@@ -101,5 +103,25 @@ class OtherSegmentsSpec extends WordSpec with Matchers {
       }
     }
 
-  }
+    "Will return including start -> excluding start segment" should {
+      "including is 05:00 -> 10:00 and excluding is 06:00 -> 11:00" in {
+
+        val includingInterval = "05:00"- "10:00"
+        val excludingInterval = "06:00"- "11:00"
+        val date              = day
+
+        val exceptions: Map[LocalDate, List[TimeInterval]] =
+          Map(date -> List(excludingInterval))
+
+        val res =
+          Intervals.applyExceptionsToInterval(exceptions, date)(
+            includingInterval
+          )
+        res should contain theSameElementsInOrderAs List(
+          aTimeIntervalForDate("2019-04-08", "05:00", "06:00")
+        )
+      }
+
+
+    }
 }

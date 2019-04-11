@@ -1,7 +1,6 @@
 package com.colisweb.jrubysnesshours.core
 
 import com.colisweb.jrubysnesshours.core.Generators._
-import com.colisweb.jrubysnesshours.core.Segments.excludingSegmentFromAnother
 import com.colisweb.jrubysnesshours.core.SpecUtils._
 import org.scalacheck.Gen.listOfN
 import org.scalatest.{FlatSpec, Matchers}

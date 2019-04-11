@@ -10,4 +10,7 @@ object TimeOrderings {
   implicit val localDateOrdering: Ordering[LocalDate] =
     (x: LocalDate, y: LocalDate) => x.compareTo(y)
 
+  implicit val localTimeOrdering: Ordering[LocalDate] =
+    (x: LocalDate, y: LocalDate) => x.compareTo(y)
+
 }

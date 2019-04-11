@@ -1,68 +1,77 @@
 package com.colisweb.jrubysnesshours.core
 
 import java.time._
+import scala.math.Ordering.Implicits._
 
 object Core {
 
-  case class Interval(startTime: LocalTime, endTime: LocalTime)
+  case class Schedule(
+      planning: Map[DayOfWeek, List[TimeInterval]],
+      exceptions: Map[LocalDate, List[TimeInterval]],
+      timeZone: ZoneId
+  )
 
-  case class BusinessHour(dayOfWeek: DayOfWeek, interval: Interval)
+  object Schedule {
 
-  case class TimeSegment(date: LocalDate, interval: Interval) {
+    def build(
+        plannings: List[TimeIntervalForWeekDay],
+        exceptions: List[TimeIntervalForDate],
+        timeZone: ZoneId
+    ): Schedule = {
 
-    def startTime: LocalTime = interval.startTime
+      def mergeTwoIntervals(
+          interval1: TimeInterval,
+          interval2: TimeInterval
+      ): List[TimeInterval] = {
+        if (interval2.start > interval1.end) {
+          List(interval1, interval2)
+        } else if (interval2.end < interval1.end) {
+          List(interval1)
+        } else {
+          List(TimeInterval(interval1.start, interval2.end))
+        }
+      }
 
-    def endTime: LocalTime = interval.endTime
-  }
+      def prepareWeekDayIntervals(
+          intervals: List[TimeIntervalForWeekDay]
+      ): List[TimeInterval] =
+        intervals
+          .sortBy(_.interval.start)
+          .foldRight(List.empty[TimeInterval]) {
+            case (dayInterval, h :: t) =>
+              mergeTwoIntervals(dayInterval.interval, h) ::: t
+            case (dayInterval, Nil) => List(dayInterval.interval)
+          }
 
-  type BusinessHoursByDayOfWeek = Map[DayOfWeek, List[Interval]]
+      def prepareDateIntervals(
+          intervals: List[TimeIntervalForDate]
+      ): List[TimeInterval] =
+        intervals
+          .sortBy(_.interval.start)
+          .foldRight(List.empty[TimeInterval]) {
+            case (dateInterval, h :: t) =>
+              mergeTwoIntervals(dateInterval.interval, h) ::: t
+            case (dateInterval, Nil) => List(dateInterval.interval)
+          }
 
-  object BusinessHour {
-
-    def toBusinessHoursForDayOfWeek(
-        businessHours: List[BusinessHour]
-    ): BusinessHoursByDayOfWeek = {
-      businessHours.groupBy(_.dayOfWeek).mapValues(_.map(_.interval))
+      Schedule(
+        plannings.groupBy(_.dayOfWeek).map {
+          case (dayOfWeek, intervals) =>
+            dayOfWeek -> prepareWeekDayIntervals(intervals)
+        },
+        exceptions.groupBy(_.date).map {
+          case (date, intervals) => date -> prepareDateIntervals(intervals)
+        },
+        timeZone
+      )
     }
   }
 
-  object TimeSegment {
-
-    private[core] def mergeTimeSegments(
-        timeSegments: Seq[TimeSegment]
-    ): Seq[TimeSegment] =
-      timeSegments
-        .sortBy(_.startTime)
-        .foldLeft(Nil: List[TimeSegment]) { (acc, segment) => // Merge exceptions if some overlap
-          acc match { // always use preprend to simplify code here
-            case Nil => segment +: acc
-            case head :: tail => {
-              if (segment.startTime.isAfter(head.endTime)) {
-                segment +: acc
-              } else if (segment.endTime.isBefore(head.endTime)) {
-                acc
-              } else {
-                TimeSegment(
-                  head.date,
-                  Interval(head.startTime, segment.endTime)
-                ) +: tail
-              }
-            }
-          }
-        }
-        .reverse //reverse because we use prepend in our fold --- // reverse or sortBy start ?
-  }
-
   def within(
-      planning: BusinessHoursByDayOfWeek,
-      planningTimeZone: ZoneId,
-      exceptionSegments: List[TimeSegment]
+      schedule: Schedule
   )(start: ZonedDateTime, end: ZonedDateTime): Duration = {
     Segments
-      .segmentsBetween(planning, planningTimeZone, exceptionSegments)(
-        start,
-        end
-      )
+      .segmentsBetween(schedule)(start, end)
       .foldLeft(Duration.ZERO)(
         (total, segment) =>
           total.plus(Duration.between(segment.startTime, segment.endTime))
@@ -70,15 +79,14 @@ object Core {
   }
 
   def isOpenForDurationInDate(
-      planning: BusinessHoursByDayOfWeek,
-      exceptionSegments: List[TimeSegment]
+      schedule: Schedule
   )(date: LocalDate, duration: Duration): Boolean = {
 
-    val start = LocalDateTime.of(date, LocalTime.MIN)
-    val end = LocalDateTime.of(date, LocalTime.MAX)
+    val start = ZonedDateTime.of(date, LocalTime.MIN, schedule.timeZone)
+    val end = ZonedDateTime.of(date, LocalTime.MAX, schedule.timeZone)
 
     Segments
-      .segmentsBetween(planning, exceptionSegments)(start, end)
+      .segmentsBetween(schedule)(start, end)
       .exists(
         segment =>
           Duration
@@ -87,17 +95,12 @@ object Core {
       )
   }
 
-  def isOpen(
-      planning: BusinessHoursByDayOfWeek,
-      planningTimeZone: ZoneId,
-      exceptionSegments: List[TimeSegment]
-  )(instant: ZonedDateTime): Boolean = {
+  def isOpen(schedule: Schedule)(instant: ZonedDateTime): Boolean = {
 
     Segments
-      .segmentsBetween(planning, planningTimeZone, exceptionSegments)(
-        instant,
-        instant
-      )
+      .segmentsBetween(schedule)(instant, instant)
       .nonEmpty
   }
+
+  // TODO: next business hour
 }

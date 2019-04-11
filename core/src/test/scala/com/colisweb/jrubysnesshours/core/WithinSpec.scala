@@ -2,15 +2,16 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time.{Duration, ZonedDateTime}
 
-import com.colisweb.jrubysnesshours.core.SpecUtils._
 import org.scalatest.{Matchers, WordSpec}
+
+import SpecUtils._
 
 class WithinSpec extends WordSpec with Matchers {
 
   "within" should {
 
     val within: (ZonedDateTime, ZonedDateTime) => Duration =
-      Core.within(planning, zoneId, Nil)
+      Core.within(schedule)
 
     "compute duration between Thursday 18:00 to Friday 10:00" in {
       within("2019-03-21" at "18:00", "2019-03-22" at "10:00") shouldBe aDuration(
