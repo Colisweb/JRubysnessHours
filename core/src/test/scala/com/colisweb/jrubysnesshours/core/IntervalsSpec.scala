@@ -466,7 +466,7 @@ class IntervalsSpec extends WordSpec with Matchers {
             date -> List(
               aTimeInterval("06:00", "08:00"),
               aTimeInterval("09:30", "16:00"),
-              aTimeInterval("19:00", "22:00"),
+              aTimeInterval("19:00", "22:00")
             )
           )
 
@@ -478,7 +478,7 @@ class IntervalsSpec extends WordSpec with Matchers {
         res should contain theSameElementsInOrderAs List(
           aTimeIntervalForDate("2019-04-08", "05:00", "06:00"),
           aTimeIntervalForDate("2019-04-08", "08:00", "09:30"),
-          aTimeIntervalForDate("2019-04-08", "16:00", "19:00"),
+          aTimeIntervalForDate("2019-04-08", "16:00", "19:00")
         )
       }
 
