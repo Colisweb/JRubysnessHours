@@ -41,7 +41,7 @@ class IntervalsSpec extends WordSpec with Matchers {
           aDayAt("2019-03-21", "18:00"),
           aDayAt("2019-03-22", "10:00")
         )
-        s1 should contain theSameElementsInOrderAs List(
+        s1 shouldBe List(
           aTimeIntervalForDate("2019-03-21", "18:00", "19:00"),
           aTimeIntervalForDate("2019-03-22", "09:30", "10:00")
         )
@@ -52,7 +52,7 @@ class IntervalsSpec extends WordSpec with Matchers {
             aDayAt("2019-03-23", "13:00"),
             aDayAt("2019-03-23", "16:00")
           )
-        s2 should contain theSameElementsInOrderAs List(
+        s2 shouldBe List(
           aTimeIntervalForDate("2019-03-23", "13:00", "14:00"),
           aTimeIntervalForDate("2019-03-23", "15:00", "16:00")
         )
@@ -63,7 +63,7 @@ class IntervalsSpec extends WordSpec with Matchers {
             aDayAt("2019-03-23", "13:00"),
             aDayAt("2019-03-25", "10:00")
           )
-        s3 should contain theSameElementsInOrderAs List(
+        s3 shouldBe List(
           aTimeIntervalForDate("2019-03-23", "13:00", "14:00"),
           aTimeIntervalForDate("2019-03-23", "15:00", "19:00"),
           aTimeIntervalForDate("2019-03-25", "09:00", "10:00")
@@ -75,7 +75,7 @@ class IntervalsSpec extends WordSpec with Matchers {
             aDayAt("2019-03-23", "13:00"),
             aDayAt("2019-03-26", "16:00")
           )
-        s4 should contain theSameElementsInOrderAs List(
+        s4 shouldBe List(
           aTimeIntervalForDate("2019-03-23", "13:00", "14:00"),
           aTimeIntervalForDate("2019-03-23", "15:00", "19:00"),
           aTimeIntervalForDate("2019-03-25", "09:00", "19:00"),
@@ -89,7 +89,7 @@ class IntervalsSpec extends WordSpec with Matchers {
             aDayAt("2019-03-24", "13:00"),
             aDayAt("2019-03-26", "10:00")
           )
-        s5 should contain theSameElementsInOrderAs List(
+        s5 shouldBe List(
           aTimeIntervalForDate("2019-03-25", "09:00", "19:00"),
           aTimeIntervalForDate("2019-03-26", "09:30", "10:00")
         )
@@ -100,7 +100,7 @@ class IntervalsSpec extends WordSpec with Matchers {
             aDayAt("2019-03-18", "09:00"),
             aDayAt("2019-03-24", "23:00")
           )
-        s6 should contain theSameElementsInOrderAs List(
+        s6 shouldBe List(
           aTimeIntervalForDate("2019-03-18", "09:00", "19:00"),
           aTimeIntervalForDate("2019-03-19", "09:30", "14:00"),
           aTimeIntervalForDate("2019-03-19", "15:00", "19:00"),
@@ -132,7 +132,7 @@ class IntervalsSpec extends WordSpec with Matchers {
               aDayAt("2019-03-15", "13:40"),
               aDayAt("2019-03-19", "13:40")
             )
-          s1 should contain theSameElementsInOrderAs List(
+          s1 shouldBe List(
             aTimeIntervalForDate("2019-03-15", "13:40", "19:00"),
             aTimeIntervalForDate("2019-03-16", "09:00", "14:00"),
             aTimeIntervalForDate("2019-03-16", "15:00", "19:00"),
@@ -160,7 +160,7 @@ class IntervalsSpec extends WordSpec with Matchers {
               aDayAt("2019-03-15", "13:40"),
               aDayAt("2019-03-19", "13:40")
             )
-          s1 should contain theSameElementsInOrderAs List(
+          s1 shouldBe List(
             aTimeIntervalForDate("2019-03-15", "16:00", "19:00"),
             aTimeIntervalForDate("2019-03-16", "09:00", "14:00"),
             aTimeIntervalForDate("2019-03-16", "15:00", "19:00"),
@@ -187,7 +187,7 @@ class IntervalsSpec extends WordSpec with Matchers {
               aDayAt("2019-03-15", "13:40"),
               aDayAt("2019-03-19", "13:40")
             )
-          s1 should contain theSameElementsInOrderAs List(
+          s1 shouldBe List(
             aTimeIntervalForDate("2019-03-15", "13:40", "19:00"),
             aTimeIntervalForDate("2019-03-16", "09:00", "14:00"),
             aTimeIntervalForDate("2019-03-16", "15:00", "19:00"),
@@ -214,7 +214,7 @@ class IntervalsSpec extends WordSpec with Matchers {
               aDayAt("2019-03-15", "13:40"),
               aDayAt("2019-03-15", "19:00")
             )
-          s1 should contain theSameElementsInOrderAs List(
+          s1 shouldBe List(
             aTimeIntervalForDate("2019-03-15", "13:40", "14:00"),
             aTimeIntervalForDate("2019-03-15", "16:00", "19:00")
           )
@@ -260,8 +260,8 @@ class IntervalsSpec extends WordSpec with Matchers {
 //          aTimeIntervalForDate("2019-04-08", "09:00", "19:00")
 //        )
 //
-//      Segments.mergeSegments(timeSegments) should contain theSameElementsInOrderAs expected
-//      Segments.mergeSegments2(timeSegments) should contain theSameElementsInOrderAs expected
+//      Segments.mergeSegments(timeSegments) shouldBe expected
+//      Segments.mergeSegments2(timeSegments) shouldBe expected
 //
 //    }
 //  }
@@ -285,7 +285,7 @@ class IntervalsSpec extends WordSpec with Matchers {
           Intervals.applyExceptionsToInterval(exceptions, date)(
             includingInterval
           )
-        res should contain theSameElementsInOrderAs Nil
+        res shouldBe Nil
       }
 
       "including is 05:00 -> 10:00 and excluding is 05:00 -> 10:00" in {
@@ -301,7 +301,7 @@ class IntervalsSpec extends WordSpec with Matchers {
           Intervals.applyExceptionsToInterval(exceptions, date)(
             includingInterval
           )
-        res should contain theSameElementsInOrderAs Nil
+        res shouldBe Nil
       }
     }
 
@@ -319,7 +319,7 @@ class IntervalsSpec extends WordSpec with Matchers {
           Intervals.applyExceptionsToInterval(exceptions, date)(
             includingInterval
           )
-        res should contain theSameElementsInOrderAs List(
+        res shouldBe List(
           TimeIntervalForDate(date, includingInterval)
         )
       }
@@ -337,7 +337,7 @@ class IntervalsSpec extends WordSpec with Matchers {
           Intervals.applyExceptionsToInterval(exceptions, date)(
             includingInterval
           )
-        res should contain theSameElementsInOrderAs List(
+        res shouldBe List(
           TimeIntervalForDate(date, includingInterval)
         )
       }
@@ -355,7 +355,7 @@ class IntervalsSpec extends WordSpec with Matchers {
           Intervals.applyExceptionsToInterval(exceptions, date)(
             includingInterval
           )
-        res should contain theSameElementsInOrderAs List(
+        res shouldBe List(
           TimeIntervalForDate(date, includingInterval)
         )
       }
@@ -375,7 +375,7 @@ class IntervalsSpec extends WordSpec with Matchers {
           Intervals.applyExceptionsToInterval(exceptions, date)(
             includingInterval
           )
-        res should contain theSameElementsInOrderAs List(
+        res shouldBe List(
           aTimeIntervalForDate("2019-04-08", "05:00", "06:00")
         )
       }
@@ -393,7 +393,7 @@ class IntervalsSpec extends WordSpec with Matchers {
           Intervals.applyExceptionsToInterval(exceptions, date)(
             includingInterval
           )
-        res should contain theSameElementsInOrderAs List(
+        res shouldBe List(
           aTimeIntervalForDate("2019-04-08", "05:00", "06:00")
         )
       }
@@ -413,7 +413,7 @@ class IntervalsSpec extends WordSpec with Matchers {
           Intervals.applyExceptionsToInterval(exceptions, date)(
             includingInterval
           )
-        res should contain theSameElementsInOrderAs List(
+        res shouldBe List(
           aTimeIntervalForDate("2019-04-08", "09:00", "10:00")
         )
       }
@@ -431,7 +431,7 @@ class IntervalsSpec extends WordSpec with Matchers {
           Intervals.applyExceptionsToInterval(exceptions, date)(
             includingInterval
           )
-        res should contain theSameElementsInOrderAs List(
+        res shouldBe List(
           aTimeIntervalForDate("2019-04-08", "09:00", "10:00")
         )
       }
@@ -451,7 +451,7 @@ class IntervalsSpec extends WordSpec with Matchers {
           Intervals.applyExceptionsToInterval(exceptions, date)(
             includingInterval
           )
-        res should contain theSameElementsInOrderAs List(
+        res shouldBe List(
           aTimeIntervalForDate("2019-04-08", "05:00", "06:00"),
           aTimeIntervalForDate("2019-04-08", "08:00", "10:00")
         )
@@ -475,7 +475,7 @@ class IntervalsSpec extends WordSpec with Matchers {
             includingInterval
           )
 
-        res should contain theSameElementsInOrderAs List(
+        res shouldBe List(
           aTimeIntervalForDate("2019-04-08", "05:00", "06:00"),
           aTimeIntervalForDate("2019-04-08", "08:00", "09:30"),
           aTimeIntervalForDate("2019-04-08", "16:00", "19:00"),
@@ -500,7 +500,7 @@ class IntervalsSpec extends WordSpec with Matchers {
             includingInterval
           )
 
-        res should contain theSameElementsInOrderAs List(
+        res shouldBe List(
           aTimeIntervalForDate("2019-04-08", "05:00", "06:00"),
           aTimeIntervalForDate("2019-04-08", "08:00", "09:30"),
           aTimeIntervalForDate("2019-04-08", "16:00", "18:00"),

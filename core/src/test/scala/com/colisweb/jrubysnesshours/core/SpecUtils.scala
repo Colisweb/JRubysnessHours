@@ -2,6 +2,7 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time.DayOfWeek._
 import java.time._
+import java.time.format.DateTimeFormatter
 
 import com.colisweb.jrubysnesshours.core.Core.Schedule
 
@@ -17,7 +18,7 @@ object SpecUtils {
       TimeIntervalForDate(LocalDate.parse(str), interval)
 
     def at(time: String): ZonedDateTime =
-      ZonedDateTime.parse(s"${str}T$time:00.000+01:00[$zoneId]")
+      LocalDateTime.parse(s"$str $time", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")).atZone(zoneId)
   }
 
   implicit class LocalDateOps(localDate: LocalDate) {
@@ -39,12 +40,10 @@ object SpecUtils {
 
   val zoneId: ZoneId = ZoneId.of("Europe/Paris")
 
-  //val exceptions: List[TimeSegment] = List("2019-04-08" at "13:00" - "16:00")
-
   val schedule = Schedule(
-    planning,
-    Map.empty[LocalDate, List[TimeInterval]],
-    zoneId
+    planning = planning,
+    exceptions = Map.empty[LocalDate, List[TimeInterval]],
+    timeZone = zoneId
   )
 
   def aDayAt(day: String, time: String): ZonedDateTime =
