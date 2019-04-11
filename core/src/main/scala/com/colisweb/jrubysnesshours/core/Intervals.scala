@@ -117,7 +117,7 @@ object Intervals {
       remainingExceptions match {
         case Nil => acc :+ TimeIntervalForDate(date, interval)
         case exception :: remaining =>
-          if (exception encloses interval) Nil
+          if (exception encloses interval) ListBuffer.empty
           else if (interval.end <= exception.start || interval.start >= exception.end) { // interval outside exception -> untouched
             applyOneByOne(remaining, interval, acc)
           } else if (interval.start < exception.start && interval.end <= exception.end) { // exception overlaps interval right -> shortened right
