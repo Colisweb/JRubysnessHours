@@ -59,6 +59,8 @@ object Core {
     }
   }
 
+  final case class DateTimeInterval(start: LocalDateTime, end: LocalDateTime)
+
   final case class TimeIntervalForWeekDay(dayOfWeek: DayOfWeek, interval: TimeInterval)
 
   final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
@@ -77,7 +79,7 @@ object Core {
 
     def apply(
         plannings: List[TimeIntervalForWeekDay],
-        exceptions: List[TimeIntervalForDate],
+        exceptions: List[DateTimeInterval],
         timeZone: ZoneId
     ): Schedule = {
       def mergeIntervals(invervals: List[TimeInterval]): List[TimeInterval] = {
@@ -92,12 +94,57 @@ object Core {
           .foldRight(List.empty[TimeInterval]) {
             case (interval, h :: t) => mergeTwoIntervals(interval, h) ::: t
             case (interval, Nil)    => List(interval)
+
           }
+      }
+
+      def dateTimeIntervalsToExceptions(
+          dateTimeIntervals: List[DateTimeInterval]
+      ): Map[LocalDate, List[TimeInterval]] = {
+        dateTimeIntervals
+          .flatMap { dateTimeInterval =>
+            val numberOfDays =
+              Period.between(dateTimeInterval.start.toLocalDate, dateTimeInterval.end.toLocalDate).getDays
+
+            if (numberOfDays == 0) {
+              List(
+                TimeIntervalForDate(
+                  date = dateTimeInterval.start.toLocalDate,
+                  TimeInterval.of(start = dateTimeInterval.start.toLocalTime, end = dateTimeInterval.end.toLocalTime)
+                )
+              )
+            } else {
+              val dayRangeIntervals = Range(1, numberOfDays)
+
+              val midDays =
+                dayRangeIntervals.map { i =>
+                  val dateTime = dateTimeInterval.start.plusDays(i.toLong)
+                  val date     = dateTime.toLocalDate
+
+                  val newInterval = TimeInterval.of(start = LocalTime.MIDNIGHT, end = LocalTime.of(23, 59))
+
+                  TimeIntervalForDate(date = date, interval = newInterval)
+                }
+
+              val firstDay = TimeIntervalForDate(
+                date = dateTimeInterval.start.toLocalDate,
+                TimeInterval.of(start = dateTimeInterval.start.toLocalTime, end = LocalTime.of(23, 59))
+              )
+              val lastDay = TimeIntervalForDate(
+                date = dateTimeInterval.start.toLocalDate,
+                TimeInterval.of(start = LocalTime.MIDNIGHT, end = dateTimeInterval.end.toLocalTime)
+              )
+
+              firstDay +: midDays :+ lastDay
+            }
+          }
+          .groupBy(_.date)
+          .mapValues(intervals => mergeIntervals(intervals.map(_.interval)))
       }
 
       Schedule(
         planning = plannings.groupBy(_.dayOfWeek).mapValues(intervals => mergeIntervals(intervals.map(_.interval))),
-        exceptions = exceptions.groupBy(_.date).mapValues(intervals => mergeIntervals(intervals.map(_.interval))),
+        exceptions = dateTimeIntervalsToExceptions(exceptions),
         timeZone = timeZone
       )
     }
