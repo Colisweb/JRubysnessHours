@@ -10,8 +10,7 @@ case class TimeIntervalForWeekDay(dayOfWeek: DayOfWeek, interval: TimeInterval)
 case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
 
   def startTime: LocalTime = interval.start
-
-  def endTime: LocalTime = interval.end
+  def endTime: LocalTime   = interval.end
 }
 
 object TimeInterval {
