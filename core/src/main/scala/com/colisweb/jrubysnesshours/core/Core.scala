@@ -25,6 +25,10 @@ object Core {
 
     /**
       * Copied from `org.threeten.extra.Interval`.
+      *
+      * Here, it's not possible to directly use `this._interval union that._interval` because we're unable to
+      * then convert the result of that call to a `TimeInterval` because we can easily convert an `Instant` to
+      * a `LocalTime`.
       */
     def union(that: TimeInterval): TimeInterval = {
       if (!isConnected(that)) throw new DateTimeException(s"Intervals do not connect: $this and $that")
