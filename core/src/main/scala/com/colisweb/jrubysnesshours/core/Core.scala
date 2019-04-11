@@ -1,9 +1,54 @@
 package com.colisweb.jrubysnesshours.core
 
 import java.time._
-import scala.math.Ordering.Implicits._
+
+import org.threeten.extra.Interval
 
 object Core {
+
+  import scala.math.Ordering.Implicits._
+
+  private[core] final val utc          = ZoneOffset.UTC
+  private[core] final val `1970-01-01` = LocalDate.of(1970, 1, 1)
+
+  final case class TimeInterval(start: LocalTime, end: LocalTime) {
+    private[this] def toInstant(localTime: LocalTime) = LocalDateTime.of(`1970-01-01`, localTime).toInstant(utc)
+    private lazy val _interval                        = Interval.of(toInstant(start), toInstant(end))
+
+    def isBefore(that: TimeInterval): Boolean    = this._interval isBefore that._interval
+    def encloses(that: TimeInterval): Boolean    = this._interval encloses that._interval
+    def isConnected(that: TimeInterval): Boolean = this._interval isConnected that._interval
+
+    def contains(time: LocalTime): Boolean     = this._interval.contains(toInstant(time))
+    def endsAfter(time: LocalTime): Boolean    = this.end isAfter time
+    def startsBefore(time: LocalTime): Boolean = this.start isBefore time
+
+    /**
+      * Copied from `org.threeten.extra.Interval`.
+      */
+    def union(that: TimeInterval): TimeInterval = {
+      if (!isConnected(that)) throw new DateTimeException(s"Intervals do not connect: $this and $that")
+
+      val cmpStart = start.compareTo(that.start)
+      val cmpEnd   = end.compareTo(that.end)
+
+      if (cmpStart >= 0 && cmpEnd <= 0) that
+      else if (cmpStart <= 0 && cmpEnd >= 0) this
+      else {
+        val newStart = if (cmpStart >= 0) that.start else start
+        val newEnd   = if (cmpEnd <= 0) that.end else end
+        TimeInterval(start = newStart, end = newEnd)
+      }
+    }
+  }
+
+  final case class TimeIntervalForWeekDay(dayOfWeek: DayOfWeek, interval: TimeInterval)
+
+  final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
+    lazy val start: LocalTime   = interval.start
+    lazy val end: LocalTime     = interval.end
+    lazy val duration: Duration = Duration.between(start, end)
+  }
 
   case class Schedule private[core] (
       planning: Map[DayOfWeek, List[TimeInterval]],
@@ -18,77 +63,48 @@ object Core {
         exceptions: List[TimeIntervalForDate],
         timeZone: ZoneId
     ): Schedule = {
+      def mergeIntervals(invervals: List[TimeInterval]): List[TimeInterval] = {
+        def mergeTwoIntervals(interval1: TimeInterval, interval2: TimeInterval): List[TimeInterval] =
+          if (interval1 isBefore interval2) List(interval1, interval2)
+          else if (interval1 encloses interval2) List(interval1)
+          else if (interval1 isConnected interval2) List(interval1.union(interval2))
+          else Nil // TODO Jules: Ce `Nil` me géne. Comment le virer ?
 
-      def mergeTwoIntervals(interval1: TimeInterval, interval2: TimeInterval): List[TimeInterval] = {
-
-        if (interval2.start > interval1.end) {
-          List(interval1, interval2)
-        } else if (interval2.end < interval1.end) {
-          List(interval1)
-        } else {
-          List(TimeInterval(interval1.start, interval2.end))
-        }
+        invervals
+          .sortBy(_.start)
+          .foldRight(List.empty[TimeInterval]) {
+            case (interval, h :: t) => mergeTwoIntervals(interval, h) ::: t
+            case (interval, Nil)    => List(interval)
+          }
       }
 
-      def prepareWeekDayIntervals(intervals: List[TimeIntervalForWeekDay]): List[TimeInterval] =
-        intervals
-          .sortBy(_.interval.start)
-          .foldRight(List.empty[TimeInterval]) {
-            case (dayInterval, h :: t) =>
-              mergeTwoIntervals(dayInterval.interval, h) ::: t
-            case (dayInterval, Nil) => List(dayInterval.interval)
-          }
-
-      def prepareDateIntervals(intervals: List[TimeIntervalForDate]): List[TimeInterval] =
-        intervals
-          .sortBy(_.interval.start)
-          .foldRight(List.empty[TimeInterval]) {
-            case (dateInterval, h :: t) =>
-              mergeTwoIntervals(dateInterval.interval, h) ::: t
-            case (dateInterval, Nil) => List(dateInterval.interval)
-          }
-
       Schedule(
-        plannings.groupBy(_.dayOfWeek).map {
-          case (dayOfWeek, intervals) =>
-            dayOfWeek -> prepareWeekDayIntervals(intervals)
-        },
-        exceptions.groupBy(_.date).map {
-          case (date, intervals) =>
-            date -> prepareDateIntervals(intervals)
-        },
-        timeZone
+        planning = plannings.groupBy(_.dayOfWeek).mapValues(intervals => mergeIntervals(intervals.map(_.interval))),
+        exceptions = exceptions.groupBy(_.date).mapValues(intervals => mergeIntervals(intervals.map(_.interval))),
+        timeZone = timeZone
       )
     }
   }
 
-  def within(schedule: Schedule)(start: ZonedDateTime, end: ZonedDateTime): Duration = {
-
+  def within(schedule: Schedule)(start: ZonedDateTime, end: ZonedDateTime): Duration =
     Intervals
       .intervalsBetween(schedule)(start, end)
-      .foldLeft(Duration.ZERO)(
-        (total, segment) => total.plus(Duration.between(segment.startTime, segment.endTime))
-      )
-  }
+      .map(_.duration)
+      .reduce(_ plus _)
 
   def isOpenForDurationInDate(schedule: Schedule)(date: LocalDate, duration: Duration): Boolean = {
-
     val start = ZonedDateTime.of(date, LocalTime.MIN, schedule.timeZone)
     val end   = ZonedDateTime.of(date, LocalTime.MAX, schedule.timeZone)
 
     Intervals
       .intervalsBetween(schedule)(start, end)
-      .exists(
-        segment => Duration.between(segment.startTime, segment.endTime) >= duration
-      )
+      .exists(_.duration >= duration)
   }
 
-  def isOpen(schedule: Schedule)(instant: ZonedDateTime): Boolean = {
-
+  def isOpen(schedule: Schedule)(instant: ZonedDateTime): Boolean =
     Intervals
       .intervalsBetween(schedule)(instant, instant)
       .nonEmpty
-  }
 
   // TODO: next business hour
 }
