@@ -8,8 +8,8 @@ object Core {
 
   import scala.math.Ordering.Implicits._
 
-  private[core] final val utc          = ZoneOffset.UTC
-  private[core] final val `1970-01-01` = LocalDate.of(1970, 1, 1)
+  private[core] final val utc: ZoneOffset         = ZoneOffset.UTC
+  private[core] final val `1970-01-01`: LocalDate = LocalDate.of(1970, 1, 1)
 
   final case class TimeInterval(start: LocalTime, end: LocalTime) {
     @inline private[this] def toInstant(localTime: LocalTime) = LocalDateTime.of(`1970-01-01`, localTime).toInstant(utc)
