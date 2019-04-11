@@ -12,8 +12,8 @@ object Core {
   private[core] final val `1970-01-01` = LocalDate.of(1970, 1, 1)
 
   final case class TimeInterval(start: LocalTime, end: LocalTime) {
-    private[this] def toInstant(localTime: LocalTime) = LocalDateTime.of(`1970-01-01`, localTime).toInstant(utc)
-    private lazy val _interval                        = Interval.of(toInstant(start), toInstant(end))
+    @inline private[this] def toInstant(localTime: LocalTime) = LocalDateTime.of(`1970-01-01`, localTime).toInstant(utc)
+    private lazy val _interval                                = Interval.of(toInstant(start), toInstant(end))
 
     def isBefore(that: TimeInterval): Boolean    = this._interval isBefore that._interval
     def encloses(that: TimeInterval): Boolean    = this._interval encloses that._interval
