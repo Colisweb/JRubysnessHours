@@ -23,6 +23,14 @@ object SpecUtils {
       ZonedDateTime.parse(s"${str}T$time:00.000+01:00[$zoneId]")
   }
 
+  implicit class LocalDateOps(localDate: LocalDate) {
+    def ts(startTime: LocalTime, endTime: LocalTime): TimeSegment = {
+      val t = TimeSegment(localDate, Interval(startTime, endTime))
+      println(t) //TODO: remove when enough tests are "tested"
+      t
+    }
+  }
+
   val planning: BusinessHoursByDayOfWeek = Map(
     MONDAY -> List("09:00" - "19:00"),
     TUESDAY -> List("09:30" - "14:00", "15:00" - "19:00"),
