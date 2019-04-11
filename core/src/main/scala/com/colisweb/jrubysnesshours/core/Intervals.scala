@@ -16,7 +16,7 @@ object Intervals {
     val localEndDate   = end.toLocalDate
 
     if (localStartDate == localEndDate) {
-      intervalsInSameDay(schedule, localStartDate, TimeInterval(start.toLocalTime, end.toLocalTime))
+      intervalsInSameDay(schedule, localStartDate, TimeInterval.of(start.toLocalTime, end.toLocalTime))
     } else {
       val startDayIntervals: ListBuffer[TimeIntervalForDate] = intervalsInStartDay(schedule, start)
       val endDayIntervals: ListBuffer[TimeIntervalForDate]   = intervalsInEndDay(schedule, end)
@@ -56,7 +56,7 @@ object Intervals {
       .filter(_ endsAfter startTime)
       .foldLeft(ListBuffer.empty[TimeIntervalForDate]) { (acc, interval) =>
         val newInterval: TimeInterval =
-          if (interval startsBefore startTime) TimeInterval(startTime, interval.end) else interval
+          if (interval startsBefore startTime) TimeInterval.of(startTime, interval.end) else interval
 
         acc ++ applyExceptionsToInterval(schedule.exceptions, startDate, newInterval)
       }
@@ -71,7 +71,7 @@ object Intervals {
       .filter(_ startsBefore endTime)
       .foldLeft(ListBuffer.empty[TimeIntervalForDate]) { (acc, interval) =>
         val newInterval =
-          if (interval endsAfter endTime) TimeInterval(interval.start, endTime) else interval
+          if (interval endsAfter endTime) TimeInterval.of(interval.start, endTime) else interval
 
         acc ++ applyExceptionsToInterval(schedule.exceptions, endDate, newInterval)
       }
@@ -88,8 +88,8 @@ object Intervals {
       .foldLeft(ListBuffer.empty[TimeIntervalForDate]) { (acc, interval) =>
         val newInterval =
           if (interval encloses query) query
-          else if (interval startsBefore query.start) TimeInterval(query.start, interval.end)
-          else if (interval endsAfter query.end) TimeInterval(interval.start, query.end)
+          else if (interval startsBefore query.start) TimeInterval.of(query.start, interval.end)
+          else if (interval endsAfter query.end) TimeInterval.of(interval.start, query.end)
           else interval
 
         acc ++ applyExceptionsToInterval(schedule.exceptions, date, newInterval)
@@ -121,14 +121,14 @@ object Intervals {
           else if (interval.end <= exception.start || interval.start >= exception.end) { // interval outside exception -> untouched
             applyOneByOne(remaining, interval, acc)
           } else if (interval.start < exception.start && interval.end <= exception.end) { // exception overlaps interval right -> shortened right
-            applyOneByOne(remaining, TimeInterval(interval.start, exception.start), acc)
+            applyOneByOne(remaining, TimeInterval.of(interval.start, exception.start), acc)
           } else if (interval.start >= exception.start && interval.end > exception.end) { // exception overlaps interval left -> shortened left
-            applyOneByOne(remaining, TimeInterval(exception.end, interval.end), acc)
+            applyOneByOne(remaining, TimeInterval.of(exception.end, interval.end), acc)
           } else { // () interval.start < toExclude.start && interval.end > toExclude.end //  // interval cut by exception -> cut in two
             applyOneByOne(
               remaining,
-              TimeInterval(exception.end, interval.end),
-              acc :+ TimeIntervalForDate(date, TimeInterval(interval.start, exception.start))
+              TimeInterval.of(exception.end, interval.end),
+              acc :+ TimeIntervalForDate(date, TimeInterval.of(interval.start, exception.start))
             )
           }
       }

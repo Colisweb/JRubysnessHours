@@ -11,7 +11,12 @@ object Core {
   private[core] final val utc: ZoneOffset         = ZoneOffset.UTC
   private[core] final val `1970-01-01`: LocalDate = LocalDate.of(1970, 1, 1)
 
-  final case class TimeInterval(start: LocalTime, end: LocalTime) {
+  /**
+    * More info on the `sealed abstract case class` pattern:
+    *   - https://gist.github.com/tpolecat/a5cb0dc9adeacc93f846835ed21c92d2
+    *   - https://nrinaudo.github.io/scala-best-practices/tricky_behaviours/final_case_classes.html
+    */
+  sealed abstract case class TimeInterval(start: LocalTime, end: LocalTime) {
     @inline private[this] def toInstant(localTime: LocalTime) = LocalDateTime.of(`1970-01-01`, localTime).toInstant(utc)
     private lazy val _interval                                = Interval.of(toInstant(start), toInstant(end))
 
@@ -41,8 +46,16 @@ object Core {
       else {
         val newStart = if (cmpStart >= 0) that.start else start
         val newEnd   = if (cmpEnd <= 0) that.end else end
-        TimeInterval(start = newStart, end = newEnd)
+        TimeInterval.of(start = newStart, end = newEnd)
       }
+    }
+  }
+
+  object TimeInterval {
+    def of(start: LocalTime, end: LocalTime): TimeInterval = {
+      assert(start isBefore end) // Ugly
+
+      new TimeInterval(start, end) {}
     }
   }
 

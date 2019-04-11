@@ -13,17 +13,17 @@ class WithinSpec extends WordSpec with Matchers {
   }
 
   val planning: Map[DayOfWeek, List[TimeInterval]] = Map(
-    MONDAY -> List(TimeInterval("09:00".toLocalTime, "19:00".toLocalTime)),
+    MONDAY -> List(TimeInterval.of("09:00".toLocalTime, "19:00".toLocalTime)),
     TUESDAY -> List(
-      TimeInterval("09:30".toLocalTime, "14:00".toLocalTime),
-      TimeInterval("15:00".toLocalTime, "19:00".toLocalTime)
+      TimeInterval.of("09:30".toLocalTime, "14:00".toLocalTime),
+      TimeInterval.of("15:00".toLocalTime, "19:00".toLocalTime)
     ),
-    WEDNESDAY -> List(TimeInterval("09:30".toLocalTime, "20:00".toLocalTime)),
-    THURSDAY  -> List(TimeInterval("09:30".toLocalTime, "19:00".toLocalTime)),
-    FRIDAY    -> List(TimeInterval("09:30".toLocalTime, "19:00".toLocalTime)),
+    WEDNESDAY -> List(TimeInterval.of("09:30".toLocalTime, "20:00".toLocalTime)),
+    THURSDAY  -> List(TimeInterval.of("09:30".toLocalTime, "19:00".toLocalTime)),
+    FRIDAY    -> List(TimeInterval.of("09:30".toLocalTime, "19:00".toLocalTime)),
     SATURDAY -> List(
-      TimeInterval("09:00".toLocalTime, "14:00".toLocalTime),
-      TimeInterval("15:00".toLocalTime, "19:00".toLocalTime)
+      TimeInterval.of("09:00".toLocalTime, "14:00".toLocalTime),
+      TimeInterval.of("15:00".toLocalTime, "19:00".toLocalTime)
     )
   )
   val zoneId: ZoneId = ZoneId.of("Europe/Paris")
