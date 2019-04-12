@@ -106,6 +106,7 @@ object Core {
         exceptions: List[DateTimeInterval],
         timeZone: ZoneId
     ): Schedule = {
+
       def mergeIntervals(invervals: List[TimeInterval]): List[TimeInterval] = {
         def mergeTwoIntervals(interval1: TimeInterval, interval2: TimeInterval): List[TimeInterval] =
           if (interval1 isBefore interval2) List(interval1, interval2)
@@ -131,6 +132,7 @@ object Core {
             val localEndTime   = dateTimeInterval.end.toLocalTime
 
             val localStartDate = dateTimeInterval.start.toLocalDate
+            val localEndDate   = dateTimeInterval.end.toLocalDate
 
             if (numberOfDays == 0) {
               val newInterval = TimeInterval.of(start = localStartTime, end = localEndTime)
@@ -152,7 +154,7 @@ object Core {
 
               val lastDay =
                 TimeIntervalForDate(
-                  date = dateTimeInterval.end.toLocalDate,
+                  date = localEndDate,
                   interval = TimeInterval.of(start = LocalTime.MIDNIGHT, end = localEndTime)
                 )
 
@@ -179,7 +181,7 @@ object Core {
 
   def isOpenForDurationInDate(schedule: Schedule)(date: LocalDate, duration: Duration): Boolean = {
     val start = ZonedDateTime.of(date, LocalTime.MIN, schedule.timeZone)
-    val end   = ZonedDateTime.of(date, LocalTime.MAX, schedule.timeZone)
+    val end   = ZonedDateTime.of(date, END_OF_DAY, schedule.timeZone)
 
     Intervals
       .intervalsBetween(schedule)(start, end)
