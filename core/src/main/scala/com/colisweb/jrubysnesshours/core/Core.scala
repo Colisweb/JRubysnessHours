@@ -130,7 +130,7 @@ object Core {
             val localEndTime   = dateTimeInterval.end.toLocalTime
 
             val localStartDate = dateTimeInterval.start.toLocalDate
-            // val localEndDate = dateTimeInterval.end.toLocalDate
+            val localEndDate   = dateTimeInterval.end.toLocalDate
 
             if (numberOfDays == 0) {
               val newInterval = TimeInterval.of(start = localStartTime, end = localEndTime)
@@ -152,7 +152,7 @@ object Core {
 
               val lastDay =
                 TimeIntervalForDate(
-                  date = localStartDate, // TODO Jules: why `localStartDate` and not `localEndDate` ??
+                  date = localEndDate,
                   interval = TimeInterval.of(start = LocalTime.MIDNIGHT, end = localEndTime)
                 )
 
