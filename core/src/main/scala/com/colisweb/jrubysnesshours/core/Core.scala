@@ -34,7 +34,7 @@ object Core {
       *
       * The passed interval will be substracted from the current interval.
       */
-    @inline def minus(that: TimeInterval): List[TimeInterval] =
+    def minus(that: TimeInterval): List[TimeInterval] =
       if (that._interval encloses this._interval) List.empty
       else if (this._interval encloses that._interval) {
         val acc = ListBuffer.empty[TimeInterval]
