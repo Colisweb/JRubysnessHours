@@ -120,8 +120,9 @@ object Intervals {
         remainingExceptions: List[TimeInterval]
     ): List[TimeInterval] =
       remainingExceptions match {
-        case Nil               => allIntervals
-        case exception :: rest => rec(allIntervals.flatMap(_ minus exception), rest) // TODO: can be improved: exceptions are sorted, no need to apply on intervals before
+        case Nil => allIntervals
+        case exception :: rest =>
+          rec(allIntervals.flatMap(_ minus exception), rest) // TODO: can be improved: exceptions are sorted, no need to apply on intervals before
       }
 
     intervals match {
