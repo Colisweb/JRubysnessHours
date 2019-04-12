@@ -174,7 +174,7 @@ final case class Schedule private[core] (
 
   def isOpenForDurationInDate(date: LocalDate, duration: Duration): Boolean = {
     val start = ZonedDateTime.of(date, LocalTime.MIN, timeZone)
-    val end   = ZonedDateTime.of(date, LocalTime.MAX, timeZone)
+    val end   = ZonedDateTime.of(date, TimeInterval.END_OF_DAY, timeZone)
 
     intervalsBetween(start, end).exists(_.duration >= duration)
   }
