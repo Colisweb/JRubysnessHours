@@ -1,56 +1,11 @@
 package com.colisweb.jrubysnesshours.core
 
-import java.time.DayOfWeek._
-import java.time._
-
 import org.scalatest.{Matchers, WordSpec}
 
-class IntervalsSpec extends WordSpec with Matchers {
+class ScheduleCutExceptionsSpec extends WordSpec with Matchers {
 
   import SpecUtils._
 
-  val planning: Map[DayOfWeek, List[TimeInterval]] = Map(
-    MONDAY -> List(TimeInterval("09:00".toLocalTime, "19:00".toLocalTime)),
-    TUESDAY -> List(
-      TimeInterval("09:30".toLocalTime, "14:00".toLocalTime),
-      TimeInterval("15:00".toLocalTime, "19:00".toLocalTime)
-    ),
-    WEDNESDAY -> List(TimeInterval("09:30".toLocalTime, "20:00".toLocalTime)),
-    THURSDAY  -> List(TimeInterval("09:30".toLocalTime, "19:00".toLocalTime)),
-    FRIDAY    -> List(TimeInterval("09:30".toLocalTime, "19:00".toLocalTime)),
-    SATURDAY -> List(
-      TimeInterval("09:00".toLocalTime, "14:00".toLocalTime),
-      TimeInterval("15:00".toLocalTime, "19:00".toLocalTime)
-    )
-  )
-  val zoneId: ZoneId = ZoneId.of("Europe/Paris")
-
-//
-//
-//  "Merging mergeTimeSegments" should {
-//
-//    "Some overlapping TimeSegments ( for the same day ) with method merge1" in {
-//
-//      val timeSegments =
-//        List(
-//          aTimeIntervalForDate("2019-04-08", "02:00", "05:00"),
-//          aTimeIntervalForDate("2019-04-08", "04:00", "08:00"),
-//          aTimeIntervalForDate("2019-04-08", "09:00", "19:00"),
-//          aTimeIntervalForDate("2019-04-08", "13:00", "16:00"),
-//        )
-//
-//      val expected =
-//        List(
-//          aTimeIntervalForDate("2019-04-08", "02:00", "08:00"),
-//          aTimeIntervalForDate("2019-04-08", "09:00", "19:00")
-//        )
-//
-//      Segments.mergeSegments(timeSegments) shouldBe expected
-//      Segments.mergeSegments2(timeSegments) shouldBe expected
-//
-//    }
-//  }
-//
   "Apply exceptions to Interval" should {
 
     // TODO : generators with random could be great to check that the last case never append
@@ -206,4 +161,5 @@ class IntervalsSpec extends WordSpec with Matchers {
 
     }
   }
+
 }
