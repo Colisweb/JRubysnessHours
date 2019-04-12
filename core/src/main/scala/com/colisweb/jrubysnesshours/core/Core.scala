@@ -94,7 +94,6 @@ object Core {
           .foldRight(List.empty[TimeInterval]) {
             case (interval, h :: t) => mergeTwoIntervals(interval, h) ::: t
             case (interval, Nil)    => List(interval)
-
           }
       }
 
@@ -104,34 +103,35 @@ object Core {
             val numberOfDays =
               Period.between(dateTimeInterval.start.toLocalDate, dateTimeInterval.end.toLocalDate).getDays
 
+            val localStartTime = dateTimeInterval.start.toLocalTime
+            val localEndTime   = dateTimeInterval.end.toLocalTime
+
+            val localStartDate = dateTimeInterval.start.toLocalDate
+            // val localEndDate = dateTimeInterval.end.toLocalDate
+
             if (numberOfDays == 0) {
-              List(
-                TimeIntervalForDate(
-                  date = dateTimeInterval.start.toLocalDate,
-                  TimeInterval.of(start = dateTimeInterval.start.toLocalTime, end = dateTimeInterval.end.toLocalTime)
-                )
-              )
+              val newInterval = TimeInterval.of(start = localStartTime, end = localEndTime)
+              List(TimeIntervalForDate(date = localStartDate, interval = newInterval))
             } else {
-              val dayRangeIntervals = Range(1, numberOfDays)
-
               val midDays =
-                dayRangeIntervals.map { i =>
-                  val dateTime = dateTimeInterval.start.plusDays(i.toLong)
-                  val date     = dateTime.toLocalDate
+                (1 until numberOfDays)
+                  .map { i =>
+                    val date        = localStartDate.plusDays(i.toLong)
+                    val newInterval = TimeInterval.of(start = LocalTime.MIDNIGHT, end = LocalTime.MAX) // TODO Jules: Should we really prefer MAX here ?
+                    TimeIntervalForDate(date = date, interval = newInterval)
+                  }
 
-                  val newInterval = TimeInterval.of(start = LocalTime.MIDNIGHT, end = LocalTime.of(23, 59))
+              val firstDay =
+                TimeIntervalForDate(
+                  date = localStartDate,
+                  interval = TimeInterval.of(start = localStartTime, end = LocalTime.MAX) // TODO Jules: Should we really prefer MAX here ?
+                )
 
-                  TimeIntervalForDate(date = date, interval = newInterval)
-                }
-
-              val firstDay = TimeIntervalForDate(
-                date = dateTimeInterval.start.toLocalDate,
-                TimeInterval.of(start = dateTimeInterval.start.toLocalTime, end = LocalTime.of(23, 59))
-              )
-              val lastDay = TimeIntervalForDate(
-                date = dateTimeInterval.start.toLocalDate,
-                TimeInterval.of(start = LocalTime.MIDNIGHT, end = dateTimeInterval.end.toLocalTime)
-              )
+              val lastDay =
+                TimeIntervalForDate(
+                  date = localStartDate, // TODO Jules: why `localStartDate` and not `localEndDate` ??
+                  interval = TimeInterval.of(start = LocalTime.MIDNIGHT, end = localEndTime)
+                )
 
               firstDay +: midDays :+ lastDay
             }
