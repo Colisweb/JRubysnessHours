@@ -21,7 +21,7 @@ class ScheduleSpec extends WordSpec with Matchers {
         aDateTimeInterval("2019-03-19", "10:00", "2019-03-19", "12:00")
       ).sortBy(_.hashCode())
 
-      Schedule.apply(Nil, rawExceptions, UTC).exceptions should contain theSameElementsAs Map(
+      Schedule(Nil, rawExceptions, UTC).exceptions should contain theSameElementsAs Map(
         aDate("2019-03-15") -> List(
           aTimeInterval("10:00", "12:00"),
           aTimeInterval("13:00", "16:00")
@@ -53,7 +53,7 @@ class ScheduleSpec extends WordSpec with Matchers {
         aDateTimeInterval("2019-03-19", "08:00", "2019-03-19", "12:00")
       ).sortBy(_.hashCode())
 
-      Schedule.apply(Nil, rawExceptions, UTC).exceptions should contain theSameElementsAs Map(
+      Schedule(Nil, rawExceptions, UTC).exceptions should contain theSameElementsAs Map(
         aDate("2019-03-15") -> List(
           aTimeInterval("10:00", "19:00")
         ),
@@ -83,7 +83,7 @@ class ScheduleSpec extends WordSpec with Matchers {
       val expectedTimeIntervals = List(aTimeInterval("10:00", "18:00"))
       val expected              = dates.map(_ -> expectedTimeIntervals).toMap
 
-      val result = Schedule.apply(Nil, rawExceptions, UTC).exceptions
+      val result = Schedule(Nil, rawExceptions, UTC).exceptions
 
       result should contain theSameElementsAs expected
     }
@@ -99,7 +99,7 @@ class ScheduleSpec extends WordSpec with Matchers {
         aTimeIntervalForWeekDay(SATURDAY, "09:15", "17:45")
       ).sortBy(_.hashCode())
 
-      Schedule.apply(rawPlanning, Nil, UTC).planning should contain theSameElementsAs Map(
+      Schedule(rawPlanning, Nil, UTC).planning should contain theSameElementsAs Map(
         MONDAY -> List(
           aTimeInterval("10:00", "12:00"),
           aTimeInterval("14:00", "18:00")
@@ -130,7 +130,7 @@ class ScheduleSpec extends WordSpec with Matchers {
         aTimeIntervalForWeekDay(THURSDAY, "20:00", "21:15")
       ).sortBy(_.hashCode())
 
-      Schedule.apply(rawPlanning, Nil, UTC).planning should contain theSameElementsAs Map(
+      Schedule(rawPlanning, Nil, UTC).planning should contain theSameElementsAs Map(
         MONDAY -> List(
           aTimeInterval("10:00", "18:00")
         ),
