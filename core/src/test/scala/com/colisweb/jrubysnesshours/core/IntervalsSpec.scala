@@ -3,7 +3,6 @@ package com.colisweb.jrubysnesshours.core
 import java.time.DayOfWeek._
 import java.time._
 
-import com.colisweb.jrubysnesshours.core.Core.{TimeInterval, Schedule, TimeIntervalForDate}
 import org.scalatest.{Matchers, WordSpec}
 
 class IntervalsSpec extends WordSpec with Matchers {
@@ -13,17 +12,17 @@ class IntervalsSpec extends WordSpec with Matchers {
   }
 
   val planning: Map[DayOfWeek, List[TimeInterval]] = Map(
-    MONDAY -> List(TimeInterval.of("09:00".toLocalTime, "19:00".toLocalTime)),
+    MONDAY -> List(TimeInterval("09:00".toLocalTime, "19:00".toLocalTime)),
     TUESDAY -> List(
-      TimeInterval.of("09:30".toLocalTime, "14:00".toLocalTime),
-      TimeInterval.of("15:00".toLocalTime, "19:00".toLocalTime)
+      TimeInterval("09:30".toLocalTime, "14:00".toLocalTime),
+      TimeInterval("15:00".toLocalTime, "19:00".toLocalTime)
     ),
-    WEDNESDAY -> List(TimeInterval.of("09:30".toLocalTime, "20:00".toLocalTime)),
-    THURSDAY  -> List(TimeInterval.of("09:30".toLocalTime, "19:00".toLocalTime)),
-    FRIDAY    -> List(TimeInterval.of("09:30".toLocalTime, "19:00".toLocalTime)),
+    WEDNESDAY -> List(TimeInterval("09:30".toLocalTime, "20:00".toLocalTime)),
+    THURSDAY  -> List(TimeInterval("09:30".toLocalTime, "19:00".toLocalTime)),
+    FRIDAY    -> List(TimeInterval("09:30".toLocalTime, "19:00".toLocalTime)),
     SATURDAY -> List(
-      TimeInterval.of("09:00".toLocalTime, "14:00".toLocalTime),
-      TimeInterval.of("15:00".toLocalTime, "19:00".toLocalTime)
+      TimeInterval("09:00".toLocalTime, "14:00".toLocalTime),
+      TimeInterval("15:00".toLocalTime, "19:00".toLocalTime)
     )
   )
   val zoneId: ZoneId = ZoneId.of("Europe/Paris")
@@ -34,7 +33,7 @@ class IntervalsSpec extends WordSpec with Matchers {
 
       val schedule = Schedule.apply(planning, Map.empty[LocalDate, List[TimeInterval]], zoneId)
       val intervalsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
-        Intervals.intervalsBetween(schedule)
+        schedule.intervalsBetween
 
       "compute 2 intervals between Thursday 18:00 to Friday 10:00" in {
         val s1 = intervalsBetween(
@@ -111,6 +110,14 @@ class IntervalsSpec extends WordSpec with Matchers {
           aTimeIntervalForDate("2019-03-23", "15:00", "19:00")
         )
       }
+      "compute 100 intervals over more than one month" in {
+        val s7 =
+          intervalsBetween(
+            parseZonedDateTime("2019-01-01", "12:00"),
+            parseZonedDateTime("2019-03-28", "14:00")
+          )
+        s7.size shouldBe 100
+      }
     }
 
     "with exceptions" should {
@@ -124,7 +131,7 @@ class IntervalsSpec extends WordSpec with Matchers {
 
         val schedule = Schedule(planning, exceptions, zoneId)
         val intervalsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
-          Intervals.intervalsBetween(schedule)
+          schedule.intervalsBetween
 
         "compute 6 intervals between Friday 15 13:40 to Tuesday 19 13:40 INCLUDING and exception the 2019-03-18 between 13:00 and 16:00" in {
           val s1 =
@@ -152,7 +159,7 @@ class IntervalsSpec extends WordSpec with Matchers {
 
         val schedule = Schedule(planning, exceptions, zoneId)
         val intervalsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
-          Intervals.intervalsBetween(schedule)
+          schedule.intervalsBetween
 
         "compute 6 intervals between Friday 15 13:40 to Tuesday 19 13:40 INCLUDING and exception the  019-03-15 between 13:00 and 16:00" in {
           val s1 =
@@ -179,7 +186,7 @@ class IntervalsSpec extends WordSpec with Matchers {
 
         val schedule = Schedule(planning, exceptions, zoneId)
         val intervalsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
-          Intervals.intervalsBetween(schedule)
+          schedule.intervalsBetween
 
         "compute 6 intervals between Friday 15 13:40 to Tuesday 19 13:40 INCLUDING and exception the 2019-03-19 between 13:00 and 16:00" in {
           val s1 =
@@ -206,7 +213,7 @@ class IntervalsSpec extends WordSpec with Matchers {
 
         val schedule = Schedule(planning, exceptions, zoneId)
         val intervalsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
-          Intervals.intervalsBetween(schedule)
+          schedule.intervalsBetween
 
         "compute 2 intervals between Friday 15 13:40 to Friday 15 19:00 INCLUDING and exception the 2019-03-18 between 14:00 and 16:00" in {
           val s1 =
@@ -227,7 +234,7 @@ class IntervalsSpec extends WordSpec with Matchers {
     ZonedDateTime.parse(s"${day}T$time:00.000+01:00[$zoneId]")
 
   def parseInterval(startTime: String, endTime: String) =
-    TimeInterval.of(
+    TimeInterval(
       LocalTime.parse(s"$startTime:00"),
       LocalTime.parse(s"$endTime:00")
     )
@@ -273,7 +280,7 @@ class IntervalsSpec extends WordSpec with Matchers {
       "including is empty and excluding is 04:00 -> 11:00" in {
         val excludingInterval = parseInterval("04:00", "11:00")
 
-        val res = Intervals.cutExceptions(Nil, List(excludingInterval))
+        val res = Schedule.cutExceptions(Nil, List(excludingInterval))
 
         res should contain theSameElementsInOrderAs Nil
       }
@@ -282,7 +289,7 @@ class IntervalsSpec extends WordSpec with Matchers {
         val includingInterval = parseInterval("05:00", "10:00")
         val excludingInterval = parseInterval("04:00", "11:00")
 
-        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
+        val res = Schedule.cutExceptions(List(includingInterval), List(excludingInterval))
 
         res should contain theSameElementsInOrderAs Nil
       }
@@ -291,7 +298,7 @@ class IntervalsSpec extends WordSpec with Matchers {
         val includingInterval = parseInterval("05:00", "10:00")
         val excludingInterval = parseInterval("05:00", "10:00")
 
-        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
+        val res = Schedule.cutExceptions(List(includingInterval), List(excludingInterval))
 
         res should contain theSameElementsInOrderAs Nil
       }
@@ -302,7 +309,7 @@ class IntervalsSpec extends WordSpec with Matchers {
         val includingInterval = parseInterval("05:00", "10:00")
         val excludingInterval = parseInterval("01:00", "04:00")
 
-        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
+        val res = Schedule.cutExceptions(List(includingInterval), List(excludingInterval))
 
         res should contain theSameElementsInOrderAs List(includingInterval)
       }
@@ -311,7 +318,7 @@ class IntervalsSpec extends WordSpec with Matchers {
         val includingInterval = parseInterval("01:00", "04:00")
         val excludingInterval = parseInterval("05:00", "10:00")
 
-        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
+        val res = Schedule.cutExceptions(List(includingInterval), List(excludingInterval))
 
         res should contain theSameElementsInOrderAs List(includingInterval)
       }
@@ -320,7 +327,7 @@ class IntervalsSpec extends WordSpec with Matchers {
         val includingInterval = parseInterval("01:00", "04:00")
         val excludingInterval = parseInterval("04:00", "10:00")
 
-        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
+        val res = Schedule.cutExceptions(List(includingInterval), List(excludingInterval))
 
         res should contain theSameElementsInOrderAs List(includingInterval)
       }
@@ -331,7 +338,7 @@ class IntervalsSpec extends WordSpec with Matchers {
         val includingInterval = parseInterval("05:00", "10:00")
         val excludingInterval = parseInterval("06:00", "11:00")
 
-        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
+        val res = Schedule.cutExceptions(List(includingInterval), List(excludingInterval))
 
         res should contain theSameElementsInOrderAs List(parseInterval("05:00", "06:00"))
       }
@@ -340,7 +347,7 @@ class IntervalsSpec extends WordSpec with Matchers {
         val includingInterval = parseInterval("05:00", "10:00")
         val excludingInterval = parseInterval("06:00", "10:00")
 
-        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
+        val res = Schedule.cutExceptions(List(includingInterval), List(excludingInterval))
 
         res should contain theSameElementsInOrderAs List(parseInterval("05:00", "06:00"))
       }
@@ -351,7 +358,7 @@ class IntervalsSpec extends WordSpec with Matchers {
         val includingInterval = parseInterval("05:00", "10:00")
         val excludingInterval = parseInterval("04:00", "09:00")
 
-        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
+        val res = Schedule.cutExceptions(List(includingInterval), List(excludingInterval))
 
         res should contain theSameElementsInOrderAs List(parseInterval("09:00", "10:00"))
       }
@@ -360,7 +367,7 @@ class IntervalsSpec extends WordSpec with Matchers {
         val includingInterval = parseInterval("05:00", "10:00")
         val excludingInterval = parseInterval("05:00", "09:00")
 
-        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
+        val res = Schedule.cutExceptions(List(includingInterval), List(excludingInterval))
 
         res should contain theSameElementsInOrderAs List(parseInterval("09:00", "10:00"))
       }
@@ -371,7 +378,7 @@ class IntervalsSpec extends WordSpec with Matchers {
       "including is 05:00 -> 10:00 and excluding is 06:00 -> 08:00" in {
         val includingInterval = parseInterval("05:00", "10:00")
 
-        val res = Intervals.cutExceptions(List(includingInterval), List(parseInterval("06:00", "08:00")))
+        val res = Schedule.cutExceptions(List(includingInterval), List(parseInterval("06:00", "08:00")))
 
         res should contain theSameElementsInOrderAs List(
           parseInterval("05:00", "06:00"),
@@ -389,7 +396,7 @@ class IntervalsSpec extends WordSpec with Matchers {
             parseInterval("19:00", "22:00")
           )
 
-        val res = Intervals.cutExceptions(List(includingInterval), exceptions)
+        val res = Schedule.cutExceptions(List(includingInterval), exceptions)
 
         res should contain theSameElementsInOrderAs List(
           parseInterval("05:00", "06:00"),
@@ -408,7 +415,7 @@ class IntervalsSpec extends WordSpec with Matchers {
             parseInterval("18:00", "19:00")
           )
 
-        val res = Intervals.cutExceptions(List(includingInterval), exceptions)
+        val res = Schedule.cutExceptions(List(includingInterval), exceptions)
 
         res should contain theSameElementsInOrderAs List(
           parseInterval("05:00", "06:00"),
