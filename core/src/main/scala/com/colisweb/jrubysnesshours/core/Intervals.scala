@@ -9,8 +9,6 @@ import scala.collection.mutable.ListBuffer
 
 object Intervals {
 
-  import scala.math.Ordering.Implicits._
-
   def intervalsBetween(schedule: Schedule)(start: ZonedDateTime, end: ZonedDateTime): List[TimeIntervalForDate] = {
     val localStartDate = start.toLocalDate
     val localEndDate   = end.toLocalDate
@@ -18,8 +16,8 @@ object Intervals {
     if (localStartDate == localEndDate) {
       intervalsInSameDay(schedule, localStartDate, TimeInterval.of(start.toLocalTime, end.toLocalTime))
     } else {
-      val startDayIntervals: ListBuffer[TimeIntervalForDate] = intervalsInStartDay(schedule, start)
-      val endDayIntervals: ListBuffer[TimeIntervalForDate]   = intervalsInEndDay(schedule, end)
+      val startDayIntervals: List[TimeIntervalForDate] = intervalsInStartDay(schedule, start)
+      val endDayIntervals: List[TimeIntervalForDate]   = intervalsInEndDay(schedule, end)
 
       val numberOfDays = Period.between(localStartDate, localEndDate).getDays
 
@@ -30,7 +28,7 @@ object Intervals {
             acc ++ allIntervalsInDay(schedule, date)
           }
 
-      (startDayIntervals ++ dayRangeIntervals ++ endDayIntervals).toList
+      startDayIntervals ++ dayRangeIntervals ++ endDayIntervals
     }
   }
 
@@ -47,93 +45,89 @@ object Intervals {
       }
   }
 
-  private[core] def intervalsInStartDay(schedule: Schedule, start: ZonedDateTime): ListBuffer[TimeIntervalForDate] = {
+  private[core] def intervalsInStartDay(schedule: Schedule, start: ZonedDateTime): List[TimeIntervalForDate] = {
     val startTime = start.toLocalTime
     val startDate = start.toLocalDate
 
-    schedule.planning
-      .getOrElse(start.getDayOfWeek, Nil)
-      .filter(_ endsAfter startTime)
-      .foldLeft(ListBuffer.empty[TimeIntervalForDate]) { (acc, interval) =>
-        val newInterval: TimeInterval =
-          if (interval startsBefore startTime) TimeInterval.of(startTime, interval.end) else interval
+    val exceptions = schedule.exceptions.getOrElse(startDate, Nil)
+    val intervals =
+      schedule.planning
+        .getOrElse(start.getDayOfWeek, Nil)
+        .filter(_ endsAfter startTime)
+        .foldLeft(ListBuffer.empty[TimeInterval]) { (acc, interval) =>
+          acc += (if (interval startsBefore startTime) TimeInterval.of(startTime, interval.end) else interval)
+        }
+        .toList
 
-        acc ++ applyExceptionsToInterval(schedule.exceptions, startDate, newInterval)
-      }
+    cutExceptions(intervals, exceptions).map(interval => TimeIntervalForDate(date = startDate, interval = interval))
   }
 
-  private[core] def intervalsInEndDay(schedule: Schedule, end: ZonedDateTime): ListBuffer[TimeIntervalForDate] = {
+  private[core] def intervalsInEndDay(schedule: Schedule, end: ZonedDateTime): List[TimeIntervalForDate] = {
     val endTime = end.toLocalTime
     val endDate = end.toLocalDate
 
-    schedule.planning
-      .getOrElse(end.getDayOfWeek, Nil)
-      .filter(_ startsBefore endTime)
-      .foldLeft(ListBuffer.empty[TimeIntervalForDate]) { (acc, interval) =>
-        val newInterval =
-          if (interval endsAfter endTime) TimeInterval.of(interval.start, endTime) else interval
+    val exceptions = schedule.exceptions.getOrElse(endDate, Nil)
+    val intervals =
+      schedule.planning
+        .getOrElse(end.getDayOfWeek, Nil)
+        .filter(_ startsBefore endTime)
+        .foldLeft(ListBuffer.empty[TimeInterval]) { (acc, interval) =>
+          acc += (if (interval endsAfter endTime) TimeInterval.of(interval.start, endTime) else interval)
+        }
+        .toList
 
-        acc ++ applyExceptionsToInterval(schedule.exceptions, endDate, newInterval)
-      }
+    cutExceptions(intervals, exceptions).map(interval => TimeIntervalForDate(date = endDate, interval = interval))
   }
 
   private[core] def intervalsInSameDay(
       schedule: Schedule,
       date: LocalDate,
       query: TimeInterval
-  ): List[TimeIntervalForDate] =
-    schedule.planning
-      .getOrElse(date.getDayOfWeek, Nil)
-      .filter(_ isConnected query)
-      .foldLeft(ListBuffer.empty[TimeIntervalForDate]) { (acc, interval) =>
-        val newInterval =
-          if (interval encloses query) query
-          else if (interval startsBefore query.start) TimeInterval.of(query.start, interval.end)
-          else if (interval endsAfter query.end) TimeInterval.of(interval.start, query.end)
-          else interval
-
-        acc ++ applyExceptionsToInterval(schedule.exceptions, date, newInterval)
-      }
-      .toList
-
-  private[core] def allIntervalsInDay(schedule: Schedule, date: LocalDate): List[TimeIntervalForDate] =
-    schedule.planning
-      .getOrElse(date.getDayOfWeek, Nil)
-      .flatMap(applyExceptionsToInterval(schedule.exceptions, date, _))
-
-  private[core] def applyExceptionsToInterval(
-      exceptions: Map[LocalDate, List[TimeInterval]],
-      date: LocalDate,
-      initialInterval: TimeInterval
   ): List[TimeIntervalForDate] = {
+    val exceptions = schedule.exceptions.getOrElse(date, Nil)
+    val intervals =
+      schedule.planning
+        .getOrElse(date.getDayOfWeek, Nil)
+        .filter(_ isConnected query)
+        .foldLeft(ListBuffer.empty[TimeInterval]) { (acc, interval) =>
+          val newInterval =
+            if (interval encloses query) query
+            else if (interval startsBefore query.start) TimeInterval.of(query.start, interval.end)
+            else if (interval endsAfter query.end) TimeInterval.of(interval.start, query.end)
+            else interval
 
-    // TODO Jules: Je n'ai pas encore vraiment lu cette méthode. Les `>=` m'étonne.
-    @tailrec
-    def applyOneByOne(
-        remainingExceptions: List[TimeInterval],
-        interval: TimeInterval,
-        acc: ListBuffer[TimeIntervalForDate]
-    ): ListBuffer[TimeIntervalForDate] = {
-      remainingExceptions match {
-        case Nil => acc :+ TimeIntervalForDate(date, interval)
-        case exception :: remaining =>
-          if (exception encloses interval) ListBuffer.empty
-          else if (interval.end <= exception.start || interval.start >= exception.end) { // interval outside exception -> untouched
-            applyOneByOne(remaining, interval, acc)
-          } else if (interval.start < exception.start && interval.end <= exception.end) { // exception overlaps interval right -> shortened right
-            applyOneByOne(remaining, TimeInterval.of(interval.start, exception.start), acc)
-          } else if (interval.start >= exception.start && interval.end > exception.end) { // exception overlaps interval left -> shortened left
-            applyOneByOne(remaining, TimeInterval.of(exception.end, interval.end), acc)
-          } else { // () interval.start < toExclude.start && interval.end > toExclude.end //  // interval cut by exception -> cut in two
-            applyOneByOne(
-              remaining,
-              TimeInterval.of(exception.end, interval.end),
-              acc :+ TimeIntervalForDate(date, TimeInterval.of(interval.start, exception.start))
-            )
-          }
-      }
-    }
+          acc += newInterval
+        }
+        .toList
 
-    applyOneByOne(exceptions.getOrElse(date, Nil), initialInterval, ListBuffer.empty).toList
+    cutExceptions(intervals, exceptions).map(interval => TimeIntervalForDate(date = date, interval = interval))
   }
+
+  private[core] def allIntervalsInDay(schedule: Schedule, date: LocalDate): List[TimeIntervalForDate] = {
+    val intervals  = schedule.planning.getOrElse(date.getDayOfWeek, Nil)
+    val exceptions = schedule.exceptions.getOrElse(date, Nil)
+
+    cutExceptions(intervals, exceptions).map(interval => TimeIntervalForDate(date = date, interval = interval))
+  }
+
+  private[core] def cutExceptions(
+      intervals: List[TimeInterval],
+      exceptions: List[TimeInterval]
+  ): List[TimeInterval] = {
+    @tailrec
+    def rec(
+        allIntervals: List[TimeInterval],
+        remainingExceptions: List[TimeInterval]
+    ): List[TimeInterval] =
+      remainingExceptions match {
+        case Nil               => allIntervals
+        case exception :: rest => rec(allIntervals.flatMap(_ minus exception), rest)
+      }
+
+    intervals match {
+      case Nil      => Nil
+      case nonEmpty => rec(nonEmpty, exceptions)
+    }
+  }
+
 }

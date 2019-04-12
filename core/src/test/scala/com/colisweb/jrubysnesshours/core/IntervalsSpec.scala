@@ -270,31 +270,28 @@ class IntervalsSpec extends WordSpec with Matchers {
     // TODO : generators with random could be great to check that the last case never append
 
     "Will return Nil" should {
-      "including is 05:00 -> 10:00 and excluding is 04:00 -> 11:00" in {
+      "including is empty and excluding is 04:00 -> 11:00" in {
+        val excludingInterval = parseInterval("04:00", "11:00")
 
+        val res = Intervals.cutExceptions(Nil, List(excludingInterval))
+
+        res should contain theSameElementsInOrderAs Nil
+      }
+
+      "including is 05:00 -> 10:00 and excluding is 04:00 -> 11:00" in {
         val includingInterval = parseInterval("05:00", "10:00")
         val excludingInterval = parseInterval("04:00", "11:00")
 
-        val date = parseDate("2019-04-08")
-
-        val exceptions: Map[LocalDate, List[TimeInterval]] =
-          Map(date -> List(excludingInterval))
-
-        val res = Intervals.applyExceptionsToInterval(exceptions, date, includingInterval)
+        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
 
         res should contain theSameElementsInOrderAs Nil
       }
 
       "including is 05:00 -> 10:00 and excluding is 05:00 -> 10:00" in {
-
         val includingInterval = parseInterval("05:00", "10:00")
         val excludingInterval = parseInterval("05:00", "10:00")
-        val date              = parseDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] =
-          Map(date -> List(excludingInterval))
-
-        val res = Intervals.applyExceptionsToInterval(exceptions, date, includingInterval)
+        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
 
         res should contain theSameElementsInOrderAs Nil
       }
@@ -302,184 +299,122 @@ class IntervalsSpec extends WordSpec with Matchers {
 
     "Will return List(includingInterval)" should {
       "including is 05:00 -> 10:00 and excluding is 01:00 -> 04:00" in {
-
         val includingInterval = parseInterval("05:00", "10:00")
         val excludingInterval = parseInterval("01:00", "04:00")
-        val date              = parseDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] =
-          Map(date -> List(excludingInterval))
+        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
 
-        val res = Intervals.applyExceptionsToInterval(exceptions, date, includingInterval)
-
-        res should contain theSameElementsInOrderAs List(
-          TimeIntervalForDate(date, includingInterval)
-        )
+        res should contain theSameElementsInOrderAs List(includingInterval)
       }
 
       "including is 01:00 -> 04:00 and excluding is 05:00 -> 10:00" in {
-
         val includingInterval = parseInterval("01:00", "04:00")
         val excludingInterval = parseInterval("05:00", "10:00")
-        val date              = parseDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] =
-          Map(date -> List(excludingInterval))
+        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
 
-        val res = Intervals.applyExceptionsToInterval(exceptions, date, includingInterval)
-
-        res should contain theSameElementsInOrderAs List(
-          TimeIntervalForDate(date, includingInterval)
-        )
+        res should contain theSameElementsInOrderAs List(includingInterval)
       }
 
       "including is 01:00 -> 04:00 and excluding is 04:00 -> 10:00" in {
-
         val includingInterval = parseInterval("01:00", "04:00")
         val excludingInterval = parseInterval("04:00", "10:00")
-        val date              = parseDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] =
-          Map(date -> List(excludingInterval))
+        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
 
-        val res = Intervals.applyExceptionsToInterval(exceptions, date, includingInterval)
-
-        res should contain theSameElementsInOrderAs List(
-          TimeIntervalForDate(date, includingInterval)
-        )
+        res should contain theSameElementsInOrderAs List(includingInterval)
       }
     }
 
     "Will return including start -> excluding start segment" should {
       "including is 05:00 -> 10:00 and excluding is 06:00 -> 11:00" in {
-
         val includingInterval = parseInterval("05:00", "10:00")
         val excludingInterval = parseInterval("06:00", "11:00")
-        val date              = parseDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] =
-          Map(date -> List(excludingInterval))
+        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
 
-        val res =
-          Intervals.applyExceptionsToInterval(exceptions, date, includingInterval)
-
-        res should contain theSameElementsInOrderAs List(
-          aTimeIntervalForDate("2019-04-08", "05:00", "06:00")
-        )
+        res should contain theSameElementsInOrderAs List(parseInterval("05:00", "06:00"))
       }
 
       "including is 05:00 -> 10:00 and excluding is 06:00 -> 10:00" in {
-
         val includingInterval = parseInterval("05:00", "10:00")
         val excludingInterval = parseInterval("06:00", "10:00")
-        val date              = parseDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] =
-          Map(date -> List(excludingInterval))
+        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
 
-        val res =
-          Intervals.applyExceptionsToInterval(exceptions, date, includingInterval)
-
-        res should contain theSameElementsInOrderAs List(
-          aTimeIntervalForDate("2019-04-08", "05:00", "06:00")
-        )
+        res should contain theSameElementsInOrderAs List(parseInterval("05:00", "06:00"))
       }
     }
 
     "Will return excluding end -> including end interval" should {
       "including is 05:00 -> 10:00 and excluding is 04:00 -> 09:00" in {
-
         val includingInterval = parseInterval("05:00", "10:00")
         val excludingInterval = parseInterval("04:00", "09:00")
-        val date              = parseDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] =
-          Map(date -> List(excludingInterval))
+        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
 
-        val res = Intervals.applyExceptionsToInterval(exceptions, date, includingInterval)
-
-        res should contain theSameElementsInOrderAs List(
-          aTimeIntervalForDate("2019-04-08", "09:00", "10:00")
-        )
+        res should contain theSameElementsInOrderAs List(parseInterval("09:00", "10:00"))
       }
 
       "including is 05:00 -> 10:00 and excluding is 05:00 -> 09:00" in {
-
         val includingInterval = parseInterval("05:00", "10:00")
         val excludingInterval = parseInterval("05:00", "09:00")
-        val date              = parseDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] =
-          Map(date -> List(excludingInterval))
+        val res = Intervals.cutExceptions(List(includingInterval), List(excludingInterval))
 
-        val res = Intervals.applyExceptionsToInterval(exceptions, date, includingInterval)
-
-        res should contain theSameElementsInOrderAs List(
-          aTimeIntervalForDate("2019-04-08", "09:00", "10:00")
-        )
+        res should contain theSameElementsInOrderAs List(parseInterval("09:00", "10:00"))
       }
     }
 
     "Will return multiple intervals : (including.start -> excluding.start), (excluding.end -> including.end)" should {
 
       "including is 05:00 -> 10:00 and excluding is 06:00 -> 08:00" in {
-
         val includingInterval = parseInterval("05:00", "10:00")
-        val date              = parseDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] =
-          Map(date -> List(parseInterval("06:00", "08:00")))
-
-        val res = Intervals.applyExceptionsToInterval(exceptions, date, includingInterval)
+        val res = Intervals.cutExceptions(List(includingInterval), List(parseInterval("06:00", "08:00")))
 
         res should contain theSameElementsInOrderAs List(
-          aTimeIntervalForDate("2019-04-08", "05:00", "06:00"),
-          aTimeIntervalForDate("2019-04-08", "08:00", "10:00")
+          parseInterval("05:00", "06:00"),
+          parseInterval("08:00", "10:00")
         )
       }
 
       "Will return 3 intervals " in {
         val includingInterval = parseInterval("05:00", "20:00")
-        val date              = parseDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] =
-          Map(
-            date -> List(
-              parseInterval("06:00", "08:00"),
-              parseInterval("09:30", "16:00"),
-              parseInterval("19:00", "22:00")
-            )
+        val exceptions =
+          List(
+            parseInterval("06:00", "08:00"),
+            parseInterval("09:30", "16:00"),
+            parseInterval("19:00", "22:00")
           )
 
-        val res = Intervals.applyExceptionsToInterval(exceptions, date, includingInterval)
+        val res = Intervals.cutExceptions(List(includingInterval), exceptions)
 
         res should contain theSameElementsInOrderAs List(
-          aTimeIntervalForDate("2019-04-08", "05:00", "06:00"),
-          aTimeIntervalForDate("2019-04-08", "08:00", "09:30"),
-          aTimeIntervalForDate("2019-04-08", "16:00", "19:00")
+          parseInterval("05:00", "06:00"),
+          parseInterval("08:00", "09:30"),
+          parseInterval("16:00", "19:00")
         )
       }
 
       "Will return 4 intervals " in {
         val includingInterval = parseInterval("05:00", "20:00")
-        val date              = parseDate("2019-04-08")
 
-        val exceptions: Map[LocalDate, List[TimeInterval]] =
-          Map(
-            date -> List(
-              parseInterval("06:00", "08:00"),
-              parseInterval("09:30", "16:00"),
-              parseInterval("18:00", "19:00")
-            )
+        val exceptions =
+          List(
+            parseInterval("06:00", "08:00"),
+            parseInterval("09:30", "16:00"),
+            parseInterval("18:00", "19:00")
           )
 
-        val res = Intervals.applyExceptionsToInterval(exceptions, date, includingInterval)
+        val res = Intervals.cutExceptions(List(includingInterval), exceptions)
 
         res should contain theSameElementsInOrderAs List(
-          aTimeIntervalForDate("2019-04-08", "05:00", "06:00"),
-          aTimeIntervalForDate("2019-04-08", "08:00", "09:30"),
-          aTimeIntervalForDate("2019-04-08", "16:00", "18:00"),
-          aTimeIntervalForDate("2019-04-08", "19:00", "20:00")
+          parseInterval("05:00", "06:00"),
+          parseInterval("08:00", "09:30"),
+          parseInterval("16:00", "18:00"),
+          parseInterval("19:00", "20:00")
         )
       }
 
