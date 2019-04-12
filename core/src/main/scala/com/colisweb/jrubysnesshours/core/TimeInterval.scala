@@ -15,7 +15,7 @@ final case class TimeIntervalForWeekDay(dayOfWeek: DayOfWeek, interval: TimeInte
 final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
   @inline def start: LocalTime = interval.start
   @inline def end: LocalTime   = interval.end
-  lazy val duration: Duration  = Duration(JDuration.between(start, end).toSeconds, TimeUnit.SECONDS)
+  lazy val duration: Duration  = Duration(JDuration.between(start, end).getSeconds, TimeUnit.SECONDS)
 }
 
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
