@@ -94,7 +94,7 @@ final case class Schedule private[core] (
 object Schedule {
 
   def apply(
-      plannings: List[TimeIntervalForWeekDay],
+      planning: List[TimeIntervalForWeekDay],
       exceptions: List[DateTimeInterval],
       timeZone: ZoneId
   ): Schedule = {
@@ -155,7 +155,7 @@ object Schedule {
     }
 
     Schedule(
-      planning = plannings.groupBy(_.dayOfWeek).mapValues(intervals => mergeIntervals(intervals.map(_.interval))),
+      planning = planning.groupBy(_.dayOfWeek).mapValues(intervals => mergeIntervals(intervals.map(_.interval))),
       exceptions = dateTimeIntervalsToExceptions,
       timeZone = timeZone
     )
