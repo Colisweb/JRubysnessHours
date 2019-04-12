@@ -10,6 +10,7 @@ object Core {
 
   private[core] final val utc: ZoneOffset         = ZoneOffset.UTC
   private[core] final val `1970-01-01`: LocalDate = LocalDate.of(1970, 1, 1)
+  private[core] final val END_OF_DAY: LocalTime   = LocalTime.of(23, 59, 0)
 
   /**
     * More info on the `sealed abstract case class` pattern:
@@ -82,6 +83,7 @@ object Core {
         exceptions: List[DateTimeInterval],
         timeZone: ZoneId
     ): Schedule = {
+
       def mergeIntervals(invervals: List[TimeInterval]): List[TimeInterval] = {
         def mergeTwoIntervals(interval1: TimeInterval, interval2: TimeInterval): List[TimeInterval] =
           if (interval1 isBefore interval2) List(interval1, interval2)
@@ -107,7 +109,7 @@ object Core {
             val localEndTime   = dateTimeInterval.end.toLocalTime
 
             val localStartDate = dateTimeInterval.start.toLocalDate
-            // val localEndDate = dateTimeInterval.end.toLocalDate
+            val localEndDate   = dateTimeInterval.end.toLocalDate
 
             if (numberOfDays == 0) {
               val newInterval = TimeInterval.of(start = localStartTime, end = localEndTime)
@@ -117,19 +119,19 @@ object Core {
                 (1 until numberOfDays)
                   .map { i =>
                     val date        = localStartDate.plusDays(i.toLong)
-                    val newInterval = TimeInterval.of(start = LocalTime.MIDNIGHT, end = LocalTime.MAX) // TODO Jules: Should we really prefer MAX here ?
+                    val newInterval = TimeInterval.of(start = LocalTime.MIDNIGHT, end = END_OF_DAY)
                     TimeIntervalForDate(date = date, interval = newInterval)
                   }
 
               val firstDay =
                 TimeIntervalForDate(
                   date = localStartDate,
-                  interval = TimeInterval.of(start = localStartTime, end = LocalTime.MAX) // TODO Jules: Should we really prefer MAX here ?
+                  interval = TimeInterval.of(start = localStartTime, end = END_OF_DAY)
                 )
 
               val lastDay =
                 TimeIntervalForDate(
-                  date = localStartDate, // TODO Jules: why `localStartDate` and not `localEndDate` ??
+                  date = localEndDate,
                   interval = TimeInterval.of(start = LocalTime.MIDNIGHT, end = localEndTime)
                 )
 
@@ -156,7 +158,7 @@ object Core {
 
   def isOpenForDurationInDate(schedule: Schedule)(date: LocalDate, duration: Duration): Boolean = {
     val start = ZonedDateTime.of(date, LocalTime.MIN, schedule.timeZone)
-    val end   = ZonedDateTime.of(date, LocalTime.MAX, schedule.timeZone)
+    val end   = ZonedDateTime.of(date, END_OF_DAY, schedule.timeZone)
 
     Intervals
       .intervalsBetween(schedule)(start, end)
