@@ -3,7 +3,6 @@ import java.time.DayOfWeek._
 import java.time.ZoneOffset.UTC
 import java.time.{DayOfWeek, LocalDate, LocalDateTime, LocalTime}
 
-import com.colisweb.jrubysnesshours.core.Core.{DateTimeInterval, Schedule, TimeInterval, TimeIntervalForWeekDay}
 import org.scalatest.{Matchers, WordSpec}
 
 class ScheduleSpec extends WordSpec with Matchers {
@@ -131,11 +130,11 @@ class ScheduleSpec extends WordSpec with Matchers {
   def aDate(date: String): LocalDate = LocalDate.parse(date)
 
   def aTimeInterval(start: String, end: String): TimeInterval =
-    TimeInterval.of(LocalTime.parse(start), LocalTime.parse(end))
+    TimeInterval(LocalTime.parse(start), LocalTime.parse(end))
 
   def aDateTimeInterval(startDate: String, startTime: String, endDate: String, endTime: String): DateTimeInterval =
     DateTimeInterval(LocalDateTime.parse(s"${startDate}T$startTime"), LocalDateTime.parse(s"${endDate}T$endTime"))
 
   def aTimeIntervalForWeekDay(dayOfWeek: DayOfWeek, startTime: String, endTime: String): TimeIntervalForWeekDay =
-    TimeIntervalForWeekDay(dayOfWeek, TimeInterval.of(LocalTime.parse(startTime), LocalTime.parse(endTime)))
+    TimeIntervalForWeekDay(dayOfWeek, TimeInterval(LocalTime.parse(startTime), LocalTime.parse(endTime)))
 }
