@@ -141,14 +141,14 @@ object Core {
                 (1 until numberOfDays)
                   .map { i =>
                     val date        = localStartDate.plusDays(i.toLong)
-                    val newInterval = TimeInterval.of(start = LocalTime.MIDNIGHT, end = END_OF_DAY) // TODO Jules: Should we really prefer MAX here ?
+                    val newInterval = TimeInterval.of(start = LocalTime.MIDNIGHT, end = END_OF_DAY)
                     TimeIntervalForDate(date = date, interval = newInterval)
                   }
 
               val firstDay =
                 TimeIntervalForDate(
                   date = localStartDate,
-                  interval = TimeInterval.of(start = localStartTime, end = END_OF_DAY) // TODO Jules: Should we really prefer MAX here ?
+                  interval = TimeInterval.of(start = localStartTime, end = END_OF_DAY)
                 )
 
               val lastDay =
