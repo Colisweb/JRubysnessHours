@@ -6,7 +6,7 @@ class ScheduleCutExceptionsSpec extends WordSpec with Matchers {
 
   import SpecUtils._
 
-  "Apply exceptions to Interval" should {
+  "Schedule.cutExceptions" should {
 
     // TODO : generators with random could be great to check that the last case never append
 
