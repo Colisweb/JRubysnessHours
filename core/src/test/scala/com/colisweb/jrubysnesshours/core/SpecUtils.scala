@@ -44,16 +44,4 @@ object SpecUtils {
     timeZone = zoneId
   )
 
-  def aDayAt(day: String, time: String): ZonedDateTime =
-    day at time
-
-  def aDuration(hours: Int, minutes: Int = 0): Duration =
-    Duration.ofHours(hours.toLong).plusMinutes(minutes.toLong)
-
-  def aDuration(days: Int, hours: Int, minutes: Int): Duration =
-    Duration
-      .ofDays(days.toLong)
-      .plusHours(hours.toLong)
-      .plusMinutes(minutes.toLong)
-
 }
