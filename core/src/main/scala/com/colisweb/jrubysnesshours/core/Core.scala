@@ -12,6 +12,7 @@ object Core {
 
   private[core] final val utc: ZoneOffset         = ZoneOffset.UTC
   private[core] final val `1970-01-01`: LocalDate = LocalDate.of(1970, 1, 1)
+  private[core] final val END_OF_DAY: LocalTime   = LocalTime.of(23, 59, 0)
 
   /**
     * More info on the `sealed abstract case class` pattern:
@@ -140,14 +141,14 @@ object Core {
                 (1 until numberOfDays)
                   .map { i =>
                     val date        = localStartDate.plusDays(i.toLong)
-                    val newInterval = TimeInterval.of(start = LocalTime.MIDNIGHT, end = LocalTime.MAX) // TODO Jules: Should we really prefer MAX here ?
+                    val newInterval = TimeInterval.of(start = LocalTime.MIDNIGHT, end = END_OF_DAY) // TODO Jules: Should we really prefer MAX here ?
                     TimeIntervalForDate(date = date, interval = newInterval)
                   }
 
               val firstDay =
                 TimeIntervalForDate(
                   date = localStartDate,
-                  interval = TimeInterval.of(start = localStartTime, end = LocalTime.MAX) // TODO Jules: Should we really prefer MAX here ?
+                  interval = TimeInterval.of(start = localStartTime, end = END_OF_DAY) // TODO Jules: Should we really prefer MAX here ?
                 )
 
               val lastDay =
