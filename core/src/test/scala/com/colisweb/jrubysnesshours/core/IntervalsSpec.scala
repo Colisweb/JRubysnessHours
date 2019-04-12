@@ -110,6 +110,14 @@ class IntervalsSpec extends WordSpec with Matchers {
           aTimeIntervalForDate("2019-03-23", "15:00", "19:00")
         )
       }
+      "compute 100 intervals over more than one month" in {
+        val s7 =
+          intervalsBetween(
+            parseZonedDateTime("2019-01-01", "12:00"),
+            parseZonedDateTime("2019-03-28", "14:00")
+          )
+        s7.size shouldBe 100
+      }
     }
 
     "with exceptions" should {
