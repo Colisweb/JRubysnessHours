@@ -1,0 +1,169 @@
+package com.colisweb.jrubysnesshours.core
+
+import java.time._
+
+import scala.collection.mutable.ListBuffer
+import scala.concurrent.duration.Duration
+
+final case class Schedule private[core] (
+    planning: Map[DayOfWeek, List[TimeInterval]],
+    exceptions: Map[LocalDate, List[TimeInterval]],
+    timeZone: ZoneId
+) {
+  @inline def planningFor(dayOfWeek: DayOfWeek): List[TimeInterval] = planning.getOrElse(dayOfWeek, Nil)
+  @inline def exceptionFor(date: LocalDate): List[TimeInterval]     = exceptions.getOrElse(date, Nil)
+
+  def intervalsBetween(start: ZonedDateTime, end: ZonedDateTime): List[TimeIntervalForDate] = {
+    val localStartDate = start.toLocalDate
+    val localEndDate   = end.toLocalDate
+
+    if (localStartDate == localEndDate) {
+      intervalsInSameDay(localStartDate, TimeInterval(start.toLocalTime, end.toLocalTime))
+    } else {
+      val startDayIntervals: List[TimeIntervalForDate] = intervalsInStartDay(start)
+      val endDayIntervals: List[TimeIntervalForDate]   = intervalsInEndDay(end)
+
+      val numberOfDays = Period.between(localStartDate, localEndDate).getDays
+
+      val dayRangeIntervals: ListBuffer[TimeIntervalForDate] =
+        (1 until numberOfDays)
+          .foldLeft(ListBuffer.empty[TimeIntervalForDate]) { (acc, i) =>
+            val date = localStartDate.plusDays(i.toLong)
+            acc ++ allIntervalsInDay(date)
+          }
+
+      startDayIntervals ++ dayRangeIntervals ++ endDayIntervals
+    }
+  }
+
+  // TODO: To Test
+  def contains(date: ZonedDateTime): Boolean = {
+    val time      = date.withZoneSameInstant(timeZone).toLocalTime
+    val localDate = date.toLocalDate
+
+    @inline def existsPlanning =
+      planningFor(date.getDayOfWeek).exists(_.contains(time))
+
+    @inline def notExistsException =
+      !exceptionFor(localDate).exists(_.contains(time))
+
+    existsPlanning && notExistsException
+  }
+
+  private[core] def intervalsInStartDay(start: ZonedDateTime): List[TimeIntervalForDate] =
+    allIntervalsInDay(start.toLocalDate, List(TimeInterval(start = LocalTime.MIDNIGHT, start.toLocalTime)))
+
+  private[core] def intervalsInEndDay(end: ZonedDateTime): List[TimeIntervalForDate] =
+    allIntervalsInDay(end.toLocalDate, List(TimeInterval(start = end.toLocalTime, TimeInterval.END_OF_DAY)))
+
+  private[core] def intervalsInSameDay(
+      date: LocalDate,
+      query: TimeInterval
+  ): List[TimeIntervalForDate] =
+    allIntervalsInDay(
+      date,
+      List(
+        TimeInterval(start = LocalTime.MIDNIGHT, query.start),
+        TimeInterval(start = query.end, TimeInterval.END_OF_DAY)
+      )
+    )
+
+  def allIntervalsInDay(date: LocalDate, exception: List[TimeInterval] = Nil): List[TimeIntervalForDate] = {
+    val exceptions = exceptionFor(date)
+    val intervals  = planningFor(date.getDayOfWeek)
+
+    Schedule
+      .cutExceptions(intervals, exception ::: exceptions)
+      .map(interval => TimeIntervalForDate(date = date, interval = interval))
+  }
+
+  def within(start: ZonedDateTime, end: ZonedDateTime): Duration =
+    intervalsBetween(start, end).map(_.duration).reduce(_ plus _)
+
+  def isOpenForDurationInDate(date: LocalDate, duration: Duration): Boolean = {
+    val start = ZonedDateTime.of(date, LocalTime.MIN, timeZone)
+    val end   = ZonedDateTime.of(date, TimeInterval.END_OF_DAY, timeZone)
+
+    intervalsBetween(start, end).exists(_.duration >= duration)
+  }
+
+  def isOpen(instant: ZonedDateTime): Boolean = intervalsBetween(instant, instant).nonEmpty
+}
+
+object Schedule {
+
+  def apply(
+      plannings: List[TimeIntervalForWeekDay],
+      exceptions: List[DateTimeInterval],
+      timeZone: ZoneId
+  ): Schedule = {
+    def mergeIntervals(invervals: List[TimeInterval]): List[TimeInterval] = {
+      def mergeTwoIntervals(interval1: TimeInterval, interval2: TimeInterval): List[TimeInterval] =
+        if (interval1 isBefore interval2) List(interval1, interval2)
+        else if (interval1 encloses interval2) List(interval1)
+        else List(interval1.union(interval2))
+
+      invervals
+        .sortBy(_.start)
+        .foldRight(List.empty[TimeInterval]) {
+          case (interval, h :: t) => mergeTwoIntervals(interval, h) ::: t // TODO: `:::` is not in constant time.
+          case (interval, Nil)    => List(interval)
+        }
+    }
+
+    def dateTimeIntervalsToExceptions: Map[LocalDate, List[TimeInterval]] = {
+      exceptions
+        .flatMap { dateTimeInterval: DateTimeInterval =>
+          val numberOfDays =
+            Period.between(dateTimeInterval.start.toLocalDate, dateTimeInterval.end.toLocalDate).getDays
+
+          val localStartTime = dateTimeInterval.start.toLocalTime
+          val localEndTime   = dateTimeInterval.end.toLocalTime
+
+          val localStartDate = dateTimeInterval.start.toLocalDate
+
+          if (numberOfDays == 0) {
+            val newInterval = TimeInterval(start = localStartTime, end = localEndTime)
+            List(TimeIntervalForDate(date = localStartDate, interval = newInterval))
+          } else {
+            val midDays =
+              (1 until numberOfDays)
+                .map { i =>
+                  val date        = localStartDate.plusDays(i.toLong)
+                  val newInterval = TimeInterval(start = LocalTime.MIDNIGHT, end = TimeInterval.END_OF_DAY)
+                  TimeIntervalForDate(date = date, interval = newInterval)
+                }
+
+            val firstDay =
+              TimeIntervalForDate(
+                date = localStartDate,
+                interval = TimeInterval(start = localStartTime, end = TimeInterval.END_OF_DAY)
+              )
+
+            val lastDay =
+              TimeIntervalForDate(
+                date = dateTimeInterval.end.toLocalDate,
+                interval = TimeInterval(start = LocalTime.MIDNIGHT, end = localEndTime)
+              )
+
+            firstDay +: midDays :+ lastDay
+          }
+        }
+        .groupBy(_.date)
+        .mapValues(intervals => mergeIntervals(intervals.map(_.interval)))
+    }
+
+    Schedule(
+      planning = plannings.groupBy(_.dayOfWeek).mapValues(intervals => mergeIntervals(intervals.map(_.interval))),
+      exceptions = dateTimeIntervalsToExceptions,
+      timeZone = timeZone
+    )
+  }
+
+  private[core] def cutExceptions(intervals: List[TimeInterval], exceptions: List[TimeInterval]): List[TimeInterval] =
+    intervals.flatMap { interval =>
+      exceptions.foldLeft(List(interval)) {
+        case (acc, exception) => acc.flatMap(_ minus exception)
+      }
+    }
+}

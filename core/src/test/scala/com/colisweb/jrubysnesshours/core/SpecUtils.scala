@@ -4,8 +4,6 @@ import java.time.DayOfWeek._
 import java.time._
 import java.time.format.DateTimeFormatter
 
-import com.colisweb.jrubysnesshours.core.Core.Schedule
-
 object SpecUtils {
 
   implicit class StringToLocalTimeOps(str: String) {
