@@ -1,10 +1,10 @@
 package com.colisweb.jrubysnesshours.jruby
 
 import java.time.format.DateTimeFormatter
-import java.time.{DayOfWeek, Duration, LocalTime, ZoneId, ZonedDateTime}
+import java.time._
 
-import com.colisweb.jrubysnesshours.core.Core.Schedule
-import com.colisweb.jrubysnesshours.core.{Core, DateTimeInterval, Intervals, TimeInterval, TimeIntervalForWeekDay}
+import com.colisweb.jrubysnesshours.core.Core.{DateTimeInterval, Schedule, TimeInterval, TimeIntervalForWeekDay}
+import com.colisweb.jrubysnesshours.core.{Core, Intervals}
 import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
 
 final class JRubyzSchedule private[jruby] (schedule: Schedule) {
@@ -12,8 +12,8 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
   def timeSegments(startsAt: String, endsAt: String): List[RubyTimeSegmentInterval] =
     Intervals.intervalsBetween(schedule)(ZonedDateTime.parse(startsAt), ZonedDateTime.parse(endsAt)).map {
       timeIntervalForDate =>
-        val start = ZonedDateTime.of(timeIntervalForDate.date, timeIntervalForDate.startTime, UTC)
-        val end   = ZonedDateTime.of(timeIntervalForDate.date, timeIntervalForDate.endTime, UTC)
+        val start = ZonedDateTime.of(timeIntervalForDate.date, timeIntervalForDate.start, UTC)
+        val end   = ZonedDateTime.of(timeIntervalForDate.date, timeIntervalForDate.end, UTC)
 
         RubyTimeSegmentInterval(
           timeIntervalForDate.date.format(ISO_DATE_FORMATTER),
@@ -45,7 +45,7 @@ object JRubyzSchedule {
   def rubyToPlanning(rubyWeekDay: Int, startTime: String, endTime: String): TimeIntervalForWeekDay = {
     TimeIntervalForWeekDay(
       dayOfWeek = rubyWeekDayToJavaWeekDay(rubyWeekDay),
-      interval = TimeInterval(start = LocalTime.parse(startTime), end = LocalTime.parse(endTime))
+      interval = TimeInterval.of(start = LocalTime.parse(startTime), end = LocalTime.parse(endTime))
     )
   }
 

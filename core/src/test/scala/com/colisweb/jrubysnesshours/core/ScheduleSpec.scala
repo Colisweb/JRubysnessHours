@@ -1,15 +1,16 @@
 package com.colisweb.jrubysnesshours.core
+import java.time.ZoneOffset.UTC
 import java.time.{LocalDate, LocalDateTime, LocalTime}
 
+import com.colisweb.jrubysnesshours.core.Core.{DateTimeInterval, Schedule, TimeInterval}
 import org.scalatest.{Matchers, WordSpec}
-import com.colisweb.jrubysnesshours.core.Core.Schedule
 
 class ScheduleSpec extends WordSpec with Matchers {
 
   "dateTimeIntervalsToExceptions" should {
 
     "index non-overlapping intervals by day" in {
-      val raw = List(
+      val rawExceptions = List(
         aDateTimeInterval("2019-03-15", "10:00", "2019-03-15", "12:00"),
         aDateTimeInterval("2019-03-15", "13:00", "2019-03-15", "16:00"),
         aDateTimeInterval("2019-03-16", "10:00", "2019-03-16", "18:00"),
@@ -20,7 +21,7 @@ class ScheduleSpec extends WordSpec with Matchers {
         aDateTimeInterval("2019-03-19", "10:00", "2019-03-19", "12:00")
       ).sortBy(_.hashCode())
 
-      Schedule.dateTimeIntervalsToExceptions(raw) should contain theSameElementsAs Map(
+      Schedule.apply(Nil, rawExceptions, UTC).exceptions should contain theSameElementsAs Map(
         aDate("2019-03-15") -> List(
           aTimeInterval("10:00", "12:00"),
           aTimeInterval("13:00", "16:00")
@@ -41,7 +42,7 @@ class ScheduleSpec extends WordSpec with Matchers {
     }
 
     "index overlapping intervals by day" in {
-      val raw = List(
+      val rawExceptions = List(
         aDateTimeInterval("2019-03-15", "10:00", "2019-03-15", "16:00"),
         aDateTimeInterval("2019-03-15", "13:00", "2019-03-15", "19:00"),
         aDateTimeInterval("2019-03-16", "10:00", "2019-03-17", "02:00"),
@@ -52,7 +53,7 @@ class ScheduleSpec extends WordSpec with Matchers {
         aDateTimeInterval("2019-03-19", "08:00", "2019-03-19", "12:00")
       ).sortBy(_.hashCode())
 
-      Schedule.dateTimeIntervalsToExceptions(raw) should contain theSameElementsAs Map(
+      Schedule.apply(Nil, rawExceptions, UTC).exceptions should contain theSameElementsAs Map(
         aDate("2019-03-15") -> List(
           aTimeInterval("10:00", "19:00")
         ),
@@ -73,7 +74,7 @@ class ScheduleSpec extends WordSpec with Matchers {
   def aDate(date: String): LocalDate = LocalDate.parse(date)
 
   def aTimeInterval(start: String, end: String): TimeInterval =
-    TimeInterval(LocalTime.parse(start), LocalTime.parse(end))
+    TimeInterval.of(LocalTime.parse(start), LocalTime.parse(end))
 
   def aDateTimeInterval(startDate: String, startTime: String, endDate: String, endTime: String): DateTimeInterval =
     DateTimeInterval(LocalDateTime.parse(s"${startDate}T$startTime"), LocalDateTime.parse(s"${endDate}T$endTime"))
