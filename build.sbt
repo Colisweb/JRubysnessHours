@@ -4,7 +4,6 @@ ThisBuild / scalafmtOnCompile := true
 ThisBuild / scalafmtCheck := true
 ThisBuild / scalafmtSbtCheck := true
 
-
 lazy val root = Project(id = "JRubysnessHours", base = file("."))
   .settings(moduleName := "root")
   .settings(noPublishSettings: _*)
@@ -16,10 +15,10 @@ lazy val core =
     .settings(moduleName := "JRubysnessHours")
     .settings(
       libraryDependencies ++= Seq(
-        "org.threeten" % "threeten-extra" % "1.5.0",
-        "org.scalatest"  %% "scalatest"  % "3.0.7" % Test,
-        "com.47deg" %% "scalacheck-toolbox-datetime" % "0.2.5" % Test,
-        "org.scalacheck" %% "scalacheck" % "1.14.0" % Test
+        "org.threeten"   % "threeten-extra"               % "1.5.0",
+        "org.scalatest"  %% "scalatest"                   % "3.0.7" % Test,
+        "com.47deg"      %% "scalacheck-toolbox-datetime" % "0.2.5" % Test,
+        "org.scalacheck" %% "scalacheck"                  % "1.14.0" % Test
       )
     )
 
@@ -62,7 +61,7 @@ inThisBuild(
             <url>https://www.colisweb.com</url>
           </developer>
         </developers>
-      )
+    )
   )
 )
 
