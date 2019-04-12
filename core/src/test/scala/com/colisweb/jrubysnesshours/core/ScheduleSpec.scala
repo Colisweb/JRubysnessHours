@@ -70,6 +70,24 @@ class ScheduleSpec extends WordSpec with Matchers {
       )
     }
 
+    "index exceptions over more than one month" in {
+      val initDate = aDate("2019-01-01")
+      val dates    = (1 until 100).toList.map(i => initDate.plusDays(i.toLong))
+      val rawExceptions = dates.map(
+        date =>
+          DateTimeInterval(
+            LocalDateTime.of(date, LocalTime.parse("10:00")),
+            LocalDateTime.of(date, LocalTime.parse("18:00"))
+          )
+      )
+      val expectedTimeIntervals = List(aTimeInterval("10:00", "18:00"))
+      val expected              = dates.map(_ -> expectedTimeIntervals).toMap
+
+      val result = Schedule.apply(Nil, rawExceptions, UTC).exceptions
+
+      result should contain theSameElementsAs expected
+    }
+
     "index non-overlapping intervals by day-of-week" in {
       val rawPlanning = List(
         aTimeIntervalForWeekDay(MONDAY, "10:00", "12:00"),

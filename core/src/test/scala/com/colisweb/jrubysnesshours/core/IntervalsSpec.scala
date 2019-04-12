@@ -51,7 +51,7 @@ class IntervalsSpec extends WordSpec with Matchers {
 //    }
 //  }
 //
-  "Apply exceptions to Interval" should {
+    "Apply exceptions to Interval" should {
 
     // TODO : generators with random could be great to check that the last case never append
 
