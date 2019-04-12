@@ -1,6 +1,7 @@
 package com.colisweb.jrubysnesshours.core
 
 import java.time._
+import java.time.temporal.ChronoUnit
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
@@ -23,12 +24,12 @@ final case class Schedule private[core] (
       val startDayIntervals: List[TimeIntervalForDate] = intervalsInStartDay(start)
       val endDayIntervals: List[TimeIntervalForDate]   = intervalsInEndDay(end)
 
-      val numberOfDays = Period.between(localStartDate, localEndDate).getDays
+      val numberOfDays = localStartDate.until(localEndDate, ChronoUnit.DAYS)
 
       val dayRangeIntervals: ListBuffer[TimeIntervalForDate] =
-        (1 until numberOfDays)
+        (1L until numberOfDays)
           .foldLeft(ListBuffer.empty[TimeIntervalForDate]) { (acc, i) =>
-            val date = localStartDate.plusDays(i.toLong)
+            val date = localStartDate.plusDays(i)
             acc ++ allIntervalsInDay(date)
           }
 
@@ -114,22 +115,22 @@ object Schedule {
     def dateTimeIntervalsToExceptions: Map[LocalDate, List[TimeInterval]] = {
       exceptions
         .flatMap { dateTimeInterval: DateTimeInterval =>
-          val numberOfDays =
-            Period.between(dateTimeInterval.start.toLocalDate, dateTimeInterval.end.toLocalDate).getDays
-
           val localStartTime = dateTimeInterval.start.toLocalTime
           val localEndTime   = dateTimeInterval.end.toLocalTime
 
           val localStartDate = dateTimeInterval.start.toLocalDate
+          val localEndDate   = dateTimeInterval.end.toLocalDate
 
-          if (numberOfDays == 0) {
+          val numberOfDays = localStartDate.until(localEndDate, ChronoUnit.DAYS)
+
+          if (numberOfDays == 0L) {
             val newInterval = TimeInterval(start = localStartTime, end = localEndTime)
             List(TimeIntervalForDate(date = localStartDate, interval = newInterval))
           } else {
             val midDays =
-              (1 until numberOfDays)
+              (1L until numberOfDays)
                 .map { i =>
-                  val date        = localStartDate.plusDays(i.toLong)
+                  val date        = localStartDate.plusDays(i)
                   val newInterval = TimeInterval(start = LocalTime.MIDNIGHT, end = TimeInterval.END_OF_DAY)
                   TimeIntervalForDate(date = date, interval = newInterval)
                 }
@@ -142,7 +143,7 @@ object Schedule {
 
             val lastDay =
               TimeIntervalForDate(
-                date = dateTimeInterval.end.toLocalDate,
+                date = localEndDate,
                 interval = TimeInterval(start = LocalTime.MIDNIGHT, end = localEndTime)
               )
 
