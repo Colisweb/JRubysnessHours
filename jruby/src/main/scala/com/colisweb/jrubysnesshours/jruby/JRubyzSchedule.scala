@@ -1,29 +1,29 @@
 package com.colisweb.jrubysnesshours.jruby
 
 import java.time.format.DateTimeFormatter
-import java.time._
+import java.time.{DayOfWeek, LocalTime, ZoneId, ZonedDateTime}
 
-import com.colisweb.jrubysnesshours.core.Core.{DateTimeInterval, Schedule, TimeInterval, TimeIntervalForWeekDay}
-import com.colisweb.jrubysnesshours.core.{Core, Intervals}
+import com.colisweb.jrubysnesshours.core.{DateTimeInterval, Schedule, TimeInterval, TimeIntervalForWeekDay}
 import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
+
+import scala.concurrent.duration._
 
 final class JRubyzSchedule private[jruby] (schedule: Schedule) {
 
   def timeSegments(startsAt: String, endsAt: String): List[RubyTimeSegmentInterval] =
-    Intervals.intervalsBetween(schedule)(ZonedDateTime.parse(startsAt), ZonedDateTime.parse(endsAt)).map {
-      timeIntervalForDate =>
-        val start = ZonedDateTime.of(timeIntervalForDate.date, timeIntervalForDate.start, UTC)
-        val end   = ZonedDateTime.of(timeIntervalForDate.date, timeIntervalForDate.end, UTC)
+    schedule.intervalsBetween(ZonedDateTime.parse(startsAt), ZonedDateTime.parse(endsAt)).map { timeIntervalForDate =>
+      val start = ZonedDateTime.of(timeIntervalForDate.date, timeIntervalForDate.start, UTC)
+      val end   = ZonedDateTime.of(timeIntervalForDate.date, timeIntervalForDate.end, UTC)
 
-        RubyTimeSegmentInterval(
-          timeIntervalForDate.date.format(ISO_DATE_FORMATTER),
-          start.format(ISO_8601_FORMATTER),
-          end.format(ISO_8601_FORMATTER)
-        )
+      RubyTimeSegmentInterval(
+        timeIntervalForDate.date.format(ISO_DATE_FORMATTER),
+        start.format(ISO_8601_FORMATTER),
+        end.format(ISO_8601_FORMATTER)
+      )
     }
 
   def within(start: String, end: String): Duration = {
-    Core.within(schedule)(ZonedDateTime.parse(start), ZonedDateTime.parse(end))
+    schedule.within(ZonedDateTime.parse(start), ZonedDateTime.parse(end))
   }
 }
 
@@ -45,7 +45,7 @@ object JRubyzSchedule {
   def rubyToPlanning(rubyWeekDay: Int, startTime: String, endTime: String): TimeIntervalForWeekDay = {
     TimeIntervalForWeekDay(
       dayOfWeek = rubyWeekDayToJavaWeekDay(rubyWeekDay),
-      interval = TimeInterval.of(start = LocalTime.parse(startTime), end = LocalTime.parse(endTime))
+      interval = TimeInterval(start = LocalTime.parse(startTime), end = LocalTime.parse(endTime))
     )
   }
 
