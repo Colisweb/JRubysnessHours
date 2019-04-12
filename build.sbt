@@ -1,8 +1,8 @@
-ThisBuild / organization := "com.colisweb"
-ThisBuild / scalaVersion := "2.12.8"
+ThisBuild / organization      := "com.colisweb"
+ThisBuild / scalaVersion      := "2.12.8"
 ThisBuild / scalafmtOnCompile := true
-ThisBuild / scalafmtCheck := true
-ThisBuild / scalafmtSbtCheck := true
+ThisBuild / scalafmtCheck     := true
+ThisBuild / scalafmtSbtCheck  := true
 
 lazy val root = Project(id = "JRubysnessHours", base = file("."))
   .settings(moduleName := "root")
