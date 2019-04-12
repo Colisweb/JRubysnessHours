@@ -4,6 +4,8 @@ import java.time._
 
 import org.threeten.extra.Interval
 
+import scala.collection.mutable.ListBuffer
+
 object Core {
 
   import scala.math.Ordering.Implicits._
@@ -25,9 +27,30 @@ object Core {
     def encloses(that: TimeInterval): Boolean    = this._interval encloses that._interval
     def isConnected(that: TimeInterval): Boolean = this._interval isConnected that._interval
 
-    def contains(time: LocalTime): Boolean     = this._interval.contains(toInstant(time))
-    def endsAfter(time: LocalTime): Boolean    = this.end isAfter time
-    def startsBefore(time: LocalTime): Boolean = this.start isBefore time
+    @inline def overlapOnlyOnTheStart(that: TimeInterval): Boolean =
+      (this startsBefore that.start) && (this endsBefore that.end)
+
+    /**
+      * Non commutative substraction: x - y != y - x
+      *
+      * The passed interval will be substracted from the current interval.
+      */
+    def minus(that: TimeInterval): List[TimeInterval] =
+      if (that._interval encloses this._interval) List.empty
+      else if (this._interval encloses that._interval) {
+        val acc = ListBuffer.empty[TimeInterval]
+        if (this.start != that.start) acc += TimeInterval.of(start = this.start, end = that.start)
+        if (this.end != that.end) acc += TimeInterval.of(start = that.end, end = this.end)
+        acc.toList
+      } else if (!(this._interval isConnected that._interval)) this :: Nil
+      else if (this overlapOnlyOnTheStart that) TimeInterval.of(this.start, that.start) :: Nil
+      else TimeInterval.of(that.end, this.end) :: Nil // overlapOnlyOnTheEnd
+
+    def contains(time: LocalTime): Boolean             = this._interval.contains(toInstant(time))
+    @inline def endsBefore(time: LocalTime): Boolean   = this.end isBefore time
+    @inline def endsAfter(time: LocalTime): Boolean    = this.end isAfter time
+    @inline def startsBefore(time: LocalTime): Boolean = this.start isBefore time
+    @inline def startsAfter(time: LocalTime): Boolean  = this.start isAfter time
 
     /**
       * Copied from `org.threeten.extra.Interval`.
