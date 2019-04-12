@@ -27,16 +27,14 @@ class IntervalsSpec extends WordSpec with Matchers {
   )
   val zoneId: ZoneId = ZoneId.of("Europe/Paris")
 
-  "Intervals" should {
+  "Schedule" should {
 
     "without exceptions" should {
 
-      val schedule = Schedule.apply(planning, Map.empty[LocalDate, List[TimeInterval]], zoneId)
-      val intervalsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
-        schedule.intervalsBetween
+      val schedule = Schedule(planning, Map.empty[LocalDate, List[TimeInterval]], zoneId)
 
       "compute 2 intervals between Thursday 18:00 to Friday 10:00" in {
-        val s1 = intervalsBetween(
+        val s1 = schedule.intervalsBetween(
           parseZonedDateTime("2019-03-21", "18:00"),
           parseZonedDateTime("2019-03-22", "10:00")
         )
@@ -47,7 +45,7 @@ class IntervalsSpec extends WordSpec with Matchers {
       }
       "compute 2 intervals between Saturday 13:00 to same Saturday 16:00" in {
         val s2 =
-          intervalsBetween(
+          schedule.intervalsBetween(
             parseZonedDateTime("2019-03-23", "13:00"),
             parseZonedDateTime("2019-03-23", "16:00")
           )
@@ -58,7 +56,7 @@ class IntervalsSpec extends WordSpec with Matchers {
       }
       "compute 3 intervals between Saturday 13:00 to Monday 10:00" in {
         val s3 =
-          intervalsBetween(
+          schedule.intervalsBetween(
             parseZonedDateTime("2019-03-23", "13:00"),
             parseZonedDateTime("2019-03-25", "10:00")
           )
@@ -70,7 +68,7 @@ class IntervalsSpec extends WordSpec with Matchers {
       }
       "compute 5 intervals betweenSaturday 13:00 to Tuesday 16:00" in {
         val s4 =
-          intervalsBetween(
+          schedule.intervalsBetween(
             parseZonedDateTime("2019-03-23", "13:00"),
             parseZonedDateTime("2019-03-26", "16:00")
           )
@@ -84,7 +82,7 @@ class IntervalsSpec extends WordSpec with Matchers {
       }
       "compute 2 intervals between Sunday 13:00 to Tuesday 10:00" in {
         val s5 =
-          intervalsBetween(
+          schedule.intervalsBetween(
             parseZonedDateTime("2019-03-24", "13:00"),
             parseZonedDateTime("2019-03-26", "10:00")
           )
@@ -95,7 +93,7 @@ class IntervalsSpec extends WordSpec with Matchers {
       }
       "compute 8 intervals between Monday 09:00 to Sunday 23:00" in {
         val s6 =
-          intervalsBetween(
+          schedule.intervalsBetween(
             parseZonedDateTime("2019-03-18", "09:00"),
             parseZonedDateTime("2019-03-24", "23:00")
           )
@@ -122,12 +120,10 @@ class IntervalsSpec extends WordSpec with Matchers {
         )
 
         val schedule = Schedule(planning, exceptions, zoneId)
-        val intervalsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
-          schedule.intervalsBetween
 
         "compute 6 intervals between Friday 15 13:40 to Tuesday 19 13:40 INCLUDING and exception the 2019-03-18 between 13:00 and 16:00" in {
           val s1 =
-            intervalsBetween(
+            schedule.intervalsBetween(
               parseZonedDateTime("2019-03-15", "13:40"),
               parseZonedDateTime("2019-03-19", "13:40")
             )
@@ -150,12 +146,10 @@ class IntervalsSpec extends WordSpec with Matchers {
         )
 
         val schedule = Schedule(planning, exceptions, zoneId)
-        val intervalsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
-          schedule.intervalsBetween
 
         "compute 6 intervals between Friday 15 13:40 to Tuesday 19 13:40 INCLUDING and exception the  019-03-15 between 13:00 and 16:00" in {
           val s1 =
-            intervalsBetween(
+            schedule.intervalsBetween(
               parseZonedDateTime("2019-03-15", "13:40"),
               parseZonedDateTime("2019-03-19", "13:40")
             )
@@ -177,12 +171,10 @@ class IntervalsSpec extends WordSpec with Matchers {
         )
 
         val schedule = Schedule(planning, exceptions, zoneId)
-        val intervalsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
-          schedule.intervalsBetween
 
         "compute 6 intervals between Friday 15 13:40 to Tuesday 19 13:40 INCLUDING and exception the 2019-03-19 between 13:00 and 16:00" in {
           val s1 =
-            intervalsBetween(
+            schedule.intervalsBetween(
               parseZonedDateTime("2019-03-15", "13:40"),
               parseZonedDateTime("2019-03-19", "13:40")
             )
@@ -204,12 +196,10 @@ class IntervalsSpec extends WordSpec with Matchers {
         )
 
         val schedule = Schedule(planning, exceptions, zoneId)
-        val intervalsBetween: (ZonedDateTime, ZonedDateTime) => List[TimeIntervalForDate] =
-          schedule.intervalsBetween
 
         "compute 2 intervals between Friday 15 13:40 to Friday 15 19:00 INCLUDING and exception the 2019-03-18 between 14:00 and 16:00" in {
           val s1 =
-            intervalsBetween(
+            schedule.intervalsBetween(
               parseZonedDateTime("2019-03-15", "13:40"),
               parseZonedDateTime("2019-03-15", "19:00")
             )
