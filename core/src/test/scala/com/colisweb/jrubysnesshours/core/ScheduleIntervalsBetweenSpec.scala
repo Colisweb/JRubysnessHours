@@ -5,7 +5,7 @@ import java.time._
 import com.colisweb.jrubysnesshours.core.SpecUtils._
 import org.scalatest.{Matchers, WordSpec}
 
-class IntervalsBetweenSpec extends WordSpec with Matchers {
+class ScheduleIntervalsBetweenSpec extends WordSpec with Matchers {
 
   "Schedule" when {
     "without exception" should {
