@@ -7,8 +7,7 @@ import org.scalatest.{Matchers, WordSpec}
 
 class IntervalsBetweenSpec extends WordSpec with Matchers {
 
-  "segments" when {
-
+  "Schedule" when {
     "without exception" should {
 
       "compute 2 segments between Thursday 18:00 to Friday 10:00" in {
@@ -171,7 +170,6 @@ class IntervalsBetweenSpec extends WordSpec with Matchers {
           )
         }
       }
-
     }
 
   }
