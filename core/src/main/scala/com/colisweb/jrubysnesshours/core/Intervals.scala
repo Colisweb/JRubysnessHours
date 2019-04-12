@@ -22,7 +22,7 @@ object Intervals {
       val numberOfDays = Period.between(localStartDate, localEndDate).getDays
 
       val dayRangeIntervals: ListBuffer[TimeIntervalForDate] =
-        (1 until numberOfDays) // TODO Jules: Should we be inclusive or exclusive ? `until` is exclusive.
+        (1 until numberOfDays)
           .foldLeft(ListBuffer.empty[TimeIntervalForDate]) { (acc, i) =>
             val date = localStartDate.plusDays(i.toLong)
             acc ++ allIntervalsInDay(schedule, date)
