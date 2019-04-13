@@ -64,11 +64,7 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
   /**
     * Copied from `org.threeten.extra.Interval`.
     */
-  def contains(time: LocalTime): Boolean             = start.compareTo(time) <= 0 && time.compareTo(end) < 0
-  @inline def endsBefore(time: LocalTime): Boolean   = this.end isBefore time
-  @inline def endsAfter(time: LocalTime): Boolean    = this.end isAfter time
-  @inline def startsBefore(time: LocalTime): Boolean = this.start isBefore time
-  @inline def startsAfter(time: LocalTime): Boolean  = this.start isAfter time
+  def contains(time: LocalTime): Boolean = start.compareTo(time) <= 0 && time.compareTo(end) < 0
 
   /**
     * Copied from `org.threeten.extra.Interval`.
