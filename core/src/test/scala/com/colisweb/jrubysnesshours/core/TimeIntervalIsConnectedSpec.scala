@@ -20,12 +20,6 @@ class TimeIntervalIsConnectedSpec extends WordSpec with Matchers {
    */
 
   "TimeInterval#isConnected" when {
-    "true" should {
-      "be true" in {
-        true shouldBe true
-      }
-    }
-
     val interval = "11:00" - "12:00"
 
     "1. intervals are not connected" when {
