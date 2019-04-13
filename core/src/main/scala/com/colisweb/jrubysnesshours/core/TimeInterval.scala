@@ -1,11 +1,8 @@
 package com.colisweb.jrubysnesshours.core
 
-import java.time.{DateTimeException, DayOfWeek, LocalDate, LocalDateTime, LocalTime, ZoneOffset, Duration => JDuration}
+import java.time.{DateTimeException, DayOfWeek, LocalDate, LocalDateTime, LocalTime, Duration => JDuration}
 import java.util.concurrent.TimeUnit
 
-import org.threeten.extra.Interval
-
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 
 final case class DateTimeInterval(start: LocalDateTime, end: LocalDateTime)
@@ -21,41 +18,53 @@ final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
   assert(start isBefore end)
 
-  import TimeInterval._
+  /**
+    * Copied from `org.threeten.extra.Interval`.
+    */
+  def isBefore(that: TimeInterval): Boolean = this.end.compareTo(that.start) <= 0
 
-  @inline private[this] def toInstant(localTime: LocalTime) = LocalDateTime.of(`1970-01-01`, localTime).toInstant(utc)
-  private lazy val _interval                                = Interval.of(toInstant(start), toInstant(end))
+  /**
+    * Copied from `org.threeten.extra.Interval`.
+    */
+  def encloses(that: TimeInterval): Boolean = this.start.compareTo(that.start) <= 0 && that.end.compareTo(this.end) <= 0
 
-  def isBefore(that: TimeInterval): Boolean    = this._interval isBefore that._interval
-  def encloses(that: TimeInterval): Boolean    = this._interval encloses that._interval
-  def isConnected(that: TimeInterval): Boolean = this._interval isConnected that._interval
-
-  @inline def overlapOnlyOnMyEnd(that: TimeInterval): Boolean =
-    (this startsBefore that.start) && (this endsAfter that.start) && (this endsBefore that.end)
-
-  @inline def overlapOnlyOnMyStart(that: TimeInterval): Boolean =
-    (this startsAfter that.start) && (this startsBefore that.end) && (this endsAfter that.end)
+  /**
+    * Copied from `org.threeten.extra.Interval`.
+    */
+  def isConnected(that: TimeInterval): Boolean =
+    this.start.compareTo(that.end) <= 0 && that.start.compareTo(this.end) <= 0
 
   /**
     * Non commutative substraction: x - y != y - x
     *
     * The passed interval will be substracted from the current interval.
-    *
-    * TODO: The solution could surely be simplified.
     */
-  def minus(that: TimeInterval): List[TimeInterval] =
-    if (that._interval encloses this._interval) List.empty
-    else if (this._interval encloses that._interval) {
-      val acc = ListBuffer.empty[TimeInterval]
-      if (this.start != that.start) acc += TimeInterval(start = this.start, end = that.start)
-      if (this.end != that.end) acc += TimeInterval(start = that.end, end = this.end)
-      acc.toList
-    } else if (!(this._interval isConnected that._interval)) this :: Nil
-    else if (this overlapOnlyOnMyEnd that) TimeInterval(start = this.start, end = that.start) :: Nil
-    else if (this overlapOnlyOnMyStart that) TimeInterval(start = that.end, end = this.end) :: Nil
-    else this :: Nil
+  def minus(that: TimeInterval): List[TimeInterval] = {
+    val startsCompare = this.start.compareTo(that.start)
+    val endsCompare   = that.end.compareTo(this.end)
 
-  def contains(time: LocalTime): Boolean             = this._interval.contains(toInstant(time))
+    @inline def thisStartCompareToThatEnd = this.start.compareTo(that.end)
+    @inline def thisEndCompareToThatStart = this.end.compareTo(that.start)
+
+    @inline def thatEnclosesThis     = startsCompare >= 0 && endsCompare >= 0
+    @inline def thisEnclosesThat     = startsCompare < 0 && endsCompare < 0
+    @inline def areNotConnected      = thisStartCompareToThatEnd > 0 || thisEndCompareToThatStart <= 0
+    @inline def thatOverlapThisEnd   = startsCompare < 0 && thisEndCompareToThatStart > 0 && endsCompare >= 0
+    @inline def thatOverlapThisStart = startsCompare >= 0 && thisStartCompareToThatEnd < 0 && endsCompare < 0
+
+    if (thatEnclosesThis) Nil
+    else if (thisEnclosesThat)
+      TimeInterval(start = this.start, end = that.start) :: TimeInterval(start = that.end, end = this.end) :: Nil
+    else if (areNotConnected) this :: Nil
+    else if (thatOverlapThisEnd) TimeInterval(start = this.start, end = that.start) :: Nil
+    else if (thatOverlapThisStart) TimeInterval(start = that.end, end = this.end) :: Nil
+    else this :: Nil
+  }
+
+  /**
+    * Copied from `org.threeten.extra.Interval`.
+    */
+  def contains(time: LocalTime): Boolean             = start.compareTo(time) <= 0 && time.compareTo(end) < 0
   @inline def endsBefore(time: LocalTime): Boolean   = this.end isBefore time
   @inline def endsAfter(time: LocalTime): Boolean    = this.end isAfter time
   @inline def startsBefore(time: LocalTime): Boolean = this.start isBefore time
@@ -85,7 +94,5 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
 }
 
 object TimeInterval {
-  private[core] final val utc: ZoneOffset         = ZoneOffset.UTC
-  private[core] final val `1970-01-01`: LocalDate = LocalDate.of(1970, 1, 1)
-  private[core] final val END_OF_DAY: LocalTime   = LocalTime.of(23, 59, 0)
+  private[core] final val END_OF_DAY: LocalTime = LocalTime.of(23, 59, 0)
 }
