@@ -40,22 +40,21 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
     * The passed interval will be substracted from the current interval.
     */
   def minus(that: TimeInterval): List[TimeInterval] = {
-    val startsCompare = this.start.compareTo(that.start)
-    val endsCompare   = that.end.compareTo(this.end)
-
-    lazy val thisStartCompareToThatEnd = this.start.compareTo(that.end)
+    val thisStartCompareToThatEnd      = this.start.compareTo(that.end)
     lazy val thisEndCompareToThatStart = this.end.compareTo(that.start)
+    lazy val startsCompare             = this.start.compareTo(that.start)
+    lazy val endsCompare               = that.end.compareTo(this.end)
 
+    @inline def areNotConnected      = thisStartCompareToThatEnd > 0 || thisEndCompareToThatStart <= 0
     @inline def thatEnclosesThis     = startsCompare >= 0 && endsCompare >= 0
     @inline def thisEnclosesThat     = startsCompare < 0 && endsCompare < 0
-    @inline def areNotConnected      = thisStartCompareToThatEnd > 0 || thisEndCompareToThatStart <= 0
     @inline def thatOverlapThisEnd   = startsCompare < 0 && thisEndCompareToThatStart > 0 && endsCompare >= 0
     @inline def thatOverlapThisStart = startsCompare >= 0 && thisStartCompareToThatEnd < 0 && endsCompare < 0
 
-    if (thatEnclosesThis) Nil
+    if (areNotConnected) this :: Nil
+    else if (thatEnclosesThis) Nil
     else if (thisEnclosesThat)
       TimeInterval(start = this.start, end = that.start) :: TimeInterval(start = that.end, end = this.end) :: Nil
-    else if (areNotConnected) this :: Nil
     else if (thatOverlapThisEnd) TimeInterval(start = this.start, end = that.start) :: Nil
     else if (thatOverlapThisStart) TimeInterval(start = that.end, end = this.end) :: Nil
     else this :: Nil
