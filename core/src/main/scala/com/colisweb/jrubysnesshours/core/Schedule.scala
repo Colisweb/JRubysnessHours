@@ -69,14 +69,10 @@ final case class Schedule private[core] (
       )
     )
 
-  def allIntervalsInDay(date: LocalDate, exception: List[TimeInterval] = Nil): List[TimeIntervalForDate] = {
-    val exceptions = exceptionFor(date)
-    val intervals  = planningFor(date.getDayOfWeek)
-
+  def allIntervalsInDay(date: LocalDate, exception: List[TimeInterval] = Nil): List[TimeIntervalForDate] =
     Schedule
-      .cutExceptions(intervals, exception ::: exceptions)
+      .cutExceptions(planningFor(date.getDayOfWeek), exception ::: exceptionFor(date))
       .map(interval => TimeIntervalForDate(date = date, interval = interval))
-  }
 
   def within(start: ZonedDateTime, end: ZonedDateTime): Duration =
     intervalsBetween(start, end).map(_.duration).reduce(_ plus _)
