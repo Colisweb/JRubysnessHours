@@ -43,8 +43,8 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
     val startsCompare = this.start.compareTo(that.start)
     val endsCompare   = that.end.compareTo(this.end)
 
-    @inline def thisStartCompareToThatEnd = this.start.compareTo(that.end)
-    @inline def thisEndCompareToThatStart = this.end.compareTo(that.start)
+    lazy val thisStartCompareToThatEnd = this.start.compareTo(that.end)
+    lazy val thisEndCompareToThatStart = this.end.compareTo(that.start)
 
     @inline def thatEnclosesThis     = startsCompare >= 0 && endsCompare >= 0
     @inline def thisEnclosesThat     = startsCompare < 0 && endsCompare < 0
