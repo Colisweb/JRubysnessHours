@@ -52,10 +52,10 @@ final case class Schedule private[core] (
   }
 
   private[core] def intervalsInStartDay(start: ZonedDateTime): List[TimeIntervalForDate] =
-    allIntervalsInDay(start.toLocalDate, List(TimeInterval(start = LocalTime.MIDNIGHT, start.toLocalTime)))
+    allIntervalsInDay(start.toLocalDate, List(TimeInterval(start = LocalTime.MIDNIGHT, end = start.toLocalTime)))
 
   private[core] def intervalsInEndDay(end: ZonedDateTime): List[TimeIntervalForDate] =
-    allIntervalsInDay(end.toLocalDate, List(TimeInterval(start = end.toLocalTime, TimeInterval.END_OF_DAY)))
+    allIntervalsInDay(end.toLocalDate, List(TimeInterval(start = end.toLocalTime, end = TimeInterval.END_OF_DAY)))
 
   private[core] def intervalsInSameDay(
       date: LocalDate,
@@ -64,8 +64,8 @@ final case class Schedule private[core] (
     allIntervalsInDay(
       date,
       List(
-        TimeInterval(start = LocalTime.MIDNIGHT, query.start),
-        TimeInterval(start = query.end, TimeInterval.END_OF_DAY)
+        TimeInterval(start = LocalTime.MIDNIGHT, end = query.start),
+        TimeInterval(start = query.end, end = TimeInterval.END_OF_DAY)
       )
     )
 
