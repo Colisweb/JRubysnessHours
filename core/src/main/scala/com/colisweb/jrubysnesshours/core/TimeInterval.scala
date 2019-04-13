@@ -30,13 +30,18 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
   def encloses(that: TimeInterval): Boolean    = this._interval encloses that._interval
   def isConnected(that: TimeInterval): Boolean = this._interval isConnected that._interval
 
-  @inline def overlapOnlyOnTheStart(that: TimeInterval): Boolean =
-    (this startsBefore that.start) && (this endsBefore that.end)
+  @inline def overlapOnlyOnMyEnd(that: TimeInterval): Boolean =
+    (this startsBefore that.start) && (this endsAfter that.start) && (this endsBefore that.end)
+
+  @inline def overlapOnlyOnMyStart(that: TimeInterval): Boolean =
+    (this startsAfter that.start) && (this startsBefore that.end) && (this endsAfter that.end)
 
   /**
     * Non commutative substraction: x - y != y - x
     *
     * The passed interval will be substracted from the current interval.
+    *
+    * TODO: The solution could surely be simplified.
     */
   def minus(that: TimeInterval): List[TimeInterval] =
     if (that._interval encloses this._interval) List.empty
@@ -46,8 +51,9 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
       if (this.end != that.end) acc += TimeInterval(start = that.end, end = this.end)
       acc.toList
     } else if (!(this._interval isConnected that._interval)) this :: Nil
-    else if (this overlapOnlyOnTheStart that) TimeInterval(start = this.start, end = that.start) :: Nil
-    else TimeInterval(that.end, this.end) :: Nil // overlapOnlyOnTheEnd
+    else if (this overlapOnlyOnMyEnd that) TimeInterval(start = this.start, end = that.start) :: Nil
+    else if (this overlapOnlyOnMyStart that) TimeInterval(start = that.end, end = this.end) :: Nil
+    else this :: Nil
 
   def contains(time: LocalTime): Boolean             = this._interval.contains(toInstant(time))
   @inline def endsBefore(time: LocalTime): Boolean   = this.end isBefore time
