@@ -40,13 +40,11 @@ final case class Schedule private[core] (
   // TODO: To Test
   def contains(date: ZonedDateTime): Boolean = {
     val time      = date.withZoneSameInstant(timeZone).toLocalTime
-    val localDate = date.toLocalDate
+    val localDate = date.withZoneSameInstant(timeZone).toLocalDate
+    val dow       = date.getDayOfWeek
 
-    @inline def existsPlanning =
-      planningFor(date.getDayOfWeek).exists(_.contains(time))
-
-    @inline def notExistsException =
-      !exceptionFor(localDate).exists(_.contains(time))
+    val existsPlanning     = planningFor(dow).exists(_.contains(time))
+    val notExistsException = !exceptionFor(localDate).exists(_.contains(time))
 
     existsPlanning && notExistsException
   }
@@ -150,8 +148,10 @@ object Schedule {
         .mapValues(intervals => mergeIntervals(intervals.map(_.interval)))
     }
 
+    val p = planning.groupBy(_.dayOfWeek).mapValues(intervals => mergeIntervals(intervals.map(_.interval)))
+
     Schedule(
-      planning = planning.groupBy(_.dayOfWeek).mapValues(intervals => mergeIntervals(intervals.map(_.interval))),
+      planning = p,
       exceptions = dateTimeIntervalsToExceptions,
       timeZone = timeZone
     )
