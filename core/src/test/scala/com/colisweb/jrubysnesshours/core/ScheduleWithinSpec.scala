@@ -2,7 +2,7 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time.{Duration => _}
 
-import com.colisweb.jrubysnesshours.core.SpecUtils._
+import SpecUtils._
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.duration._

@@ -1,8 +1,9 @@
-package com.colisweb.jrubysnesshours.core
+package com.colisweb.jrubysnesshours.jruby
 
-import java.time.DayOfWeek._
 import java.time._
 import java.time.format.DateTimeFormatter
+
+import com.colisweb.jrubysnesshours.core.{DateTimeInterval, TimeInterval, TimeIntervalForDate, TimeIntervalForWeekDay}
 
 object SpecUtils {
 
@@ -24,6 +25,7 @@ object SpecUtils {
 
   implicit class StringToLocalTimeOps(string: String) {
     def toLocalTime: LocalTime = LocalTime.parse(string)
+
     def toLocalDate: LocalDate = LocalDate.parse(string)
 
     def -(to: String): TimeInterval = TimeInterval(string.toLocalTime, to.toLocalTime)
@@ -32,7 +34,7 @@ object SpecUtils {
       LocalDate.parse(string) -> intervals
 
     def :-(hour: String): LocalDateTime =
-      LocalDateTime.parse(s"$string $hour", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+      LocalDateTime.parse(s"$string $hour", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
 
     def at(interval: TimeInterval): TimeIntervalForDate =
       TimeIntervalForDate(date = LocalDate.parse(string), interval = interval)
@@ -40,22 +42,6 @@ object SpecUtils {
     def at(time: String): ZonedDateTime = (string :- time).atZone(SpecUtils.zoneId)
   }
 
-  val planning: Map[DayOfWeek, List[TimeInterval]] = Map(
-    MONDAY    -> List("09:00" - "19:00"),
-    TUESDAY   -> List("09:30" - "14:00", "15:00" - "19:00"),
-    WEDNESDAY -> List("09:30" - "20:00"),
-    THURSDAY  -> List("09:30" - "19:00"),
-    FRIDAY    -> List("09:30" - "19:00"),
-    SATURDAY  -> List("09:00" - "14:00", "15:00" - "19:00")
-  )
-
   val zoneId: ZoneId = ZoneId.of("Europe/Paris")
-
-  val schedule: Schedule =
-    Schedule(
-      planning = planning,
-      exceptions = Map.empty[LocalDate, List[TimeInterval]],
-      timeZone = zoneId
-    )
 
 }
