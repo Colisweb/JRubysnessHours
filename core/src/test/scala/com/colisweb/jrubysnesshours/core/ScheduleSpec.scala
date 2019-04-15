@@ -1,9 +1,9 @@
 package com.colisweb.jrubysnesshours.core
 import java.time.DayOfWeek._
 import java.time.ZoneOffset.UTC
-import java.time.{DayOfWeek, LocalDate, LocalDateTime, LocalTime}
-import UtilsSpec._
+import java.time.{DayOfWeek, LocalDateTime, LocalTime}
 
+import com.colisweb.jrubysnesshours.core.UtilsSpec._
 import org.scalatest.{Matchers, WordSpec}
 
 class ScheduleSpec extends WordSpec with Matchers {
