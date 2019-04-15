@@ -7,6 +7,7 @@ class TimeIntervalIsConnectedSpec extends WordSpec with Matchers {
   import SpecUtils._
 
   /*
+                       |__________ 8 ___________|
 
              |___ 6 ___|------- interval -------|___ 7 ___|
 
@@ -54,6 +55,9 @@ class TimeIntervalIsConnectedSpec extends WordSpec with Matchers {
     "7. passed interval abuts the 'end'" in {
       val passed = "12:00" - "13:00"
       interval isConnected passed shouldBe true
+    }
+    "8. passed interval is the same" in {
+      interval isConnected interval shouldBe true
     }
   }
 

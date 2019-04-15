@@ -7,6 +7,7 @@ class TimeIntervalIsBeforeSpec extends WordSpec with Matchers {
   import SpecUtils._
 
   /*
+                       |__________ 8 ___________|
 
              |___ 6 ___|------- interval -------|___ 7 ___|
 
@@ -54,6 +55,9 @@ class TimeIntervalIsBeforeSpec extends WordSpec with Matchers {
     "7. passed interval abuts the 'end'" in {
       val passed = "12:00" - "13:00"
       interval isBefore passed shouldBe true
+    }
+    "8. passed interval is the same" in {
+      interval isBefore interval shouldBe false
     }
   }
 
