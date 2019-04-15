@@ -25,14 +25,19 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
 
   /**
     * Copied from `org.threeten.extra.Interval`.
+    *
+    * But improved thanks to boolean logic.
     */
-  def encloses(that: TimeInterval): Boolean = this.start.compareTo(that.start) <= 0 && that.end.compareTo(this.end) <= 0
+  def encloses(that: TimeInterval): Boolean =
+    !(this.start.compareTo(that.start) > 0 || that.end.compareTo(this.end) > 0)
 
   /**
     * Copied from `org.threeten.extra.Interval`.
+    *
+    * But improved thanks to boolean logic.
     */
   def isConnected(that: TimeInterval): Boolean =
-    this.start.compareTo(that.end) <= 0 && that.start.compareTo(this.end) <= 0
+    !(this.start.compareTo(that.end) > 0 || that.start.compareTo(this.end) > 0)
 
   /**
     * Non commutative substraction: x - y != y - x
@@ -40,16 +45,16 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
     * The passed interval will be substracted from the current interval.
     */
   def minus(that: TimeInterval): List[TimeInterval] = {
-    val thisStartCompareToThatEnd      = this.start.compareTo(that.end)
-    lazy val thisEndCompareToThatStart = this.end.compareTo(that.start)
-    lazy val startsCompare             = this.start.compareTo(that.start)
-    lazy val endsCompare               = that.end.compareTo(this.end)
+    val cmpThisStartToThatEnd      = this.start.compareTo(that.end)
+    lazy val cmpThisEndToThatStart = this.end.compareTo(that.start)
+    lazy val cmpStart              = this.start.compareTo(that.start)
+    lazy val cmpEnd                = that.end.compareTo(this.end)
 
-    @inline def areNotConnected      = thisStartCompareToThatEnd > 0 || thisEndCompareToThatStart <= 0
-    @inline def thatEnclosesThis     = startsCompare >= 0 && endsCompare >= 0
-    @inline def thisEnclosesThat     = startsCompare < 0 && endsCompare < 0
-    @inline def thatOverlapThisEnd   = startsCompare < 0 && thisEndCompareToThatStart > 0 && endsCompare >= 0
-    @inline def thatOverlapThisStart = startsCompare >= 0 && thisStartCompareToThatEnd < 0 && endsCompare < 0
+    @inline def areNotConnected      = cmpThisStartToThatEnd > 0 || cmpThisEndToThatStart <= 0
+    @inline def thatEnclosesThis     = !(cmpStart < 0 || cmpEnd < 0)
+    @inline def thisEnclosesThat     = !(cmpStart >= 0 || cmpEnd >= 0)
+    @inline def thatOverlapThisEnd   = !(cmpStart >= 0 || cmpThisEndToThatStart <= 0 || cmpEnd < 0)
+    @inline def thatOverlapThisStart = !(cmpStart < 0 || cmpThisStartToThatEnd >= 0 || cmpEnd >= 0)
 
     if (areNotConnected) this :: Nil
     else if (thatEnclosesThis) Nil
@@ -62,15 +67,15 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
 
   /**
     * Copied from `org.threeten.extra.Interval`.
+    *
+    * But improved thanks to boolean logic.
     */
-  def contains(time: LocalTime): Boolean = start.compareTo(time) <= 0 && time.compareTo(end) < 0
+  def contains(time: LocalTime): Boolean = !(start.compareTo(time) > 0 || time.compareTo(end) >= 0)
 
   /**
     * Copied from `org.threeten.extra.Interval`.
     *
-    * Here, it's not possible to directly use `this._interval union that._interval` because we're unable to
-    * then convert the result of that call to a `TimeInterval` because we can't easily convert an `Instant` to
-    * a `LocalTime`.
+    * But improved thanks to boolean logic.
     */
   def union(that: TimeInterval): TimeInterval = {
     if (!isConnected(that)) throw new DateTimeException(s"Intervals do not connect: $this and $that")
@@ -78,8 +83,8 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
     val cmpStart = start.compareTo(that.start)
     val cmpEnd   = end.compareTo(that.end)
 
-    if (cmpStart >= 0 && cmpEnd <= 0) that
-    else if (cmpStart <= 0 && cmpEnd >= 0) this
+    if (!(cmpStart < 0 || cmpEnd > 0)) that
+    else if (!(cmpStart > 0 || cmpEnd < 0)) this
     else {
       val newStart = if (cmpStart >= 0) that.start else start
       val newEnd   = if (cmpEnd <= 0) that.end else end
