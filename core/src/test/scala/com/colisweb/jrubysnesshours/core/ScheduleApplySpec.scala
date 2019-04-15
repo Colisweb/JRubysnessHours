@@ -44,8 +44,8 @@ class ScheduleApplySpec extends WordSpec with Matchers {
 
       Schedule(Nil, rawExceptions, UTC).exceptions should contain theSameElementsAs Map(
         "2019-03-15" at List("10:00" - "19:00"),
-        "2019-03-16" at List("10:00" - "23:59"),
-        "2019-03-17" at List("00:00" - "03:00", "11:00" - "15:00"),
+        "2019-03-16" at List("10:00" - TimeIntervalMax),
+        "2019-03-17" at List(TimeIntervalMin - "03:00", "11:00" - "15:00"),
         "2019-03-19" at List("08:00" - "17:00")
       )
     }
