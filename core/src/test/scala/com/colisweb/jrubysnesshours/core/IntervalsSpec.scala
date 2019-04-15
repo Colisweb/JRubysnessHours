@@ -2,14 +2,11 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time.DayOfWeek._
 import java.time._
+import UtilsSpec._
 
 import org.scalatest.{Matchers, WordSpec}
 
 class IntervalsSpec extends WordSpec with Matchers {
-
-  implicit class StringToLocalTime(str: String) {
-    def toLocalTime: LocalTime = LocalTime.parse(str)
-  }
 
   val planning: Map[DayOfWeek, List[TimeInterval]] = Map(
     MONDAY -> List(TimeInterval("09:00".toLocalTime, "19:00".toLocalTime)),
@@ -238,8 +235,6 @@ class IntervalsSpec extends WordSpec with Matchers {
       LocalTime.parse(s"$startTime:00"),
       LocalTime.parse(s"$endTime:00")
     )
-
-  def parseDate(date: String): LocalDate = LocalDate.parse(date)
 
   def aTimeIntervalForDate(date: String, startTime: String, endTime: String) =
     TimeIntervalForDate(

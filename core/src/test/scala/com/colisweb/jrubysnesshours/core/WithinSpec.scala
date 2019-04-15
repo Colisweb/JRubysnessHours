@@ -6,12 +6,9 @@ import java.time.{Duration => _, _}
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.duration._
+import UtilsSpec._
 
 class WithinSpec extends WordSpec with Matchers {
-
-  implicit class StringToLocalTime(str: String) {
-    def toLocalTime: LocalTime = LocalTime.parse(str)
-  }
 
   val planning: Map[DayOfWeek, List[TimeInterval]] = Map(
     MONDAY -> List(TimeInterval("09:00".toLocalTime, "19:00".toLocalTime)),

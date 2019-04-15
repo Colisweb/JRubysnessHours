@@ -1,34 +1,28 @@
 package com.colisweb.jrubysnesshours.jruby
 
-import java.time.{LocalDate, LocalTime}
+import java.time.DayOfWeek
 
 import com.colisweb.jrubysnesshours.core.DateTimeInterval
+import com.colisweb.jrubysnesshours.core.UtilsSpec._
 import org.scalatest.{Matchers, WordSpec}
 
 class JRubyzScheduleSpec extends WordSpec with Matchers {
-
-  def aDate(date: String): LocalDate = // TODO write a spec util class to use it in core and jruby
-    LocalDate.parse(date)
-
-  implicit class StringToLocalTime(str: String) { // TODO write a spec util class to use it in core and jruby
-    def toLocalTime: LocalTime = LocalTime.parse(str)
-  }
 
   "rubyToDateTimeInterval" should {
 
     "with UTC timezone the same day" in {
       val res = JRubyzSchedule.rubyToDateTimeInterval("2019-04-12T16:17:39Z", "2019-04-12T18:15:40Z")
 
-      val expectedStart = aDate("2019-04-12").atTime("16:17:39".toLocalTime)
-      val expectedEnd = aDate("2019-04-12").atTime("18:15:40".toLocalTime)
+      val expectedStart = parseDate("2019-04-12").atTime("16:17:39".toLocalTime)
+      val expectedEnd = parseDate("2019-04-12").atTime("18:15:40".toLocalTime)
       res shouldEqual DateTimeInterval(expectedStart, expectedEnd)
     }
 
     "with GMT+2 timezone the same day" in {
       val res = JRubyzSchedule.rubyToDateTimeInterval("2019-04-12T16:17:39+02:00", "2019-04-12T18:15:40+02:00")
 
-      val expectedStart = aDate("2019-04-12").atTime("16:17:39".toLocalTime)
-      val expectedEnd = aDate("2019-04-12").atTime("18:15:40".toLocalTime)
+      val expectedStart = parseDate("2019-04-12").atTime("16:17:39".toLocalTime)
+      val expectedEnd = parseDate("2019-04-12").atTime("18:15:40".toLocalTime)
       res shouldEqual DateTimeInterval(expectedStart, expectedEnd)
     }
 
@@ -42,11 +36,40 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
     "If start and end are not the same day" in {
       val res = JRubyzSchedule.rubyToDateTimeInterval("2019-04-10T16:17:39Z", "2019-04-15T18:15:40Z")
 
-      val expectedStart = aDate("2019-04-10").atTime("16:17:39".toLocalTime)
-      val expectedEnd = aDate("2019-04-15").atTime("18:15:40".toLocalTime)
+      val expectedStart = parseDate("2019-04-10").atTime("16:17:39".toLocalTime)
+      val expectedEnd = parseDate("2019-04-15").atTime("18:15:40".toLocalTime)
       res shouldEqual DateTimeInterval(expectedStart, expectedEnd)
     }
+  }
 
+  "rubyWeekDayToJavaWeekDay" should {
+    "for MONDAY" in {
+      JRubyzSchedule.rubyWeekDayToJavaWeekDay(1) shouldEqual DayOfWeek.MONDAY
+    }
+
+    "for TUESDAY" in {
+      JRubyzSchedule.rubyWeekDayToJavaWeekDay(2) shouldEqual DayOfWeek.TUESDAY
+    }
+
+    "for WEDNESDAY" in {
+      JRubyzSchedule.rubyWeekDayToJavaWeekDay(3) shouldEqual DayOfWeek.WEDNESDAY
+    }
+
+    "for THURSDAY" in {
+      JRubyzSchedule.rubyWeekDayToJavaWeekDay(4) shouldEqual DayOfWeek.THURSDAY
+    }
+
+    "for FRIDAY" in {
+      JRubyzSchedule.rubyWeekDayToJavaWeekDay(5) shouldEqual DayOfWeek.FRIDAY
+    }
+
+    "for SATURDAY" in {
+      JRubyzSchedule.rubyWeekDayToJavaWeekDay(6) shouldEqual DayOfWeek.SATURDAY
+    }
+
+    "for SUNDAY" in {
+      JRubyzSchedule.rubyWeekDayToJavaWeekDay(0) shouldEqual DayOfWeek.SUNDAY
+    }
   }
 
 }

@@ -2,6 +2,7 @@ package com.colisweb.jrubysnesshours.core
 import java.time.DayOfWeek._
 import java.time.ZoneOffset.UTC
 import java.time.{DayOfWeek, LocalDate, LocalDateTime, LocalTime}
+import UtilsSpec._
 
 import org.scalatest.{Matchers, WordSpec}
 
@@ -22,19 +23,19 @@ class ScheduleSpec extends WordSpec with Matchers {
       ).sortBy(_.hashCode())
 
       Schedule.apply(Nil, rawExceptions, UTC).exceptions should contain theSameElementsAs Map(
-        aDate("2019-03-15") -> List(
+        parseDate("2019-03-15") -> List(
           aTimeInterval("10:00", "12:00"),
           aTimeInterval("13:00", "16:00")
         ),
-        aDate("2019-03-16") -> List(
+        parseDate("2019-03-16") -> List(
           aTimeInterval("10:00", "18:00")
         ),
-        aDate("2019-03-17") -> List(
+        parseDate("2019-03-17") -> List(
           aTimeInterval("08:00", "10:00"),
           aTimeInterval("15:00", "16:00"),
           aTimeInterval("18:00", "19:00")
         ),
-        aDate("2019-03-19") -> List(
+        parseDate("2019-03-19") -> List(
           aTimeInterval("10:00", "12:00"),
           aTimeInterval("17:00", "21:00")
         )
@@ -54,24 +55,24 @@ class ScheduleSpec extends WordSpec with Matchers {
       ).sortBy(_.hashCode())
 
       Schedule.apply(Nil, rawExceptions, UTC).exceptions should contain theSameElementsAs Map(
-        aDate("2019-03-15") -> List(
+        parseDate("2019-03-15") -> List(
           aTimeInterval("10:00", "19:00")
         ),
-        aDate("2019-03-16") -> List(
+        parseDate("2019-03-16") -> List(
           aTimeInterval("10:00", "23:59")
         ),
-        aDate("2019-03-17") -> List(
+        parseDate("2019-03-17") -> List(
           aTimeInterval("00:00", "03:00"),
           aTimeInterval("11:00", "15:00")
         ),
-        aDate("2019-03-19") -> List(
+        parseDate("2019-03-19") -> List(
           aTimeInterval("08:00", "17:00")
         )
       )
     }
 
     "index exceptions over more than one month" in {
-      val initDate = aDate("2019-01-01")
+      val initDate = parseDate("2019-01-01")
       val dates    = (1 until 100).toList.map(i => initDate.plusDays(i.toLong))
       val rawExceptions = dates.map(
         date =>
@@ -144,8 +145,6 @@ class ScheduleSpec extends WordSpec with Matchers {
       )
     }
   }
-
-  def aDate(date: String): LocalDate = LocalDate.parse(date)
 
   def aTimeInterval(start: String, end: String): TimeInterval =
     TimeInterval(LocalTime.parse(start), LocalTime.parse(end))
