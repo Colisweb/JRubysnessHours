@@ -8,8 +8,6 @@ class ScheduleCutExceptionsSpec extends WordSpec with Matchers {
 
   "Schedule.cutExceptions" should {
 
-    // TODO : generators with random could be great to check that the last case never append
-
     "Will return Nil" should {
       "including is empty and excluding is 04:00 -> 11:00" in {
         val excludingInterval = "04:00" - "11:00"
