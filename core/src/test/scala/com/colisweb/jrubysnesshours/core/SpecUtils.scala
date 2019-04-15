@@ -6,6 +6,8 @@ import java.time.format.DateTimeFormatter
 
 object SpecUtils {
 
+  val FRANCE_TIMEZONE = "Europe/Paris"
+
   implicit class DayOfWeekOps(dayOfWeek: DayOfWeek) {
     def at(interval: TimeInterval): TimeIntervalForWeekDay =
       TimeIntervalForWeekDay(dayOfWeek = dayOfWeek, interval = interval)
@@ -37,7 +39,8 @@ object SpecUtils {
     def at(interval: TimeInterval): TimeIntervalForDate =
       TimeIntervalForDate(date = LocalDate.parse(string), interval = interval)
 
-    def at(time: String): ZonedDateTime = (string :- time).atZone(SpecUtils.zoneId)
+    def at(timeWithZone: (String, String)): ZonedDateTime =
+      (string :- timeWithZone._1).atZone(ZoneId.of(timeWithZone._2))
   }
 
   val planning: Map[DayOfWeek, List[TimeInterval]] = Map(
@@ -49,13 +52,11 @@ object SpecUtils {
     SATURDAY  -> List("09:00" - "14:00", "15:00" - "19:00")
   )
 
-  val zoneId: ZoneId = ZoneId.of("Europe/Paris")
-
   val schedule: Schedule =
     Schedule(
       planning = planning,
       exceptions = Map.empty[LocalDate, List[TimeInterval]],
-      timeZone = zoneId
+      timeZone = ZoneId.of("Europe/Paris")
     )
 
 }

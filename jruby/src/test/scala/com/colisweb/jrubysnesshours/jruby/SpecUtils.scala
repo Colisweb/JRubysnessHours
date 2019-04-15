@@ -3,9 +3,11 @@ package com.colisweb.jrubysnesshours.jruby
 import java.time._
 import java.time.format.DateTimeFormatter
 
-import com.colisweb.jrubysnesshours.core.{DateTimeInterval, TimeInterval, TimeIntervalForDate, TimeIntervalForWeekDay}
+import com.colisweb.jrubysnesshours.core.{DateTimeInterval, Schedule, TimeInterval, TimeIntervalForDate, TimeIntervalForWeekDay}
 
 object SpecUtils {
+
+  val FRANCE_TIMEZONE = "Europe/Paris"
 
   implicit class DayOfWeekOps(dayOfWeek: DayOfWeek) {
     def at(interval: TimeInterval): TimeIntervalForWeekDay =
@@ -39,9 +41,7 @@ object SpecUtils {
     def at(interval: TimeInterval): TimeIntervalForDate =
       TimeIntervalForDate(date = LocalDate.parse(string), interval = interval)
 
-    def at(time: String): ZonedDateTime = (string :- time).atZone(SpecUtils.zoneId)
+    def at(timeWithZone: (String, String)): ZonedDateTime =
+      (string :- timeWithZone._1).atZone(ZoneId.of(timeWithZone._2))
   }
-
-  val zoneId: ZoneId = ZoneId.of("Europe/Paris")
-
 }
