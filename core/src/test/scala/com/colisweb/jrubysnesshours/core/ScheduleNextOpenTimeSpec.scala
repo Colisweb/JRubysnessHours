@@ -7,7 +7,7 @@ class ScheduleNextOpenTimeSpec extends WordSpec with Matchers {
 
   import SpecUtils._
 
-  "Schedule.nextOpenTimeAfter" should {
+  "Schedule#nextOpenTimeAfter" should {
 
     "return no nextOpenTime when the planning is empty" in {
       val emptySchedule = Schedule(Nil, Nil, zoneId)

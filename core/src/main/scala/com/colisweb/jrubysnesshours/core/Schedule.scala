@@ -61,7 +61,7 @@ final case class Schedule private[core] (
   // TODO: To Test
   def isOpenForDurationInDate(date: LocalDate, duration: Duration): Boolean = {
     val start = ZonedDateTime.of(date, LocalTime.MIN, timeZone)
-    val end   = ZonedDateTime.of(date, TimeInterval.END_OF_DAY, timeZone)
+    val end   = ZonedDateTime.of(date, LocalTime.MAX, timeZone)
 
     intervalsBetween(start, end).exists(_.duration >= duration)
   }
@@ -80,35 +80,31 @@ final case class Schedule private[core] (
       val date         = localInstant.toLocalDate
       val time         = localInstant.toLocalTime
 
-      findNextOpenTimeAfter(date, List(TimeInterval(LocalTime.MIDNIGHT, time)))
+      findNextOpenTimeAfter(date, List(TimeInterval(LocalTime.MIN, time)))
         .map(_.atZone(instant.getZone))
 
     } else None
   }
 
   private[core] def intervalsInStartDay(start: LocalDateTime): List[TimeIntervalForDate] =
-    allIntervalsInDate(start.toLocalDate, List(TimeInterval(start = LocalTime.MIDNIGHT, start.toLocalTime)))
+    allIntervalsInDate(start.toLocalDate, List(TimeInterval(start = LocalTime.MIN, start.toLocalTime)))
 
   private[core] def intervalsInEndDay(end: LocalDateTime): List[TimeIntervalForDate] =
-    allIntervalsInDate(end.toLocalDate, List(TimeInterval(start = end.toLocalTime, TimeInterval.END_OF_DAY)))
+    allIntervalsInDate(end.toLocalDate, List(TimeInterval(start = end.toLocalTime, LocalTime.MAX)))
 
   private[core] def intervalsInSameDay(date: LocalDate, query: TimeInterval): List[TimeIntervalForDate] =
     allIntervalsInDate(
       date,
       List(
-        TimeInterval(start = LocalTime.MIDNIGHT, end = query.start),
-        TimeInterval(start = query.end, end = TimeInterval.END_OF_DAY)
+        TimeInterval(start = LocalTime.MIN, end = query.start),
+        TimeInterval(start = query.end, end = LocalTime.MAX)
       )
     )
 
-  private[core] def allIntervalsInDay(date: LocalDate,
-                                      additionalExceptions: List[TimeInterval] = Nil): List[TimeIntervalForDate] =
-    Schedule
-      .cutExceptions(planningFor(date.getDayOfWeek), additionalExceptions ::: exceptionFor(date))
-      .map(interval => TimeIntervalForDate(date = date, interval = interval))
-
-  private[core] def allIntervalsInDate(date: LocalDate,
-                                       additionalExceptions: List[TimeInterval] = Nil): List[TimeIntervalForDate] =
+  private[core] def allIntervalsInDate(
+      date: LocalDate,
+      additionalExceptions: List[TimeInterval] = Nil
+  ): List[TimeIntervalForDate] =
     Schedule
       .cutExceptions(planningFor(date.getDayOfWeek), additionalExceptions ::: exceptionFor(date))
       .map(interval => TimeIntervalForDate(date = date, interval = interval))
@@ -154,20 +150,20 @@ object Schedule {
               (1L until numberOfDays)
                 .map { i =>
                   val date        = localStartDate.plusDays(i)
-                  val newInterval = TimeInterval(start = LocalTime.MIDNIGHT, end = TimeInterval.END_OF_DAY)
+                  val newInterval = TimeInterval(start = LocalTime.MIN, end = LocalTime.MAX)
                   TimeIntervalForDate(date = date, interval = newInterval)
                 }
 
             val firstDay =
               TimeIntervalForDate(
                 date = localStartDate,
-                interval = TimeInterval(start = localStartTime, end = TimeInterval.END_OF_DAY)
+                interval = TimeInterval(start = localStartTime, end = LocalTime.MAX)
               )
 
             val lastDay =
               TimeIntervalForDate(
                 date = localEndDate,
-                interval = TimeInterval(start = LocalTime.MIDNIGHT, end = localEndTime)
+                interval = TimeInterval(start = LocalTime.MIN, end = localEndTime)
               )
 
             firstDay +: midDays :+ lastDay

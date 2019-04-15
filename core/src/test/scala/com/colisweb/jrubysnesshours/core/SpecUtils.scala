@@ -58,4 +58,6 @@ object SpecUtils {
       timeZone = zoneId
     )
 
+  val TimeIntervalMin: String = LocalTime.MIN.toString
+  val TimeIntervalMax: String = LocalTime.MAX.toString
 }
