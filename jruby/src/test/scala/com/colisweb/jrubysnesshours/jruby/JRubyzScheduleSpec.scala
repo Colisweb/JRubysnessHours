@@ -7,10 +7,10 @@ import org.scalatest.{Matchers, WordSpec}
 
 class JRubyzScheduleSpec extends WordSpec with Matchers {
 
-  def aDate(date: String): LocalDate =
+  def aDate(date: String): LocalDate = // TODO write a spec util class to use it in core and jruby
     LocalDate.parse(date)
 
-  implicit class StringToLocalTime(str: String) {
+  implicit class StringToLocalTime(str: String) { // TODO write a spec util class to use it in core and jruby
     def toLocalTime: LocalTime = LocalTime.parse(str)
   }
 
