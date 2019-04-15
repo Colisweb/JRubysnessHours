@@ -1,6 +1,8 @@
-package com.colisweb.jrubysnesshours.core
+package com.colisweb.jrubysnesshours.jruby
 
 import java.time.{LocalDate, LocalTime}
+
+import com.colisweb.jrubysnesshours.core.TimeInterval
 
 object UtilsSpec {
 
