@@ -45,13 +45,6 @@ object Generators {
   val genNonEmptyExceptions: Gen[Map[LocalDate, List[TimeInterval]]] =
     Gen.nonEmptyListOf(genExceptionDay).map(_.toMap)
 
-  def genSchedule(planningSize: Int, exceptionsSize: Int): Gen[Schedule] =
-    for {
-      zoneId     <- Arbitrary.arbitrary[ZoneId]
-      planning   <- genPlannings(planningSize)
-      exceptions <- genExceptions(exceptionsSize)
-    } yield new Schedule(planning = planning, exceptions = exceptions, timeZone = zoneId)
-
   val genScheduleConstructor
     : Gen[(Map[DayOfWeek, List[TimeInterval]], Map[LocalDate, List[TimeInterval]]) => Schedule] =
     for { zoneId <- Arbitrary.arbitrary[ZoneId] } yield
