@@ -9,18 +9,26 @@ import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
 
 final class JRubyzSchedule private[jruby] (schedule: Schedule) {
 
-  def timeSegments(startsAt: String, endsAt: String): List[RubyTimeSegmentInterval] =
-    Intervals.intervalsBetween(schedule)(ZonedDateTime.parse(startsAt), ZonedDateTime.parse(endsAt)).map {
-      timeIntervalForDate =>
-        val start = ZonedDateTime.of(timeIntervalForDate.date, timeIntervalForDate.startTime, UTC)
-        val end   = ZonedDateTime.of(timeIntervalForDate.date, timeIntervalForDate.endTime, UTC)
+  def timeSegments(startsAt: String, endsAt: String): Array[RubyTimeSegmentInterval] =
+    Intervals
+      .intervalsBetween(schedule)(ZonedDateTime.parse(startsAt), ZonedDateTime.parse(endsAt))
+      .map { timeIntervalForDate =>
+        val start = timeIntervalForDate.date
+          .atTime(timeIntervalForDate.startTime)
+          .atZone(schedule.timeZone)
+          .withZoneSameInstant(UTC)
+        val end = timeIntervalForDate.date
+          .atTime(timeIntervalForDate.endTime)
+          .atZone(schedule.timeZone)
+          .withZoneSameInstant(UTC)
 
         RubyTimeSegmentInterval(
           timeIntervalForDate.date.format(ISO_DATE_FORMATTER),
           start.format(ISO_8601_FORMATTER),
           end.format(ISO_8601_FORMATTER)
         )
-    }
+      }
+      .toArray
 
   def within(start: String, end: String): Duration = {
     Core.within(schedule)(ZonedDateTime.parse(start), ZonedDateTime.parse(end))
@@ -50,10 +58,10 @@ object JRubyzSchedule {
   }
 
   def schedule(
-      plannings: List[TimeIntervalForWeekDay],
-      exceptions: List[DateTimeInterval],
+      plannings: Array[TimeIntervalForWeekDay],
+      exceptions: Array[DateTimeInterval],
       timeZone: String
-  ): JRubyzSchedule = new JRubyzSchedule(Schedule(plannings, exceptions, stringToZoneId(timeZone)))
+  ): JRubyzSchedule = new JRubyzSchedule(Schedule(plannings.toList, exceptions.toList, stringToZoneId(timeZone)))
 
   private[jruby] def stringToZoneId(strZoneId: String): ZoneId = ZoneId.of(strZoneId)
 
