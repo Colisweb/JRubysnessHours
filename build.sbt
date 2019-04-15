@@ -16,6 +16,7 @@ lazy val core =
     .settings(moduleName := "JRubysnessHours")
     .settings(
       libraryDependencies ++= Seq(
+        "org.threeten" % "threeten-extra" % "1.5.0",
         "org.scalatest"  %% "scalatest"  % "3.0.7" % Test
       )
     )

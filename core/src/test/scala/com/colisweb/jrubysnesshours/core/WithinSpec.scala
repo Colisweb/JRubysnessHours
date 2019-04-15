@@ -1,10 +1,11 @@
 package com.colisweb.jrubysnesshours.core
 
 import java.time.DayOfWeek._
-import java.time._
+import java.time.{Duration => _, _}
 
-import com.colisweb.jrubysnesshours.core.Core.Schedule
 import org.scalatest.{Matchers, WordSpec}
+
+import scala.concurrent.duration._
 
 class WithinSpec extends WordSpec with Matchers {
 
@@ -31,8 +32,7 @@ class WithinSpec extends WordSpec with Matchers {
 
   "within" should {
 
-    val within: (ZonedDateTime, ZonedDateTime) => Duration =
-      Core.within(schedule)
+    val within: (ZonedDateTime, ZonedDateTime) => Duration = schedule.within
 
     "compute duration between Thursday 18:00 to Friday 10:00" in {
       val d1 = within(
@@ -86,12 +86,6 @@ class WithinSpec extends WordSpec with Matchers {
   def aDayAt(day: String, time: String): ZonedDateTime =
     ZonedDateTime.parse(s"${day}T$time:00.000+01:00[$zoneId]")
 
-  def aDuration(hours: Int, minutes: Int = 0): Duration =
-    Duration.ofHours(hours.toLong).plusMinutes(minutes.toLong)
-
-  def aDuration(days: Int, hours: Int, minutes: Int): Duration =
-    Duration
-      .ofDays(days.toLong)
-      .plusHours(hours.toLong)
-      .plusMinutes(minutes.toLong)
+  def aDuration(hours: Int, minutes: Int = 0): Duration        = hours.hours + minutes.minutes
+  def aDuration(days: Int, hours: Int, minutes: Int): Duration = days.days + hours.hours + minutes.minutes
 }

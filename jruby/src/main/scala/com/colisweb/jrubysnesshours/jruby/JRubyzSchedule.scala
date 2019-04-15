@@ -1,24 +1,25 @@
 package com.colisweb.jrubysnesshours.jruby
 
 import java.time.format.DateTimeFormatter
-import java.time.{DayOfWeek, Duration, LocalTime, ZoneId, ZonedDateTime}
+import java.time.{DayOfWeek, LocalTime, ZoneId, ZonedDateTime}
 
-import com.colisweb.jrubysnesshours.core.Core.Schedule
-import com.colisweb.jrubysnesshours.core.{Core, DateTimeInterval, Intervals, TimeInterval, TimeIntervalForWeekDay}
+import com.colisweb.jrubysnesshours.core.{DateTimeInterval, Schedule, TimeInterval, TimeIntervalForWeekDay}
 import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
+
+import scala.concurrent.duration._
 
 final class JRubyzSchedule private[jruby] (schedule: Schedule) {
 
   def timeSegments(startsAt: String, endsAt: String): Array[RubyTimeSegmentInterval] =
-    Intervals
-      .intervalsBetween(schedule)(ZonedDateTime.parse(startsAt), ZonedDateTime.parse(endsAt))
+    schedule
+      .intervalsBetween(ZonedDateTime.parse(startsAt), ZonedDateTime.parse(endsAt))
       .map { timeIntervalForDate =>
         val start = timeIntervalForDate.date
-          .atTime(timeIntervalForDate.startTime)
+          .atTime(timeIntervalForDate.start)
           .atZone(schedule.timeZone)
           .withZoneSameInstant(UTC)
         val end = timeIntervalForDate.date
-          .atTime(timeIntervalForDate.endTime)
+          .atTime(timeIntervalForDate.end)
           .atZone(schedule.timeZone)
           .withZoneSameInstant(UTC)
 
@@ -31,7 +32,7 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
       .toArray
 
   def within(start: String, end: String): Duration = {
-    Core.within(schedule)(ZonedDateTime.parse(start), ZonedDateTime.parse(end))
+    schedule.within(ZonedDateTime.parse(start), ZonedDateTime.parse(end))
   }
 }
 

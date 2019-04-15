@@ -1,15 +1,16 @@
 package com.colisweb.jrubysnesshours.core
-import java.time.{LocalDate, LocalDateTime, LocalTime}
+import java.time.DayOfWeek._
+import java.time.ZoneOffset.UTC
+import java.time.{DayOfWeek, LocalDate, LocalDateTime, LocalTime}
 
 import org.scalatest.{Matchers, WordSpec}
-import com.colisweb.jrubysnesshours.core.Core.Schedule
 
 class ScheduleSpec extends WordSpec with Matchers {
 
-  "dateTimeIntervalsToExceptions" should {
+  "Schedule" should {
 
-    "index non-overlapping intervals by day" in {
-      val raw = List(
+    "index non-overlapping exceptions by day" in {
+      val rawExceptions = List(
         aDateTimeInterval("2019-03-15", "10:00", "2019-03-15", "12:00"),
         aDateTimeInterval("2019-03-15", "13:00", "2019-03-15", "16:00"),
         aDateTimeInterval("2019-03-16", "10:00", "2019-03-16", "18:00"),
@@ -20,7 +21,7 @@ class ScheduleSpec extends WordSpec with Matchers {
         aDateTimeInterval("2019-03-19", "10:00", "2019-03-19", "12:00")
       ).sortBy(_.hashCode())
 
-      Schedule.dateTimeIntervalsToExceptions(raw) should contain theSameElementsAs Map(
+      Schedule.apply(Nil, rawExceptions, UTC).exceptions should contain theSameElementsAs Map(
         aDate("2019-03-15") -> List(
           aTimeInterval("10:00", "12:00"),
           aTimeInterval("13:00", "16:00")
@@ -40,8 +41,8 @@ class ScheduleSpec extends WordSpec with Matchers {
       )
     }
 
-    "index overlapping intervals by day" in {
-      val raw = List(
+    "index overlapping exceptions by day" in {
+      val rawExceptions = List(
         aDateTimeInterval("2019-03-15", "10:00", "2019-03-15", "16:00"),
         aDateTimeInterval("2019-03-15", "13:00", "2019-03-15", "19:00"),
         aDateTimeInterval("2019-03-16", "10:00", "2019-03-17", "02:00"),
@@ -52,7 +53,7 @@ class ScheduleSpec extends WordSpec with Matchers {
         aDateTimeInterval("2019-03-19", "08:00", "2019-03-19", "12:00")
       ).sortBy(_.hashCode())
 
-      Schedule.dateTimeIntervalsToExceptions(raw) should contain theSameElementsAs Map(
+      Schedule.apply(Nil, rawExceptions, UTC).exceptions should contain theSameElementsAs Map(
         aDate("2019-03-15") -> List(
           aTimeInterval("10:00", "19:00")
         ),
@@ -68,6 +69,80 @@ class ScheduleSpec extends WordSpec with Matchers {
         )
       )
     }
+
+    "index exceptions over more than one month" in {
+      val initDate = aDate("2019-01-01")
+      val dates    = (1 until 100).toList.map(i => initDate.plusDays(i.toLong))
+      val rawExceptions = dates.map(
+        date =>
+          DateTimeInterval(
+            LocalDateTime.of(date, LocalTime.parse("10:00")),
+            LocalDateTime.of(date, LocalTime.parse("18:00"))
+          )
+      )
+      val expectedTimeIntervals = List(aTimeInterval("10:00", "18:00"))
+      val expected              = dates.map(_ -> expectedTimeIntervals).toMap
+
+      val result = Schedule.apply(Nil, rawExceptions, UTC).exceptions
+
+      result should contain theSameElementsAs expected
+    }
+
+    "index non-overlapping intervals by day-of-week" in {
+      val rawPlanning = List(
+        aTimeIntervalForWeekDay(MONDAY, "10:00", "12:00"),
+        aTimeIntervalForWeekDay(MONDAY, "14:00", "18:00"),
+        aTimeIntervalForWeekDay(WEDNESDAY, "08:00", "19:00"),
+        aTimeIntervalForWeekDay(THURSDAY, "09:00", "10:00"),
+        aTimeIntervalForWeekDay(THURSDAY, "13:00", "15:00"),
+        aTimeIntervalForWeekDay(THURSDAY, "17:15", "18:15"),
+        aTimeIntervalForWeekDay(SATURDAY, "09:15", "17:45")
+      ).sortBy(_.hashCode())
+
+      Schedule.apply(rawPlanning, Nil, UTC).planning should contain theSameElementsAs Map(
+        MONDAY -> List(
+          aTimeInterval("10:00", "12:00"),
+          aTimeInterval("14:00", "18:00")
+        ),
+        WEDNESDAY -> List(
+          aTimeInterval("08:00", "19:00")
+        ),
+        THURSDAY -> List(
+          aTimeInterval("09:00", "10:00"),
+          aTimeInterval("13:00", "15:00"),
+          aTimeInterval("17:15", "18:15")
+        ),
+        SATURDAY -> List(
+          aTimeInterval("09:15", "17:45")
+        )
+      )
+    }
+
+    "index overlapping intervals by day-of-week" in {
+      val rawPlanning = List(
+        aTimeIntervalForWeekDay(MONDAY, "10:00", "16:00"),
+        aTimeIntervalForWeekDay(MONDAY, "14:00", "18:00"),
+        aTimeIntervalForWeekDay(WEDNESDAY, "08:00", "19:00"),
+        aTimeIntervalForWeekDay(WEDNESDAY, "10:00", "19:00"),
+        aTimeIntervalForWeekDay(THURSDAY, "09:00", "13:00"),
+        aTimeIntervalForWeekDay(THURSDAY, "12:00", "15:00"),
+        aTimeIntervalForWeekDay(THURSDAY, "12:15", "18:15"),
+        aTimeIntervalForWeekDay(THURSDAY, "20:00", "21:15")
+      ).sortBy(_.hashCode())
+
+      Schedule.apply(rawPlanning, Nil, UTC).planning should contain theSameElementsAs Map(
+        MONDAY -> List(
+          aTimeInterval("10:00", "18:00")
+        ),
+        WEDNESDAY -> List(
+          aTimeInterval("08:00", "19:00")
+        ),
+        THURSDAY -> List(
+          aTimeInterval("09:00", "18:15"),
+          aTimeInterval("20:00", "21:15")
+        )
+      )
+    }
   }
 
   def aDate(date: String): LocalDate = LocalDate.parse(date)
@@ -77,4 +152,7 @@ class ScheduleSpec extends WordSpec with Matchers {
 
   def aDateTimeInterval(startDate: String, startTime: String, endDate: String, endTime: String): DateTimeInterval =
     DateTimeInterval(LocalDateTime.parse(s"${startDate}T$startTime"), LocalDateTime.parse(s"${endDate}T$endTime"))
+
+  def aTimeIntervalForWeekDay(dayOfWeek: DayOfWeek, startTime: String, endTime: String): TimeIntervalForWeekDay =
+    TimeIntervalForWeekDay(dayOfWeek, TimeInterval(LocalTime.parse(startTime), LocalTime.parse(endTime)))
 }
