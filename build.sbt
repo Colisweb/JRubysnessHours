@@ -24,6 +24,11 @@ lazy val core =
 lazy val jruby =
   project
     .settings(moduleName := "JRubysnessHoursAdapter")
+    .settings(
+      libraryDependencies ++= Seq(
+        "org.scalatest"  %% "scalatest"  % "3.0.7" % Test
+      )
+    )
     .dependsOn(core)
 
 /**

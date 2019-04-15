@@ -10,17 +10,26 @@ import scala.concurrent.duration._
 
 final class JRubyzSchedule private[jruby] (schedule: Schedule) {
 
-  def timeSegments(startsAt: String, endsAt: String): List[RubyTimeSegmentInterval] =
-    schedule.intervalsBetween(ZonedDateTime.parse(startsAt), ZonedDateTime.parse(endsAt)).map { timeIntervalForDate =>
-      val start = ZonedDateTime.of(timeIntervalForDate.date, timeIntervalForDate.start, UTC)
-      val end   = ZonedDateTime.of(timeIntervalForDate.date, timeIntervalForDate.end, UTC)
+  def timeSegments(startsAt: String, endsAt: String): Array[RubyTimeSegmentInterval] =
+    schedule
+      .intervalsBetween(ZonedDateTime.parse(startsAt), ZonedDateTime.parse(endsAt))
+      .map { timeIntervalForDate =>
+        val start = timeIntervalForDate.date
+          .atTime(timeIntervalForDate.start)
+          .atZone(schedule.timeZone)
+          .withZoneSameInstant(UTC)
+        val end = timeIntervalForDate.date
+          .atTime(timeIntervalForDate.end)
+          .atZone(schedule.timeZone)
+          .withZoneSameInstant(UTC)
 
-      RubyTimeSegmentInterval(
-        timeIntervalForDate.date.format(ISO_DATE_FORMATTER),
-        start.format(ISO_8601_FORMATTER),
-        end.format(ISO_8601_FORMATTER)
-      )
-    }
+        RubyTimeSegmentInterval(
+          timeIntervalForDate.date.format(ISO_DATE_FORMATTER),
+          start.format(ISO_8601_FORMATTER),
+          end.format(ISO_8601_FORMATTER)
+        )
+      }
+      .toArray
 
   def within(start: String, end: String): Duration = {
     schedule.within(ZonedDateTime.parse(start), ZonedDateTime.parse(end))
@@ -50,10 +59,10 @@ object JRubyzSchedule {
   }
 
   def schedule(
-      plannings: List[TimeIntervalForWeekDay],
-      exceptions: List[DateTimeInterval],
+      plannings: Array[TimeIntervalForWeekDay],
+      exceptions: Array[DateTimeInterval],
       timeZone: String
-  ): JRubyzSchedule = new JRubyzSchedule(Schedule(plannings, exceptions, stringToZoneId(timeZone)))
+  ): JRubyzSchedule = new JRubyzSchedule(Schedule(plannings.toList, exceptions.toList, stringToZoneId(timeZone)))
 
   private[jruby] def stringToZoneId(strZoneId: String): ZoneId = ZoneId.of(strZoneId)
 
