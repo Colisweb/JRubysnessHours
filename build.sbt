@@ -4,7 +4,6 @@ ThisBuild / scalafmtOnCompile := true
 ThisBuild / scalafmtCheck     := true
 ThisBuild / scalafmtSbtCheck  := true
 
-
 lazy val root = Project(id = "JRubysnessHours", base = file("."))
   .settings(moduleName := "root")
   .settings(noPublishSettings: _*)
@@ -16,8 +15,9 @@ lazy val core =
     .settings(moduleName := "JRubysnessHours")
     .settings(
       libraryDependencies ++= Seq(
-        "org.threeten" % "threeten-extra" % "1.5.0",
-        "org.scalatest"  %% "scalatest"  % "3.0.7" % Test
+        "org.scalatest"  %% "scalatest"                   % "3.0.7"  % Test,
+        "com.47deg"      %% "scalacheck-toolbox-datetime" % "0.2.5"  % Test,
+        "org.scalacheck" %% "scalacheck"                  % "1.14.0" % Test
       )
     )
 
@@ -26,7 +26,7 @@ lazy val jruby =
     .settings(moduleName := "JRubysnessHoursAdapter")
     .settings(
       libraryDependencies ++= Seq(
-        "org.scalatest"  %% "scalatest"  % "3.0.7" % Test
+        "org.scalatest" %% "scalatest" % "3.0.7" % Test
       )
     )
     .dependsOn(core)
@@ -65,7 +65,7 @@ inThisBuild(
             <url>https://www.colisweb.com</url>
           </developer>
         </developers>
-      )
+    )
   )
 )
 

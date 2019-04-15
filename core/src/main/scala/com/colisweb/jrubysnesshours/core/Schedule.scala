@@ -52,10 +52,10 @@ final case class Schedule private[core] (
   }
 
   private[core] def intervalsInStartDay(start: ZonedDateTime): List[TimeIntervalForDate] =
-    allIntervalsInDay(start.toLocalDate, List(TimeInterval(start = LocalTime.MIDNIGHT, start.toLocalTime)))
+    allIntervalsInDay(start.toLocalDate, List(TimeInterval(start = LocalTime.MIDNIGHT, end = start.toLocalTime)))
 
   private[core] def intervalsInEndDay(end: ZonedDateTime): List[TimeIntervalForDate] =
-    allIntervalsInDay(end.toLocalDate, List(TimeInterval(start = end.toLocalTime, TimeInterval.END_OF_DAY)))
+    allIntervalsInDay(end.toLocalDate, List(TimeInterval(start = end.toLocalTime, end = TimeInterval.END_OF_DAY)))
 
   private[core] def intervalsInSameDay(
       date: LocalDate,
@@ -64,19 +64,15 @@ final case class Schedule private[core] (
     allIntervalsInDay(
       date,
       List(
-        TimeInterval(start = LocalTime.MIDNIGHT, query.start),
-        TimeInterval(start = query.end, TimeInterval.END_OF_DAY)
+        TimeInterval(start = LocalTime.MIDNIGHT, end = query.start),
+        TimeInterval(start = query.end, end = TimeInterval.END_OF_DAY)
       )
     )
 
-  def allIntervalsInDay(date: LocalDate, exception: List[TimeInterval] = Nil): List[TimeIntervalForDate] = {
-    val exceptions = exceptionFor(date)
-    val intervals  = planningFor(date.getDayOfWeek)
-
+  def allIntervalsInDay(date: LocalDate, exception: List[TimeInterval] = Nil): List[TimeIntervalForDate] =
     Schedule
-      .cutExceptions(intervals, exception ::: exceptions)
+      .cutExceptions(planningFor(date.getDayOfWeek), exception ::: exceptionFor(date))
       .map(interval => TimeIntervalForDate(date = date, interval = interval))
-  }
 
   def within(start: ZonedDateTime, end: ZonedDateTime): Duration =
     intervalsBetween(start, end).map(_.duration).reduce(_ plus _)
@@ -94,7 +90,7 @@ final case class Schedule private[core] (
 object Schedule {
 
   def apply(
-      plannings: List[TimeIntervalForWeekDay],
+      planning: List[TimeIntervalForWeekDay],
       exceptions: List[DateTimeInterval],
       timeZone: ZoneId
   ): Schedule = {
@@ -155,7 +151,7 @@ object Schedule {
     }
 
     Schedule(
-      planning = plannings.groupBy(_.dayOfWeek).mapValues(intervals => mergeIntervals(intervals.map(_.interval))),
+      planning = planning.groupBy(_.dayOfWeek).mapValues(intervals => mergeIntervals(intervals.map(_.interval))),
       exceptions = dateTimeIntervalsToExceptions,
       timeZone = timeZone
     )
