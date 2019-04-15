@@ -7,9 +7,9 @@ import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.duration._
 
-class WithinSpec extends WordSpec with Matchers {
+class ScheduleWithinSpec extends WordSpec with Matchers {
 
-  "within" should {
+  "Schedule#within" should {
     "compute duration between Thursday 18:00 to Friday 10:00" in {
       schedule.within("2019-03-21" at "18:00", "2019-03-22" at "10:00") shouldBe 1.hours + 30.minutes
     }
