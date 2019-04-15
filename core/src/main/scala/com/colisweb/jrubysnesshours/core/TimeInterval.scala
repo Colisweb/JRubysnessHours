@@ -94,7 +94,3 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
     }
   }
 }
-
-object TimeInterval {
-  private[core] final val END_OF_DAY: LocalTime = LocalTime.of(23, 59, 0)
-}
