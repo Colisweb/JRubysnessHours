@@ -3,6 +3,7 @@ package com.colisweb.jrubysnesshours.jruby
 import java.time.DayOfWeek._
 
 import com.colisweb.jrubysnesshours.core.DateTimeInterval
+import com.colisweb.jrubysnesshours.core.{DateTimeInterval, TimeIntervalForWeekDay}
 import org.scalatest.{Matchers, WordSpec}
 
 class JRubyzScheduleSpec extends WordSpec with Matchers {
@@ -70,6 +71,18 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
 
     "for SUNDAY" in {
       JRubyzSchedule.rubyWeekDayToJavaWeekDay(0) shouldEqual SUNDAY
+    }
+  }
+
+  "rubyToPlanning" should {
+    "Return a valid TimeIntervalForWeekDay for Monday" in {
+      val res = JRubyzSchedule.rubyToPlanning(1, "16:17", "18:15")
+      res shouldEqual TimeIntervalForWeekDay(MONDAY, "16:17" - "18:15")
+    }
+
+    "Return a valid TimeIntervalForWeekDay for Sunday" in {
+      val res = JRubyzSchedule.rubyToPlanning(0, "16:17", "18:15")
+      res shouldEqual TimeIntervalForWeekDay(SUNDAY, "16:17" - "18:15")
     }
   }
 
