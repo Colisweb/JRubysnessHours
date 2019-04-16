@@ -32,7 +32,10 @@ object SpecUtils {
       LocalDate.parse(string) -> intervals
 
     def :-(hour: String): LocalDateTime =
-      LocalDateTime.parse(s"$string $hour", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+      LocalDateTime.parse(
+        s"$string ${if (hour.length == 5) s"$hour:00" else hour}",
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+      )
 
     def at(interval: TimeInterval): TimeIntervalForDate =
       TimeIntervalForDate(date = LocalDate.parse(string), interval = interval)
