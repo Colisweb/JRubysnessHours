@@ -5,7 +5,9 @@ import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration._
 
-final case class DateTimeInterval(start: LocalDateTime, end: LocalDateTime)
+final case class DateTimeInterval(start: LocalDateTime, end: LocalDateTime) {
+  assert(start isBefore end, s"DateTimeInterval error: 'start' ($start) is after 'end' ($end)")
+}
 
 final case class TimeIntervalForWeekDay(dayOfWeek: DayOfWeek, interval: TimeInterval)
 
