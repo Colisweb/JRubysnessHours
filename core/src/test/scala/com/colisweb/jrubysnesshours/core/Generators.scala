@@ -2,11 +2,11 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time.DayOfWeek._
 import java.time.ZoneOffset.UTC
-import java.time.temporal.ChronoUnit
 import java.time._
+import java.time.temporal.ChronoUnit
 
-import org.scalacheck.Gen.chooseNum
 import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Gen.chooseNum
 
 import scala.util.Random
 
@@ -19,41 +19,26 @@ object Generators {
 
   import org.scalacheck.ops._
 
-  /**
-    * Comes from here:
-    *   https://github.com/scalatest/scalatest/issues/584#issuecomment-103952805
-    */
-  def noShrink[T](gen: Gen[T]): Gen[NoShrinkWrapper[T]] = gen.map(NoShrinkWrapper.apply)
-
-  final case class NoShrinkWrapper[T](value: T) {
-    override def toString: String = value.toString
-  }
-  object NoShrinkWrapper {
-    implicit final def toT[T](noShrinkWrapper: NoShrinkWrapper[T]): T = noShrinkWrapper.value
-  }
-
-  type Planning   = Map[DayOfWeek, List[TimeInterval]]
-  type Exceptions = Map[LocalDate, List[TimeInterval]]
-
-  def genBoundedLocalDateTime: Gen[LocalDateTime] = {
-    import ZoneOffset.UTC
+  def genBoundedLocalDate: Gen[LocalDate] =
     for {
-      seconds <- chooseNum(LOCAL_DATE_TIME_MIN.toEpochSecond(UTC), LOCAL_DATE_TIME_MAX.toEpochSecond(UTC))
-      nanos   <- chooseNum(0, 999999999)
-    } yield LocalDateTime.ofEpochSecond(seconds, nanos, UTC)
-  }
+      date <- chooseNum(LOCAL_DATE_MIN.toEpochDay, LOCAL_DATE_MAX.toEpochDay)
+    } yield LocalDate.ofEpochDay(date)
 
   def genBoundedZonedDateTime: Gen[ZonedDateTime] =
     for {
-      zoneId   <- Arbitrary.arbitrary[ZoneId]
-      dateTime <- genBoundedLocalDateTime
-    } yield dateTime.atZone(zoneId)
+      zoneId <- Arbitrary.arbitrary[ZoneId]
+      date   <- genBoundedLocalDate
+      time   <- Arbitrary.arbitrary[LocalTime]
+    } yield ZonedDateTime.of(date, time, zoneId)
 
   def genTimeIntervalSurrounding(localTime: LocalTime): Gen[TimeInterval] =
-    for {
-      start <- chooseNum(LocalTime.MIN.toNanoOfDay, localTime.toNanoOfDay - 1)
-      end   <- chooseNum(localTime.toNanoOfDay + 1, LocalTime.MAX.toNanoOfDay)
-    } yield TimeInterval(start = LocalTime.ofNanoOfDay(start), end = LocalTime.ofNanoOfDay(end))
+    if (localTime == LocalTime.MIN) Gen.fail
+    else if (localTime == LocalTime.MAX) Gen.fail
+    else
+      for {
+        start <- chooseNum(LocalTime.MIN.toNanoOfDay, localTime.toNanoOfDay - 1)
+        end   <- chooseNum(localTime.toNanoOfDay + 1, LocalTime.MAX.toNanoOfDay)
+      } yield TimeInterval(start = LocalTime.ofNanoOfDay(start), end = LocalTime.ofNanoOfDay(end))
 
   val genTimeInterval: Gen[TimeInterval] =
     for {
@@ -88,12 +73,11 @@ object Generators {
       (planning: List[TimeIntervalForWeekDay], exceptions: List[DateTimeInterval]) =>
         Schedule(planning = planning, exceptions = exceptions, timeZone = zoneId)
 
-  val genScheduleConstructorContainingGeneratedZonedDateTime
-    : Gen[List[DateTimeInterval] => (Schedule, ZonedDateTime)] = {
+  val genScheduleConstructorContainingGeneratedZonedDateTime: Gen[(Schedule, ZonedDateTime)] = {
     def genTimeIntervalForWeekDaySurrounding(datetime: ZonedDateTime, zoneId: ZoneId): Gen[TimeIntervalForWeekDay] =
       for {
-        interval <- genTimeIntervalSurrounding(datetime.withZoneSameLocal(zoneId).toLocalTime)
-      } yield TimeIntervalForWeekDay(dayOfWeek = datetime.withZoneSameLocal(zoneId).getDayOfWeek, interval = interval)
+        interval <- genTimeIntervalSurrounding(datetime.withZoneSameInstant(zoneId).toLocalTime)
+      } yield TimeIntervalForWeekDay(dayOfWeek = datetime.withZoneSameInstant(zoneId).getDayOfWeek, interval = interval)
 
     for {
       zoneId             <- Arbitrary.arbitrary[ZoneId]
@@ -101,8 +85,10 @@ object Generators {
       planning           <- Gen.listOf(genTimeIntervalForWeekDay)
       intervalSurounding <- genTimeIntervalForWeekDaySurrounding(datetime, zoneId)
     } yield
-      (exceptions: List[DateTimeInterval]) =>
-        Schedule(planning = Random.shuffle(planning :+ intervalSurounding), exceptions = exceptions, timeZone = zoneId) -> datetime
+      (
+        Schedule(planning = Random.shuffle(planning :+ intervalSurounding), exceptions = Nil, timeZone = zoneId),
+        datetime
+      )
   }
 
 }
