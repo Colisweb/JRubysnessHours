@@ -2,14 +2,13 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time.ZonedDateTime
 
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Gen
 import org.scalatest.{Assertion, Matchers, WordSpec}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropertyChecks {
 
   import Generators._
-  import org.scalacheck.ops._
 
   "Schedule#contains" when {
     "the Schedule has an empty planning" should {
@@ -20,10 +19,9 @@ class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropert
           planningGen,
           exceptionsGen(genDateTimeInterval),
           genScheduleConstructor,
-          Arbitrary.arbitrary[ZonedDateTime]
-        ) {
-          case (emptyPlanning, exceptions, scheduleContructor, date: ZonedDateTime) =>
-            scheduleContructor(emptyPlanning, exceptions) contains date shouldBe false
+          genBoundedZonedDateTime
+        ) { (emptyPlanning, exceptions, scheduleContructor, date: ZonedDateTime) =>
+          scheduleContructor(emptyPlanning, exceptions) contains date shouldBe false
         }
       "with no exceptions" should {
         "always be false" in {

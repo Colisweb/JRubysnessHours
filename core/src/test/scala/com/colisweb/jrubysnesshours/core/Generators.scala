@@ -2,7 +2,8 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time.DayOfWeek._
 import java.time.ZoneOffset.UTC
-import java.time.{DayOfWeek, LocalDate, LocalDateTime, LocalTime, ZoneId, ZonedDateTime}
+import java.time.temporal.ChronoUnit
+import java.time._
 
 import org.scalacheck.Gen.chooseNum
 import org.scalacheck.{Arbitrary, Gen}
@@ -10,6 +11,11 @@ import org.scalacheck.{Arbitrary, Gen}
 import scala.util.Random
 
 object Generators {
+
+  val LOCAL_DATE_MIN: LocalDate          = LocalDate.of(0, 1, 1)
+  val LOCAL_DATE_MAX: LocalDate          = LocalDate.of(5000, 12, 31)
+  val LOCAL_DATE_TIME_MIN: LocalDateTime = LocalDateTime.of(LOCAL_DATE_MIN, LocalTime.MIN)
+  val LOCAL_DATE_TIME_MAX: LocalDateTime = LocalDateTime.of(LOCAL_DATE_MAX, LocalTime.MAX)
 
   import org.scalacheck.ops._
 
@@ -29,23 +35,24 @@ object Generators {
   type Planning   = Map[DayOfWeek, List[TimeInterval]]
   type Exceptions = Map[LocalDate, List[TimeInterval]]
 
-  /**
-    * I'm forced to do the `-1` and `+1` tricks because using ordinary LocalTime Gen creates too many invalid values.
-    */
-  def genTimeIntervalSurounding(localTime: LocalTime): Gen[TimeInterval] = {
-    val l = localTime
-
+  def genBoundedLocalDateTime: Gen[LocalDateTime] = {
+    import ZoneOffset.UTC
     for {
-      start <- chooseNum(LocalTime.MIN.toNanoOfDay, l.toNanoOfDay - 1)
-      end   <- chooseNum(l.toNanoOfDay + 1, LocalTime.MAX.toNanoOfDay)
-      startTime = LocalTime.ofNanoOfDay(start)
-      endTime   = LocalTime.ofNanoOfDay(end)
-    } yield {
-      val res = TimeInterval(start = startTime, end = endTime)
-      assert(res.contains(l), s"TOTO: ${res} - $l")
-      res
-    }
+      seconds <- chooseNum(LOCAL_DATE_TIME_MIN.toEpochSecond(UTC), LOCAL_DATE_TIME_MAX.toEpochSecond(UTC))
+    } yield LocalDateTime.ofEpochSecond(seconds, 0, UTC)
   }
+
+  def genBoundedZonedDateTime: Gen[ZonedDateTime] =
+    for {
+      zoneId   <- Arbitrary.arbitrary[ZoneId]
+      dateTime <- genBoundedLocalDateTime
+    } yield dateTime.atZone(zoneId)
+
+  def genTimeIntervalSurrounding(localTime: LocalTime): Gen[TimeInterval] =
+    for {
+      start <- chooseNum(LocalTime.MIN.toNanoOfDay, localTime.toNanoOfDay - 1)
+      end   <- chooseNum(localTime.toNanoOfDay + 1, LocalTime.MAX.toNanoOfDay)
+    } yield TimeInterval(start = LocalTime.ofNanoOfDay(start), end = LocalTime.ofNanoOfDay(end))
 
   val genTimeInterval: Gen[TimeInterval] =
     for {
@@ -63,13 +70,11 @@ object Generators {
 
   def genDateTimeInterval: Gen[DateTimeInterval] =
     for {
-      startSeconds <- chooseNum(LocalDateTime.MIN.toEpochSecond(UTC), LocalDateTime.MAX.toEpochSecond(UTC) - 1)
-      startNanos   <- chooseNum(LocalDateTime.MIN.getNano, LocalDateTime.MAX.getNano - 1)
-      start = LocalDateTime.ofEpochSecond(startSeconds, startNanos, UTC)
+      startSeconds <- chooseNum(LOCAL_DATE_TIME_MIN.toEpochSecond(UTC), LOCAL_DATE_TIME_MAX.toEpochSecond(UTC) - 1)
+      start = LocalDateTime.ofEpochSecond(startSeconds, 0, UTC)
 
-      startSeconds <- chooseNum(startSeconds + 1, LocalDateTime.MAX.toEpochSecond(UTC))
-      startNanos   <- chooseNum(startNanos + 1, LocalDateTime.MAX.getNano)
-      end = LocalDateTime.ofEpochSecond(startSeconds, startNanos, UTC)
+      endSeconds <- chooseNum(startSeconds + 1, start.plus(2, ChronoUnit.MONTHS).toEpochSecond(UTC))
+      end = LocalDateTime.ofEpochSecond(endSeconds, 0, UTC)
     } yield DateTimeInterval(start = start, end = end)
 
   val genScheduleConstructor: Gen[(List[TimeIntervalForWeekDay], List[DateTimeInterval]) => Schedule] =
@@ -81,12 +86,12 @@ object Generators {
     : Gen[List[DateTimeInterval] => (Schedule, ZonedDateTime)] = {
     def genTimeIntervalForWeekDaySurrounding(datetime: ZonedDateTime, zoneId: ZoneId): Gen[TimeIntervalForWeekDay] =
       for {
-        interval <- genTimeIntervalSurounding(datetime.withZoneSameLocal(zoneId).toLocalTime)
+        interval <- genTimeIntervalSurrounding(datetime.withZoneSameLocal(zoneId).toLocalTime)
       } yield TimeIntervalForWeekDay(dayOfWeek = datetime.withZoneSameLocal(zoneId).getDayOfWeek, interval = interval)
 
     for {
       zoneId             <- Arbitrary.arbitrary[ZoneId]
-      datetime           <- Arbitrary.arbitrary[ZonedDateTime]
+      datetime           <- genBoundedZonedDateTime
       planning           <- Gen.listOf(genTimeIntervalForWeekDay)
       intervalSurounding <- genTimeIntervalForWeekDaySurrounding(datetime, zoneId)
     } yield
