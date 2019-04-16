@@ -39,7 +39,8 @@ object Generators {
     import ZoneOffset.UTC
     for {
       seconds <- chooseNum(LOCAL_DATE_TIME_MIN.toEpochSecond(UTC), LOCAL_DATE_TIME_MAX.toEpochSecond(UTC))
-    } yield LocalDateTime.ofEpochSecond(seconds, 0, UTC)
+      nanos   <- chooseNum(0, 999999999)
+    } yield LocalDateTime.ofEpochSecond(seconds, nanos, UTC)
   }
 
   def genBoundedZonedDateTime: Gen[ZonedDateTime] =
@@ -71,10 +72,15 @@ object Generators {
   def genDateTimeInterval: Gen[DateTimeInterval] =
     for {
       startSeconds <- chooseNum(LOCAL_DATE_TIME_MIN.toEpochSecond(UTC), LOCAL_DATE_TIME_MAX.toEpochSecond(UTC) - 1)
-      start = LocalDateTime.ofEpochSecond(startSeconds, 0, UTC)
+      startNanos   <- chooseNum(0, 999999999 - 1)
+
+      start = LocalDateTime.ofEpochSecond(startSeconds, startNanos, UTC)
 
       endSeconds <- chooseNum(startSeconds + 1, start.plus(2, ChronoUnit.MONTHS).toEpochSecond(UTC))
-      end = LocalDateTime.ofEpochSecond(endSeconds, 0, UTC)
+      endNanos   <- chooseNum(startNanos + 1, 999999999)
+
+      end = LocalDateTime.ofEpochSecond(endSeconds, endNanos, UTC)
+
     } yield DateTimeInterval(start = start, end = end)
 
   val genScheduleConstructor: Gen[(List[TimeIntervalForWeekDay], List[DateTimeInterval]) => Schedule] =
