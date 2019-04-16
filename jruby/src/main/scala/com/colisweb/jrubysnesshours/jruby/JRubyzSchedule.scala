@@ -38,7 +38,10 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
     schedule.isOpenForDurationInDate(LocalDate.parse(date), durationInMinutes.minutes)
   }
 
-  def isOpen(instant: String): Boolean = schedule.contains(ZonedDateTime.parse(instant))
+  def isOpen(time: String): Boolean = schedule.contains(ZonedDateTime.parse(time))
+
+  def nextOpentime(time: String): String =
+    schedule.nextOpenTimeAfter(ZonedDateTime.parse(time)).map(_.format(ISO_8601_FORMATTER)).orNull
 
 }
 
