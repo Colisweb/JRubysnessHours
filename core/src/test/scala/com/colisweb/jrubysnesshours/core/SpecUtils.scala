@@ -2,7 +2,6 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time.DayOfWeek._
 import java.time._
-import java.time.format.DateTimeFormatter
 
 object SpecUtils {
 
@@ -32,10 +31,7 @@ object SpecUtils {
       LocalDate.parse(string) -> intervals
 
     def :-(hour: String): LocalDateTime =
-      LocalDateTime.parse(
-        s"$string ${if (hour.length == 5) s"$hour:00" else hour}",
-        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-      )
+      LocalDateTime.of(LocalDate.parse(string), LocalTime.parse(hour))
 
     def at(interval: TimeInterval): TimeIntervalForDate =
       TimeIntervalForDate(date = LocalDate.parse(string), interval = interval)
