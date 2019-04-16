@@ -43,7 +43,6 @@ final case class Schedule private[core] (
   def within(start: ZonedDateTime, end: ZonedDateTime): Duration =
     intervalsBetween(start, end).map(_.duration).reduce(_ plus _)
 
-  // TODO: To Test
   def contains(instant: ZonedDateTime): Boolean = {
     val localInstant = instant.withZoneSameInstant(timeZone).toLocalDateTime
     val time         = localInstant.toLocalTime
