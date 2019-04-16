@@ -2,7 +2,6 @@ package com.colisweb.jrubysnesshours.jruby
 
 import java.time.DayOfWeek._
 
-import com.colisweb.jrubysnesshours.core.DateTimeInterval
 import com.colisweb.jrubysnesshours.core.{DateTimeInterval, TimeIntervalForWeekDay}
 import org.scalatest.{Matchers, WordSpec}
 

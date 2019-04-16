@@ -13,11 +13,12 @@ lazy val root = Project(id = "JRubysnessHours", base = file("."))
 lazy val core =
   project
     .settings(moduleName := "JRubysnessHours")
+    .settings(resolvers += Resolver.bintrayRepo("rallyhealth", "maven"))
     .settings(
       libraryDependencies ++= Seq(
-        "org.scalatest"  %% "scalatest"                   % "3.0.7"  % Test,
-        "com.47deg"      %% "scalacheck-toolbox-datetime" % "0.2.5"  % Test,
-        "org.scalacheck" %% "scalacheck"                  % "1.14.0" % Test
+        "org.scalatest"   %% "scalatest"           % "3.0.7"  % Test,
+        "org.scalacheck"  %% "scalacheck"          % "1.14.0" % Test,
+        "com.rallyhealth" %% "scalacheck-ops_1-14" % "2.2.0"  % Test
       )
     )
 

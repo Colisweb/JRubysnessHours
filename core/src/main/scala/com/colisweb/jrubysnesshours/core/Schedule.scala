@@ -46,14 +46,13 @@ final case class Schedule private[core] (
   // TODO: To Test
   def contains(instant: ZonedDateTime): Boolean = {
     val localInstant = instant.withZoneSameInstant(timeZone).toLocalDateTime
-    val date         = localInstant.toLocalDate
     val time         = localInstant.toLocalTime
 
     @inline def existsPlanning =
-      planningFor(instant.getDayOfWeek).exists(_.contains(time))
+      planningFor(localInstant.getDayOfWeek).exists(_.contains(time))
 
     @inline def notExistsException =
-      !exceptionFor(date).exists(_.contains(time))
+      !exceptionFor(localInstant.toLocalDate).exists(_.contains(time))
 
     existsPlanning && notExistsException
   }
@@ -133,7 +132,7 @@ object Schedule {
         }
     }
 
-    def dateTimeIntervalsToExceptions: Map[LocalDate, List[TimeInterval]] = {
+    def dateTimeIntervalsToExceptions: List[TimeIntervalForDate] = {
       exceptions
         .flatMap { dateTimeInterval: DateTimeInterval =>
           val localStartTime = dateTimeInterval.start.toLocalTime
@@ -149,43 +148,50 @@ object Schedule {
             List(TimeIntervalForDate(date = localStartDate, interval = newInterval))
           } else {
             val midDays =
-              (1L until numberOfDays)
-                .map { i =>
-                  val date        = localStartDate.plusDays(i)
-                  val newInterval = TimeInterval(start = LocalTime.MIN, end = LocalTime.MAX)
-                  TimeIntervalForDate(date = date, interval = newInterval)
-                }
+              (1L until numberOfDays).map { i =>
+                val date        = localStartDate.plusDays(i)
+                val newInterval = TimeInterval(start = LocalTime.MIN, end = LocalTime.MAX)
+                TimeIntervalForDate(date = date, interval = newInterval)
+              }
 
             val firstDay =
-              TimeIntervalForDate(
-                date = localStartDate,
-                interval = TimeInterval(start = localStartTime, end = LocalTime.MAX)
-              )
+              if (localStartTime isBefore LocalTime.MAX) {
+                ListBuffer(
+                  TimeIntervalForDate(
+                    date = localStartDate,
+                    interval = TimeInterval(start = localStartTime, end = LocalTime.MAX)
+                  )
+                )
+              } else ListBuffer.empty
 
             val lastDay =
-              TimeIntervalForDate(
-                date = localEndDate,
-                interval = TimeInterval(start = LocalTime.MIN, end = localEndTime)
-              )
+              if (LocalTime.MIN isBefore localEndTime)
+                ListBuffer(
+                  TimeIntervalForDate(
+                    date = localEndDate,
+                    interval = TimeInterval(start = LocalTime.MIN, end = localEndTime)
+                  )
+                )
+              else ListBuffer.empty
 
-            firstDay +: midDays :+ lastDay
+            firstDay ++ midDays ++ lastDay
           }
         }
-        .groupBy(_.date)
-        .mapValues(intervals => mergeIntervals(intervals.map(_.interval)))
     }
 
+    import utils.GroupableOps._
+
     Schedule(
-      planning = planning.groupBy(_.dayOfWeek).mapValues(intervals => mergeIntervals(intervals.map(_.interval))),
-      exceptions = dateTimeIntervalsToExceptions,
+      planning = planning.groupMap(_.dayOfWeek)(_.interval).mapValues(mergeIntervals),
+      exceptions = dateTimeIntervalsToExceptions.groupMap(_.date)(_.interval).mapValues(mergeIntervals),
       timeZone = timeZone
     )
   }
 
   private[core] def cutExceptions(intervals: List[TimeInterval], exceptions: List[TimeInterval]): List[TimeInterval] =
     intervals.flatMap { interval =>
-      exceptions.foldLeft(List(interval)) {
-        case (acc, exception) => acc.flatMap(_ minus exception)
+      exceptions.foldLeft(List(interval)) { (acc, exception) =>
+        acc.flatMap(_ minus exception)
       }
     }
 }
