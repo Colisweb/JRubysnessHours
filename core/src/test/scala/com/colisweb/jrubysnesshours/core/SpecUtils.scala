@@ -41,6 +41,10 @@ object SpecUtils {
 
     def at(timeWithZone: (String, String)): ZonedDateTime =
       (string :- timeWithZone._1).atZone(ZoneId.of(timeWithZone._2))
+
+    def at(time: String): ZonedDateTime =
+      (string :- time).atZone(ZoneId.of(FRANCE_TIMEZONE))
+
   }
 
   val planning: Map[DayOfWeek, List[TimeInterval]] = Map(
@@ -56,7 +60,9 @@ object SpecUtils {
     Schedule(
       planning = planning,
       exceptions = Map.empty[LocalDate, List[TimeInterval]],
-      timeZone = ZoneId.of("Europe/Paris")
+      timeZone = ZoneId.of(FRANCE_TIMEZONE)
     )
 
+  val TimeIntervalMin: String = LocalTime.MIN.toString
+  val TimeIntervalMax: String = LocalTime.MAX.toString
 }
