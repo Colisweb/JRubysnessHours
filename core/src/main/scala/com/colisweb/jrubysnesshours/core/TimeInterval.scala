@@ -52,7 +52,7 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
     lazy val cmpStart              = this.start.compareTo(that.start)
     lazy val cmpEnd                = that.end.compareTo(this.end)
 
-    @inline def areNotConnected      = cmpThisStartToThatEnd > 0 || cmpThisEndToThatStart <= 0
+    @inline def areNotConnected      = cmpThisStartToThatEnd > 0 || cmpThisEndToThatStart < 0
     @inline def thatEnclosesThis     = !(cmpStart < 0 || cmpEnd < 0)
     @inline def thisEnclosesThat     = !(cmpStart >= 0 || cmpEnd >= 0)
     @inline def thatOverlapThisEnd   = !(cmpStart >= 0 || cmpThisEndToThatStart <= 0 || cmpEnd < 0)
@@ -65,6 +65,26 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
     else if (thatOverlapThisEnd) TimeInterval(start = this.start, end = that.start) :: Nil
     else if (thatOverlapThisStart) TimeInterval(start = that.end, end = this.end) :: Nil
     else this :: Nil
+  }
+
+  def plus(that: TimeInterval): List[TimeInterval] = {
+    val cmpThisStartToThatEnd      = this.start.compareTo(that.end)
+    lazy val cmpThisEndToThatStart = this.end.compareTo(that.start)
+    lazy val cmpStart              = this.start.compareTo(that.start)
+    lazy val cmpEnd                = that.end.compareTo(this.end)
+
+    @inline def areNotConnected      = cmpThisStartToThatEnd > 0 || cmpThisEndToThatStart < 0
+    @inline def thatEnclosesThis     = !(cmpStart < 0 || cmpEnd < 0)
+    @inline def thisEnclosesThat     = !(cmpStart >= 0 || cmpEnd >= 0)
+    @inline def thatOverlapThisEnd   = !(cmpStart >= 0 || cmpThisEndToThatStart <= 0 || cmpEnd < 0)
+    @inline def thatOverlapThisStart = !(cmpStart < 0 || cmpThisStartToThatEnd >= 0 || cmpEnd >= 0)
+
+    if (areNotConnected) List(this, that).sortBy(_.start)
+    else if (thatEnclosesThis) that :: Nil
+    else if (thisEnclosesThat) this :: Nil
+    else if (thatOverlapThisEnd || cmpThisEndToThatStart == 0) TimeInterval(start = this.start, end = that.end) :: Nil
+    else if (thatOverlapThisStart || cmpThisStartToThatEnd == 0) TimeInterval(start = that.start, end = this.end) :: Nil
+    else List(this, that).sortBy(_.start)
   }
 
   /**
