@@ -41,7 +41,10 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
   def isOpen(time: String): Boolean = schedule.contains(ZonedDateTime.parse(time))
 
   def nextOpentime(time: String): String =
-    schedule.nextOpenTimeAfter(ZonedDateTime.parse(time)).map(_.format(ISO_8601_FORMATTER)).orNull
+    schedule
+      .nextOpenTimeAfter(ZonedDateTime.parse(time))
+      .map(_.withZoneSameInstant(UTC) format (ISO_8601_FORMATTER))
+      .orNull
 
 }
 
