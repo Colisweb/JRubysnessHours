@@ -16,7 +16,7 @@ final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
 }
 
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
-  assert(start isBefore end)
+  assert(start isBefore end, s"TimeInterval error: 'start' ($start) is after 'end' ($end)")
 
   /**
     * Copied from `org.threeten.extra.Interval`.
@@ -91,8 +91,4 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
       TimeInterval(start = newStart, end = newEnd)
     }
   }
-}
-
-object TimeInterval {
-  private[core] final val END_OF_DAY: LocalTime = LocalTime.of(23, 59, 0)
 }
