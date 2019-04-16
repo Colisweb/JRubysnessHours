@@ -86,25 +86,27 @@ final case class Schedule private[core] (
     } else None
   }
 
+  private[core] def startOfDayCut(start: LocalTime): List[TimeInterval] =
+    if (start == LocalTime.MIN) Nil
+    else List(TimeInterval(start = LocalTime.MIN, end = start))
+
+  private[core] def endOfDayCut(end: LocalTime): List[TimeInterval] =
+    if (end == LocalTime.MAX) Nil
+    else List(TimeInterval(start = end, end = LocalTime.MAX))
+
   private[core] def intervalsInStartDay(start: LocalDateTime): List[TimeIntervalForDate] =
-    allIntervalsInDate(start.toLocalDate, List(TimeInterval(start = LocalTime.MIN, start.toLocalTime)))
+    allIntervalsInDate(start.toLocalDate, startOfDayCut(start.toLocalTime))
 
   private[core] def intervalsInEndDay(end: LocalDateTime): List[TimeIntervalForDate] =
-    allIntervalsInDate(end.toLocalDate, List(TimeInterval(start = end.toLocalTime, LocalTime.MAX)))
+    allIntervalsInDate(end.toLocalDate, endOfDayCut(end.toLocalTime))
 
   private[core] def intervalsInSameDay(date: LocalDate, query: TimeInterval): List[TimeIntervalForDate] =
-    allIntervalsInDate(
-      date,
-      List(
-        TimeInterval(start = LocalTime.MIN, end = query.start),
-        TimeInterval(start = query.end, end = LocalTime.MAX)
-      )
-    )
+    allIntervalsInDate(date, startOfDayCut(query.start) ++ endOfDayCut(query.end))
 
   private[core] def allIntervalsInDate(
-      date: LocalDate,
-      additionalExceptions: List[TimeInterval] = Nil
-  ): List[TimeIntervalForDate] =
+                                        date: LocalDate,
+                                        additionalExceptions: List[TimeInterval] = Nil
+                                      ): List[TimeIntervalForDate] =
     Schedule
       .cutExceptions(planningFor(date.getDayOfWeek), additionalExceptions ::: exceptionFor(date))
       .map(interval => TimeIntervalForDate(date = date, interval = interval))
