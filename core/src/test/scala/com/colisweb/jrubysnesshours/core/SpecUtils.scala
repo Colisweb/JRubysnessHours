@@ -11,9 +11,6 @@ object SpecUtils {
   }
 
   implicit class LocalDateOps(localDate: LocalDate) {
-    def ts(startTime: LocalTime, endTime: LocalTime): TimeIntervalForDate =
-      TimeIntervalForDate(date = localDate, interval = TimeInterval(startTime, endTime))
-
     def :-(hour: String): LocalDateTime = LocalDateTime.of(localDate, LocalTime.parse(hour))
   }
 
