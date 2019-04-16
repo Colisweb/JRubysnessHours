@@ -10,6 +10,12 @@ class ScheduleApplySpec extends WordSpec with Matchers {
 
   "Schedule.apply" should {
 
+    "[Bug found by generators] with an empty planning and 1969-12-31T23:59:59 - 1970-01-01T00:00 as exception" in {
+      val schedule = Schedule(Nil, List("1969-12-31" :- "23:59:59" to "1970-01-01" :- "00:00:00"), UTC)
+
+      schedule.exceptions shouldBe empty
+    }
+
     "index non-overlapping exceptions by day" in {
       val rawExceptions = List(
         "2019-03-15" :- "10:00" to "2019-03-15" :- "12:00",
