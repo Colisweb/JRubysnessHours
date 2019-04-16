@@ -104,9 +104,9 @@ final case class Schedule private[core] (
     allIntervalsInDate(date, startOfDayCut(query.start) ++ endOfDayCut(query.end))
 
   private[core] def allIntervalsInDate(
-                                        date: LocalDate,
-                                        additionalExceptions: List[TimeInterval] = Nil
-                                      ): List[TimeIntervalForDate] =
+      date: LocalDate,
+      additionalExceptions: List[TimeInterval] = Nil
+  ): List[TimeIntervalForDate] =
     Schedule
       .cutExceptions(planningFor(date.getDayOfWeek), additionalExceptions ::: exceptionFor(date))
       .map(interval => TimeIntervalForDate(date = date, interval = interval))
