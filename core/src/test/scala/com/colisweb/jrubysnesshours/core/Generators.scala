@@ -11,11 +11,7 @@ import org.scalacheck.{Arbitrary, Gen}
 object Generators {
 
   implicit final class GenOps[A](private val self: Gen[A]) {
-    def zip[B](other: Gen[B]): Gen[(A, B)] =
-      for {
-        a <- self
-        b <- other
-      } yield (a, b)
+    def zip[B](other: Gen[B]): Gen[(A, B)] = for { a <- self; b <- other } yield (a, b)
   }
 
   implicit final class GenTuple2Ops[A, B](private val self: Gen[(A, B)]) {
@@ -24,12 +20,7 @@ object Generators {
   }
 
   implicit final class Tuple2Ops[A, B](private val self: (Gen[A], Gen[B])) {
-    def map2[C](f: (A, B) => C): Gen[C] =
-      for {
-        a <- self._1
-        b <- self._2
-      } yield f(a, b)
-
+    def map2[C](f: (A, B) => C): Gen[C]          = for { a <- self._1; b <- self._2 } yield f(a, b)
     def flatMap2[C](f: (A, B) => Gen[C]): Gen[C] = self._1.zip(self._2).flatMapT(f)
   }
 
