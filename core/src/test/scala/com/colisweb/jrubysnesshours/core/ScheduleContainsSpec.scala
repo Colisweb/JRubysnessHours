@@ -99,17 +99,12 @@ class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropert
   private def addPlanningEntryContaining(schedule: Schedule, date: ZonedDateTime): Gen[(Schedule, ZonedDateTime)] =
     for {
       intervalSurounding <- genPlanningEntrySurrounding(date, schedule.timeZone)
-    } yield
-      (
-        schedule.copy(planning = schedule.planning ++ intervalSurounding),
-        date
-      )
+    } yield schedule.copy(planning = schedule.planning ++ intervalSurounding) -> date
 
-  private def addExceptionContaining(schedule: Schedule, date: ZonedDateTime): Gen[(Schedule, ZonedDateTime)] = {
+  private def addExceptionContaining(schedule: Schedule, date: ZonedDateTime): Gen[(Schedule, ZonedDateTime)] =
     for {
       exceptionContaining <- genExceptionSurronding(date, schedule.timeZone)
     } yield schedule.copy(exceptions = schedule.exceptions ++ exceptionContaining) -> date
-  }
 
   private def removePlanningEntryContaining(schedule: Schedule, date: ZonedDateTime): (Schedule, ZonedDateTime) = {
     val datetimeWithSameZone = date.withZoneSameInstant(schedule.timeZone)
