@@ -5,12 +5,34 @@ import java.time.ZoneOffset.UTC
 import java.time._
 import java.time.temporal.ChronoUnit
 
-import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Gen.chooseNum
-
-import scala.util.Random
+import org.scalacheck.{Arbitrary, Gen}
 
 object Generators {
+
+  implicit final class GenOps[A](private val self: Gen[A]) {
+    def zip[B](other: Gen[B]): Gen[(A, B)] =
+      for {
+        a <- self
+        b <- other
+      } yield (a, b)
+  }
+
+  implicit final class GenTuple2Ops[A, B](private val self: Gen[(A, B)]) {
+    def mapT[C](f: (A, B) => C): Gen[C]          = self.map(f.tupled)
+    def flatMapT[C](f: (A, B) => Gen[C]): Gen[C] = self.flatMap(f.tupled)
+  }
+
+  implicit final class Tuple2Ops[A, B](private val self: (Gen[A], Gen[B])) {
+    def map2[C](f: (A, B) => C): Gen[C] =
+      for {
+        a <- self._1
+        b <- self._2
+      } yield f(a, b)
+
+    def flatMap2[C](f: (A, B) => Gen[C]): Gen[C] =
+      self._1.zip(self._2).flatMap { case (a, b) => f(a, b) }
+  }
 
   val LOCAL_DATE_MIN: LocalDate          = LocalDate.of(0, 1, 1)
   val LOCAL_DATE_MAX: LocalDate          = LocalDate.of(5000, 12, 31)
@@ -54,7 +76,7 @@ object Generators {
       interval <- genTimeInterval
     } yield TimeIntervalForWeekDay(dayOfWeek = dow, interval = interval)
 
-  def genDateTimeInterval: Gen[DateTimeInterval] =
+  val genDateTimeInterval: Gen[DateTimeInterval] =
     for {
       startSeconds <- chooseNum(LOCAL_DATE_TIME_MIN.toEpochSecond(UTC), LOCAL_DATE_TIME_MAX.toEpochSecond(UTC) - 1)
       startNanos   <- chooseNum(0, 999999999 - 1)
@@ -68,27 +90,25 @@ object Generators {
 
     } yield DateTimeInterval(start = start, end = end)
 
-  val genScheduleConstructor: Gen[(List[TimeIntervalForWeekDay], List[DateTimeInterval]) => Schedule] =
-    for { zoneId <- Arbitrary.arbitrary[ZoneId] } yield
-      (planning: List[TimeIntervalForWeekDay], exceptions: List[DateTimeInterval]) =>
-        Schedule(planning = planning, exceptions = exceptions, timeZone = zoneId)
-
-  val genScheduleConstructorContainingGeneratedZonedDateTime: Gen[(Schedule, ZonedDateTime)] = {
-    def genTimeIntervalForWeekDaySurrounding(datetime: ZonedDateTime, zoneId: ZoneId): Gen[TimeIntervalForWeekDay] =
-      for {
-        interval <- genTimeIntervalSurrounding(datetime.withZoneSameInstant(zoneId).toLocalTime)
-      } yield TimeIntervalForWeekDay(dayOfWeek = datetime.withZoneSameInstant(zoneId).getDayOfWeek, interval = interval)
-
+  def genExceptionSurronding(date: ZonedDateTime, zoneId: ZoneId): Gen[Map[LocalDate, List[TimeInterval]]] = {
+    val correctedDate = date.withZoneSameInstant(zoneId)
     for {
-      zoneId             <- Arbitrary.arbitrary[ZoneId]
-      datetime           <- genBoundedZonedDateTime
-      planning           <- Gen.listOf(genTimeIntervalForWeekDay)
-      intervalSurounding <- genTimeIntervalForWeekDaySurrounding(datetime, zoneId)
-    } yield
-      (
-        Schedule(planning = Random.shuffle(planning :+ intervalSurounding), exceptions = Nil, timeZone = zoneId),
-        datetime
-      )
+      interval <- genTimeIntervalSurrounding(correctedDate.toLocalTime)
+    } yield Map(correctedDate.toLocalDate -> List(interval))
   }
+
+  def genPlanningEntrySurrounding(date: ZonedDateTime, zoneId: ZoneId): Gen[Map[DayOfWeek, List[TimeInterval]]] = {
+    val correctedDate = date.withZoneSameInstant(zoneId)
+    for {
+      interval <- genTimeIntervalSurrounding(correctedDate.toLocalTime)
+    } yield Map(correctedDate.getDayOfWeek -> List(interval))
+  }
+
+  val genScheduler: Gen[Schedule] =
+    for {
+      planning   <- Gen.listOf(genTimeIntervalForWeekDay)
+      exceptions <- Gen.listOf(genDateTimeInterval)
+      zoneId     <- Arbitrary.arbitrary[ZoneId]
+    } yield Schedule(planning = planning, exceptions = exceptions, timeZone = zoneId)
 
 }
