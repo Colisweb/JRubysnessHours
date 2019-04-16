@@ -81,15 +81,15 @@ final case class Schedule private[core] (
       val date         = localInstant.toLocalDate
       val time         = localInstant.toLocalTime
 
-      findNextOpenTimeAfter(date, List(TimeInterval(LocalTime.MIN, time)))
+      findNextOpenTimeAfter(date, startOfDayCut(time))
         .map(_.atZone(instant.getZone))
 
     } else None
   }
 
   private[core] def startOfDayCut(start: LocalTime): List[TimeInterval] =
-    if (start == LocalTime.MIDNIGHT) Nil
-    else List(TimeInterval(start = LocalTime.MIDNIGHT, end = start))
+    if (start == LocalTime.MIN) Nil
+    else List(TimeInterval(start = LocalTime.MIN, end = start))
 
   private[core] def endOfDayCut(end: LocalTime): List[TimeInterval] =
     if (end == LocalTime.MAX) Nil
