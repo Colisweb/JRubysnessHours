@@ -49,7 +49,7 @@ final case class Schedule private[core] (
     val time         = localInstant.toLocalTime
 
     @inline def existsPlanning =
-      planningFor(instant.getDayOfWeek).exists(_.contains(time))
+      planningFor(localInstant.getDayOfWeek).exists(_.contains(time))
 
     @inline def notExistsException =
       !exceptionFor(localInstant.toLocalDate).exists(_.contains(time))
