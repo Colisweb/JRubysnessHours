@@ -3,13 +3,14 @@ package com.colisweb.jrubysnesshours.core
 import java.time.DayOfWeek._
 import java.time.{LocalTime, ZoneId, ZonedDateTime}
 
-import org.scalacheck.Gen
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropertyChecks {
 
   import Generators._
+  import org.scalacheck.ops._
 
   "Schedule#contains" when {
     "With Scalacheck" when {
@@ -17,13 +18,14 @@ class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropert
         val withNoPlanning = genScheduler.map(_.copy(planning = Map.empty))
         "with no exceptions" should {
           val gen = withNoPlanning.map(_.copy(exceptions = Map.empty))
-          "always be false" in forAll(gen, genBoundedZonedDateTime) { (schedule, date: ZonedDateTime) =>
+          "always be false" in forAll(gen, Arbitrary.arbitrary[ZonedDateTime]) { (schedule, date: ZonedDateTime) =>
             schedule contains date shouldBe false
           }
         }
         "with some exceptions" should {
-          "always be false" in forAll(withNoPlanning, genBoundedZonedDateTime) { (schedule, date: ZonedDateTime) =>
-            schedule contains date shouldBe false
+          "always be false" in forAll(withNoPlanning, Arbitrary.arbitrary[ZonedDateTime]) {
+            (schedule, date: ZonedDateTime) =>
+              schedule contains date shouldBe false
           }
         }
       }
@@ -31,13 +33,13 @@ class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropert
         "with no exceptions" when {
           val withNoException = genScheduler.map(_.copy(exceptions = Map.empty))
           "an interval of the planning contains the date" should {
-            val gen = (withNoException, genBoundedZonedDateTime).flatMap2(addPlanningEntryContaining)
+            val gen = (withNoException, Arbitrary.arbitrary[ZonedDateTime]).flatMap2(addPlanningEntryContaining)
             "always be true" in forAll(gen) {
               case (schedule, date) => schedule contains date shouldBe true
             }
           }
           "no interval of the planning contains the date" should {
-            val gen = (withNoException, genBoundedZonedDateTime).flatMap2(removePlanningEntryContaining)
+            val gen = (withNoException, Arbitrary.arbitrary[ZonedDateTime]).flatMap2(removePlanningEntryContaining)
             "always be false" in forAll(gen) {
               case (schedule, date) => schedule contains date shouldBe false
             }
@@ -46,7 +48,7 @@ class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropert
         "with some exceptions" should {
           "an interval of the planning contains the date" when {
             val withPlanningEntryContaining =
-              (genScheduler, genBoundedZonedDateTime).flatMap2(addPlanningEntryContaining)
+              (genScheduler, Arbitrary.arbitrary[ZonedDateTime]).flatMap2(addPlanningEntryContaining)
 
             "an exception also contains the date" should {
               val andWithAnExceptionContaining = withPlanningEntryContaining.flatMapT(addExceptionContaining)
@@ -64,7 +66,7 @@ class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropert
             }
           }
           "no interval of the planning contains the date" should {
-            val gen = (genScheduler, genBoundedZonedDateTime).map2(removePlanningEntryContaining)
+            val gen = (genScheduler, Arbitrary.arbitrary[ZonedDateTime]).map2(removePlanningEntryContaining)
 
             "always be false" in forAll(gen) {
               case (schedule, date) => schedule contains date shouldBe false

@@ -41,18 +41,6 @@ object Generators {
 
   import org.scalacheck.ops._
 
-  def genBoundedLocalDate: Gen[LocalDate] =
-    for {
-      date <- chooseNum(LOCAL_DATE_MIN.toEpochDay, LOCAL_DATE_MAX.toEpochDay)
-    } yield LocalDate.ofEpochDay(date)
-
-  def genBoundedZonedDateTime: Gen[ZonedDateTime] =
-    for {
-      zoneId <- Arbitrary.arbitrary[ZoneId]
-      date   <- genBoundedLocalDate
-      time   <- Arbitrary.arbitrary[LocalTime]
-    } yield ZonedDateTime.of(date, time, zoneId)
-
   def genTimeIntervalSurrounding(localTime: LocalTime): Gen[TimeInterval] =
     if (localTime == LocalTime.MIN) Gen.fail
     else if (localTime == LocalTime.MAX) Gen.fail
