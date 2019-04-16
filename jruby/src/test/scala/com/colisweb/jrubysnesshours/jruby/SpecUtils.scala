@@ -3,7 +3,7 @@ package com.colisweb.jrubysnesshours.jruby
 import java.time._
 import java.time.format.DateTimeFormatter
 
-import com.colisweb.jrubysnesshours.core.{DateTimeInterval, Schedule, TimeInterval, TimeIntervalForDate, TimeIntervalForWeekDay}
+import com.colisweb.jrubysnesshours.core.{DateTimeInterval, TimeInterval, TimeIntervalForDate, TimeIntervalForWeekDay}
 
 object SpecUtils {
 

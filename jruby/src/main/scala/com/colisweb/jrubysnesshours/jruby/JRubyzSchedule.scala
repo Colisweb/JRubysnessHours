@@ -1,7 +1,7 @@
 package com.colisweb.jrubysnesshours.jruby
 
 import java.time.format.DateTimeFormatter
-import java.time.{DayOfWeek, LocalTime, ZoneId, ZonedDateTime}
+import java.time.{DayOfWeek, LocalDate, LocalTime, ZoneId, ZonedDateTime}
 
 import com.colisweb.jrubysnesshours.core.{DateTimeInterval, Schedule, TimeInterval, TimeIntervalForWeekDay}
 import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
@@ -31,9 +31,15 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
       }
       .toArray
 
-  def within(start: String, end: String): Duration = {
+  def within(start: String, end: String): Duration =
     schedule.within(ZonedDateTime.parse(start), ZonedDateTime.parse(end))
+
+  def isOpenForDurationInDate(date: String, durationInMinutes: Long): Boolean = {
+    schedule.isOpenForDurationInDate(LocalDate.parse(date), Duration.apply(durationInMinutes, "minute"))
   }
+
+  def isOpen(instant: String): Boolean = schedule.contains(ZonedDateTime.parse(instant))
+
 }
 
 object JRubyzSchedule {
