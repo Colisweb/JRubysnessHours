@@ -30,8 +30,7 @@ object Generators {
         b <- self._2
       } yield f(a, b)
 
-    def flatMap2[C](f: (A, B) => Gen[C]): Gen[C] =
-      self._1.zip(self._2).flatMap { case (a, b) => f(a, b) }
+    def flatMap2[C](f: (A, B) => Gen[C]): Gen[C] = self._1.zip(self._2).flatMapT(f)
   }
 
   val LOCAL_DATE_MIN: LocalDate          = LocalDate.of(0, 1, 1)
