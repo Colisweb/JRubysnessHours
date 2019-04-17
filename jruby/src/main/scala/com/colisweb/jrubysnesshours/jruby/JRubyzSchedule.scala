@@ -57,7 +57,7 @@ object JRubyzSchedule {
   private val ISO_DATE_FORMATTER = DateTimeFormatter.ISO_DATE
   private val ISO_8601_FORMATTER = DateTimeFormatter.ISO_DATE_TIME
 
-  def dateTimeInterval(startsAt: String, endsAt: String): DateTimeInterval =
+  def exception(startsAt: String, endsAt: String): DateTimeInterval =
     DateTimeInterval(
       start = ZonedDateTime.parse(startsAt).toLocalDateTime,
       end = ZonedDateTime.parse(endsAt).toLocalDateTime
