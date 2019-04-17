@@ -27,9 +27,9 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
             .withZoneSameInstant(UTC)
 
         RubyTimeSegmentInterval(
-          timeIntervalForDate.date.format(ISO_DATE_FORMATTER),
-          start.format(ISO_8601_FORMATTER),
-          end.format(ISO_8601_FORMATTER)
+          date = timeIntervalForDate.date.format(ISO_DATE_FORMATTER),
+          startTime = start.format(ISO_8601_FORMATTER),
+          endTime = end.format(ISO_8601_FORMATTER)
         )
       }
       .toArray
@@ -38,15 +38,21 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
     val startZonedDateTime = ZonedDateTime.parse(start)
     val endZonedDateTime   = ZonedDateTime.parse(end)
 
+    val startLocalDate = startZonedDateTime.toLocalDate
+    val endLocalDate   = endZonedDateTime.toLocalDate
+
     // TODO : il faudra gérer le cas ou on passe un start et un end qui ne sont pas sur le meme jour.
     //  Solution possible, merger le résultat de intervalBetween sans se soucier de la date
 
-    val timeIntervalForDate =
-      TimeIntervalForDate.apply(
-        date = startZonedDateTime.toLocalDate,
-        interval = TimeInterval(startZonedDateTime.toLocalTime, endZonedDateTime.toLocalTime)
-      )
-    schedule.contains(timeIntervalForDate)
+    if (startLocalDate == endLocalDate) {
+      val timeIntervalForDate =
+        TimeIntervalForDate(
+          date = startLocalDate,
+          interval = TimeInterval(start = startZonedDateTime.toLocalTime, end = endZonedDateTime.toLocalTime)
+        )
+
+      schedule.contains(timeIntervalForDate)
+    } else false
   }
 
   def isOpen(time: String): Boolean = schedule.contains(ZonedDateTime.parse(time))
@@ -81,7 +87,10 @@ object JRubyzSchedule {
       plannings: Array[TimeIntervalForWeekDay],
       exceptions: Array[DateTimeInterval],
       timeZone: String
-  ): JRubyzSchedule = new JRubyzSchedule(Schedule(plannings.toList, exceptions.toList, ZoneId.of(timeZone)))
+  ): JRubyzSchedule =
+    new JRubyzSchedule(
+      Schedule(planning = plannings.toList, exceptions = exceptions.toList, timeZone = ZoneId.of(timeZone))
+    )
 
   private[jruby] def rubyWeekDayToJavaWeekDay(rubyWeekDay: Int): DayOfWeek =
     if (rubyWeekDay == 0) SUNDAY else DayOfWeek.of(rubyWeekDay)

@@ -5,15 +5,12 @@ import java.time.temporal.ChronoUnit
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.duration.Duration
 
 final case class Schedule private[core] (
     planning: Map[DayOfWeek, List[TimeInterval]],
     exceptions: Map[LocalDate, List[TimeInterval]],
     timeZone: ZoneId
 ) {
-  import Schedule._
-
   @inline def planningFor(dayOfWeek: DayOfWeek): List[TimeInterval] = planning.getOrElse(dayOfWeek, Nil)
   @inline def exceptionFor(date: LocalDate): List[TimeInterval]     = exceptions.getOrElse(date, Nil)
 
@@ -41,9 +38,6 @@ final case class Schedule private[core] (
       startDayIntervals ++ dayRangeIntervals ++ endDayIntervals
     }
   }
-
-  def within(start: ZonedDateTime, end: ZonedDateTime): Duration =
-    intervalsBetween(start, end).map(_.duration).reduceOption(_ plus _).getOrElse(zeroSeconds)
 
   def contains(instant: ZonedDateTime): Boolean = {
     val localInstant = instant.withZoneSameInstant(timeZone).toLocalDateTime
@@ -113,13 +107,9 @@ final case class Schedule private[core] (
     Schedule
       .cutExceptions(planningFor(date.getDayOfWeek), additionalExceptions ::: exceptionFor(date))
       .map(interval => TimeIntervalForDate(date = date, interval = interval))
-
 }
+
 object Schedule {
-
-  import scala.concurrent.duration._
-
-  private val zeroSeconds = 0.seconds
 
   def apply(
       planning: List[TimeIntervalForWeekDay],
