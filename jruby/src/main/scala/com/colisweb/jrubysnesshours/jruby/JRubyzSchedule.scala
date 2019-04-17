@@ -70,9 +70,7 @@ object JRubyzSchedule {
       plannings: Array[TimeIntervalForWeekDay],
       exceptions: Array[DateTimeInterval],
       timeZone: String
-  ): JRubyzSchedule = new JRubyzSchedule(Schedule(plannings.toList, exceptions.toList, stringToZoneId(timeZone)))
-
-  private[jruby] def stringToZoneId(strZoneId: String): ZoneId = ZoneId.of(strZoneId)
+  ): JRubyzSchedule = new JRubyzSchedule(Schedule(plannings.toList, exceptions.toList, ZoneId.of(timeZone)))
 
   private[jruby] def rubyWeekDayToJavaWeekDay(rubyWeekDay: Int): DayOfWeek =
     if (rubyWeekDay == 0) SUNDAY else DayOfWeek.of(rubyWeekDay)
