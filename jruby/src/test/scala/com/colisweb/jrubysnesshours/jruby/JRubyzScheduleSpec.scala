@@ -75,12 +75,12 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
 
   "rubyToPlanning" should {
     "Return a valid TimeIntervalForWeekDay for Monday" in {
-      val res = JRubyzSchedule.planning(1, "16:17", "18:15")
+      val res = JRubyzSchedule.planningEntry(1, "16:17", "18:15")
       res shouldEqual TimeIntervalForWeekDay(MONDAY, "16:17" - "18:15")
     }
 
     "Return a valid TimeIntervalForWeekDay for Sunday" in {
-      val res = JRubyzSchedule.planning(0, "16:17", "18:15")
+      val res = JRubyzSchedule.planningEntry(0, "16:17", "18:15")
       res shouldEqual TimeIntervalForWeekDay(SUNDAY, "16:17" - "18:15")
     }
   }

@@ -63,7 +63,7 @@ object JRubyzSchedule {
       end = ZonedDateTime.parse(endsAt).toLocalDateTime
     )
 
-  def planning(rubyWeekDay: Int, startTime: String, endTime: String): TimeIntervalForWeekDay =
+  def planningEntry(rubyWeekDay: Int, startTime: String, endTime: String): TimeIntervalForWeekDay =
     TimeIntervalForWeekDay(
       dayOfWeek = rubyWeekDayToJavaWeekDay(rubyWeekDay),
       interval = TimeInterval(start = LocalTime.parse(startTime), end = LocalTime.parse(endTime))
