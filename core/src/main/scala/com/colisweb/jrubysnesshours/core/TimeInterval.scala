@@ -1,9 +1,6 @@
 package com.colisweb.jrubysnesshours.core
 
-import java.time.{DateTimeException, DayOfWeek, LocalDate, LocalDateTime, LocalTime, Duration => JDuration}
-import java.util.concurrent.TimeUnit
-
-import scala.concurrent.duration._
+import java.time._
 
 final case class DateTimeInterval(start: LocalDateTime, end: LocalDateTime) {
   assert(start isBefore end, s"DateTimeInterval error: 'start' ($start) is after 'end' ($end)")
@@ -12,9 +9,8 @@ final case class DateTimeInterval(start: LocalDateTime, end: LocalDateTime) {
 final case class TimeIntervalForWeekDay(dayOfWeek: DayOfWeek, interval: TimeInterval)
 
 final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
-  @inline def start: LocalTime = interval.start
-  @inline def end: LocalTime   = interval.end
-  lazy val duration: Duration  = Duration(JDuration.between(start, end).getSeconds, TimeUnit.SECONDS)
+  val start: LocalTime = interval.start
+  val end: LocalTime   = interval.end
 }
 
 final case class TimeInterval(start: LocalTime, end: LocalTime) {

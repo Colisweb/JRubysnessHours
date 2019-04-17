@@ -5,7 +5,6 @@ import java.time.temporal.ChronoUnit
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.duration.Duration
 
 final case class Schedule private[core] (
     planning: Map[DayOfWeek, List[TimeInterval]],
@@ -40,10 +39,6 @@ final case class Schedule private[core] (
     }
   }
 
-  def within(start: ZonedDateTime, end: ZonedDateTime): Duration =
-    intervalsBetween(start, end).map(_.duration).reduce(_ plus _)
-
-  // TODO: To Test
   def contains(instant: ZonedDateTime): Boolean = {
     val localInstant = instant.withZoneSameInstant(timeZone).toLocalDateTime
     val time         = localInstant.toLocalTime
@@ -58,11 +53,14 @@ final case class Schedule private[core] (
   }
 
   // TODO: To Test
-  def isOpenForDurationInDate(date: LocalDate, duration: Duration): Boolean = {
-    val start = ZonedDateTime.of(date, LocalTime.MIN, timeZone)
-    val end   = ZonedDateTime.of(date, LocalTime.MAX, timeZone)
+  def contains(timeIntervalForDate: TimeIntervalForDate): Boolean = {
+    @inline def existsPlanning =
+      planningFor(timeIntervalForDate.date.getDayOfWeek).exists(_.encloses(timeIntervalForDate.interval))
 
-    intervalsBetween(start, end).exists(_.duration >= duration)
+    @inline def notExistsException =
+      !exceptionFor(timeIntervalForDate.date).exists(_.encloses(timeIntervalForDate.interval))
+
+    existsPlanning && notExistsException
   }
 
   def nextOpenTimeAfter(instant: ZonedDateTime): Option[ZonedDateTime] = {
@@ -79,7 +77,7 @@ final case class Schedule private[core] (
       val date         = localInstant.toLocalDate
       val time         = localInstant.toLocalTime
 
-      findNextOpenTimeAfter(date, List(TimeInterval(LocalTime.MIN, time)))
+      findNextOpenTimeAfter(date, startOfDayCut(time))
         .map(_.atZone(instant.getZone))
 
     } else None
