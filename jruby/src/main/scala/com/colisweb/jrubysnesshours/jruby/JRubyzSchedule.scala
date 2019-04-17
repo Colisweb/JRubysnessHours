@@ -18,14 +18,17 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
     schedule
       .intervalsBetween(ZonedDateTime.parse(startsAt), ZonedDateTime.parse(endsAt))
       .map { timeIntervalForDate =>
-        val start = timeIntervalForDate.date
-          .atTime(timeIntervalForDate.start)
-          .atZone(schedule.timeZone)
-          .withZoneSameInstant(UTC)
-        val end = timeIntervalForDate.date
-          .atTime(timeIntervalForDate.end)
-          .atZone(schedule.timeZone)
-          .withZoneSameInstant(UTC)
+        val start =
+          timeIntervalForDate.date
+            .atTime(timeIntervalForDate.start)
+            .atZone(schedule.timeZone)
+            .withZoneSameInstant(UTC)
+
+        val end =
+          timeIntervalForDate.date
+            .atTime(timeIntervalForDate.end)
+            .atZone(schedule.timeZone)
+            .withZoneSameInstant(UTC)
 
         RubyTimeSegmentInterval(
           timeIntervalForDate.date.format(ISO_DATE_FORMATTER),
