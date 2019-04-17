@@ -44,7 +44,7 @@ def noPublishSettings = Seq(
 inThisBuild(
   List(
     credentials += Credentials(Path.userHome / ".bintray" / ".credentials"),
-    licenses := Seq("Apache 2" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")),
+    licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")),
     homepage := Some(url("https://github.com/Colisweb/JRubysnessHours")),
     bintrayOrganization := Some("colisweb"),
     bintrayReleaseOnPublish := true,
