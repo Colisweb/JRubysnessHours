@@ -4,7 +4,6 @@ ThisBuild / scalafmtOnCompile := true
 ThisBuild / scalafmtCheck     := true
 ThisBuild / scalafmtSbtCheck  := true
 
-
 lazy val root = Project(id = "JRubysnessHours", base = file("."))
   .settings(moduleName := "root")
   .settings(noPublishSettings: _*)
@@ -14,15 +13,23 @@ lazy val root = Project(id = "JRubysnessHours", base = file("."))
 lazy val core =
   project
     .settings(moduleName := "JRubysnessHours")
+    .settings(resolvers += Resolver.bintrayRepo("rallyhealth", "maven"))
     .settings(
       libraryDependencies ++= Seq(
-        "org.scalatest"  %% "scalatest"  % "3.0.7" % Test
+        "org.scalatest"   %% "scalatest"           % "3.0.7"  % Test,
+        "org.scalacheck"  %% "scalacheck"          % "1.14.0" % Test,
+        "com.rallyhealth" %% "scalacheck-ops_1-14" % "2.2.0"  % Test
       )
     )
 
 lazy val jruby =
   project
     .settings(moduleName := "JRubysnessHoursAdapter")
+    .settings(
+      libraryDependencies ++= Seq(
+        "org.scalatest" %% "scalatest" % "3.0.7" % Test
+      )
+    )
     .dependsOn(core)
 
 /**
@@ -37,7 +44,7 @@ def noPublishSettings = Seq(
 inThisBuild(
   List(
     credentials += Credentials(Path.userHome / ".bintray" / ".credentials"),
-    licenses := Seq("Apache 2" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")),
+    licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")),
     homepage := Some(url("https://github.com/Colisweb/JRubysnessHours")),
     bintrayOrganization := Some("colisweb"),
     bintrayReleaseOnPublish := true,
@@ -59,6 +66,9 @@ inThisBuild(
             <url>https://www.colisweb.com</url>
           </developer>
         </developers>
-      )
+    )
   )
 )
+
+// TODO: wip for debug logs
+parallelExecution in test := false
