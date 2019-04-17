@@ -31,30 +31,27 @@ object Generators {
 
   import org.scalacheck.ops._
 
-  def genTimeIntervalSurrounding(localTime: LocalTime): Gen[TimeInterval] =
-    if (localTime == LocalTime.MIN) Gen.fail
-    else if (localTime == LocalTime.MAX) Gen.fail
-    else
-      for {
-        start <- chooseNum(LocalTime.MIN.toNanoOfDay, localTime.toNanoOfDay - 1)
-        end   <- chooseNum(localTime.toNanoOfDay + 1, LocalTime.MAX.toNanoOfDay)
-      } yield TimeInterval(start = LocalTime.ofNanoOfDay(start), end = LocalTime.ofNanoOfDay(end))
-
   val genTimeInterval: Gen[TimeInterval] =
     for {
       start <- chooseNum(LocalTime.MIN.toNanoOfDay, LocalTime.MAX.toNanoOfDay - 1)
       end   <- chooseNum(start + 1, LocalTime.MAX.toNanoOfDay)
     } yield TimeInterval(start = LocalTime.ofNanoOfDay(start), end = LocalTime.ofNanoOfDay(end))
 
+  implicit val arbTimeInterval: Arbitrary[TimeInterval] = Arbitrary(genTimeInterval)
+
   val genDayOfWeek: Gen[DayOfWeek] = Gen.oneOf(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY)
 
-  val genTimeIntervalForWeekDay: Gen[TimeIntervalForWeekDay] =
+  implicit val arbDayOfWeek: Arbitrary[DayOfWeek] = Arbitrary(genDayOfWeek)
+
+  val genPlanningEntry: Gen[TimeIntervalForWeekDay] =
     for {
-      dow      <- genDayOfWeek
-      interval <- genTimeInterval
+      dow      <- Arbitrary.arbitrary[DayOfWeek]
+      interval <- Arbitrary.arbitrary[TimeInterval]
     } yield TimeIntervalForWeekDay(dayOfWeek = dow, interval = interval)
 
-  val genDateTimeInterval: Gen[DateTimeInterval] =
+  implicit val arbPlanningEntry: Arbitrary[TimeIntervalForWeekDay] = Arbitrary(genPlanningEntry)
+
+  val genException: Gen[DateTimeInterval] =
     for {
       startSeconds <- chooseNum(LOCAL_DATE_TIME_MIN.toEpochSecond(UTC), LOCAL_DATE_TIME_MAX.toEpochSecond(UTC) - 1)
       startNanos   <- chooseNum(0, 999999999 - 1)
@@ -67,6 +64,26 @@ object Generators {
       end = LocalDateTime.ofEpochSecond(endSeconds, endNanos, UTC)
 
     } yield DateTimeInterval(start = start, end = end)
+
+  implicit val arbException: Arbitrary[DateTimeInterval] = Arbitrary(genException)
+
+  val genScheduler: Gen[Schedule] =
+    for {
+      planning   <- Gen.listOf(Arbitrary.arbitrary[TimeIntervalForWeekDay])
+      exceptions <- Gen.listOf(Arbitrary.arbitrary[DateTimeInterval])
+      zoneId     <- Arbitrary.arbitrary[ZoneId]
+    } yield Schedule(planning = planning, exceptions = exceptions, timeZone = zoneId)
+
+  implicit val arbSchedule: Arbitrary[Schedule] = Arbitrary(genScheduler)
+
+  def genTimeIntervalSurrounding(localTime: LocalTime): Gen[TimeInterval] =
+    if (localTime == LocalTime.MIN) Gen.fail
+    else if (localTime == LocalTime.MAX) Gen.fail
+    else
+      for {
+        start <- chooseNum(LocalTime.MIN.toNanoOfDay, localTime.toNanoOfDay - 1)
+        end   <- chooseNum(localTime.toNanoOfDay + 1, LocalTime.MAX.toNanoOfDay)
+      } yield TimeInterval(start = LocalTime.ofNanoOfDay(start), end = LocalTime.ofNanoOfDay(end))
 
   def genExceptionSurronding(date: ZonedDateTime, zoneId: ZoneId): Gen[Map[LocalDate, List[TimeInterval]]] = {
     val correctedDate = date.withZoneSameInstant(zoneId)
@@ -81,12 +98,4 @@ object Generators {
       interval <- genTimeIntervalSurrounding(correctedDate.toLocalTime)
     } yield Map(correctedDate.getDayOfWeek -> List(interval))
   }
-
-  val genScheduler: Gen[Schedule] =
-    for {
-      planning   <- Gen.listOf(genTimeIntervalForWeekDay)
-      exceptions <- Gen.listOf(genDateTimeInterval)
-      zoneId     <- Arbitrary.arbitrary[ZoneId]
-    } yield Schedule(planning = planning, exceptions = exceptions, timeZone = zoneId)
-
 }

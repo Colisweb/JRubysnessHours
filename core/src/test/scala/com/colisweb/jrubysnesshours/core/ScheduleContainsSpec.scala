@@ -15,7 +15,7 @@ class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropert
   "Schedule#contains" when {
     "With Scalacheck" when {
       "the Schedule has an empty planning" should {
-        val withNoPlanning = genScheduler.map(_.copy(planning = Map.empty))
+        val withNoPlanning = Arbitrary.arbitrary[Schedule].map(_.copy(planning = Map.empty))
         "with no exceptions" should {
           val gen = withNoPlanning.map(_.copy(exceptions = Map.empty))
           "always be false" in forAll(gen, Arbitrary.arbitrary[ZonedDateTime]) { (schedule, date: ZonedDateTime) =>
@@ -31,7 +31,7 @@ class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropert
       }
       "the Schedule has non empty planning" should {
         "with no exceptions" when {
-          val withNoException = genScheduler.map(_.copy(exceptions = Map.empty))
+          val withNoException = Arbitrary.arbitrary[Schedule].map(_.copy(exceptions = Map.empty))
           "an interval of the planning contains the date" should {
             val gen = (withNoException, Arbitrary.arbitrary[ZonedDateTime]).flatMap2(addPlanningEntryContaining)
             "always be true" in forAll(gen) {
@@ -48,7 +48,7 @@ class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropert
         "with some exceptions" should {
           "an interval of the planning contains the date" when {
             val withPlanningEntryContaining =
-              (genScheduler, Arbitrary.arbitrary[ZonedDateTime]).flatMap2(addPlanningEntryContaining)
+              (Arbitrary.arbitrary[Schedule], Arbitrary.arbitrary[ZonedDateTime]).flatMap2(addPlanningEntryContaining)
 
             "an exception also contains the date" should {
               val andWithAnExceptionContaining = withPlanningEntryContaining.flatMapT(addExceptionContaining)
@@ -66,7 +66,8 @@ class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropert
             }
           }
           "no interval of the planning contains the date" should {
-            val gen = (genScheduler, Arbitrary.arbitrary[ZonedDateTime]).map2(removePlanningEntryContaining)
+            val gen =
+              (Arbitrary.arbitrary[Schedule], Arbitrary.arbitrary[ZonedDateTime]).map2(removePlanningEntryContaining)
 
             "always be false" in forAll(gen) {
               case (schedule, date) => schedule contains date shouldBe false
