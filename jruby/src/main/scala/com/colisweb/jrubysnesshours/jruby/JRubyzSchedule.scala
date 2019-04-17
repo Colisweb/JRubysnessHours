@@ -5,11 +5,14 @@ import java.time.format.DateTimeFormatter
 import java.time.{DayOfWeek, LocalTime, ZoneId, ZonedDateTime}
 
 import com.colisweb.jrubysnesshours.core.{DateTimeInterval, Schedule, TimeInterval, TimeIntervalForWeekDay}
-import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
 
 import scala.concurrent.duration._
 
+final case class RubyTimeSegmentInterval(date: String, startTime: String, endTime: String)
+
 final class JRubyzSchedule private[jruby] (schedule: Schedule) {
+
+  import JRubyzSchedule._
 
   def timeSegments(startsAt: String, endsAt: String): Array[RubyTimeSegmentInterval] =
     schedule
@@ -50,8 +53,6 @@ object JRubyzSchedule {
   private val UTC                = ZoneId.of("UTC")
   private val ISO_DATE_FORMATTER = DateTimeFormatter.ISO_DATE
   private val ISO_8601_FORMATTER = DateTimeFormatter.ISO_DATE_TIME
-
-  final case class RubyTimeSegmentInterval(date: String, startTime: String, endTime: String)
 
   def rubyToDateTimeInterval(startsAt: String, endsAt: String): DateTimeInterval =
     DateTimeInterval(
