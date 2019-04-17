@@ -1,65 +1,77 @@
 package com.colisweb.jrubysnesshours.core
 
+import java.time.DayOfWeek._
 import java.time.{LocalTime, ZoneId, ZonedDateTime}
 
-import org.scalacheck.Gen
-import org.scalatest.{Assertion, Matchers, WordSpec}
+import org.scalacheck.{Arbitrary, Gen}
+import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import java.time.DayOfWeek._
 
 class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropertyChecks {
 
   import Generators._
+  import org.scalacheck.ops._
 
   "Schedule#contains" when {
     "With Scalacheck" when {
       "the Schedule has an empty planning" should {
-        val planningGen = Gen.listOfN(0, genTimeIntervalForWeekDay)
-
-        def test(exceptionsGen: Gen[DateTimeInterval] => Gen[List[DateTimeInterval]]): Assertion =
-          forAll(
-            planningGen,
-            exceptionsGen(genDateTimeInterval),
-            genScheduleConstructor,
-            genBoundedZonedDateTime
-          ) { (emptyPlanning, exceptions, scheduleContructor, date: ZonedDateTime) =>
-            scheduleContructor(emptyPlanning, exceptions) contains date shouldBe false
-          }
+        val withNoPlanning = Arbitrary.arbitrary[Schedule].map(_.copy(planning = Map.empty))
         "with no exceptions" should {
-          "always be false" in {
-            test(Gen.listOfN(0, _))
+          val gen = withNoPlanning.map(_.copy(exceptions = Map.empty))
+          "always be false" in forAll(gen, Arbitrary.arbitrary[ZonedDateTime]) { (schedule, date: ZonedDateTime) =>
+            schedule contains date shouldBe false
           }
         }
         "with some exceptions" should {
-          "always be false" in {
-            test(Gen.nonEmptyListOf(_))
+          "always be false" in forAll(withNoPlanning, Arbitrary.arbitrary[ZonedDateTime]) {
+            (schedule, date: ZonedDateTime) =>
+              schedule contains date shouldBe false
           }
         }
       }
       "the Schedule has non empty planning" should {
         "with no exceptions" when {
+          val withNoException = Arbitrary.arbitrary[Schedule].map(_.copy(exceptions = Map.empty))
           "an interval of the planning contains the date" should {
-            "always be true" in {
-              forAll(genScheduleConstructorContainingGeneratedZonedDateTime) {
-                case (schedule: Schedule, date: ZonedDateTime) => schedule contains date shouldBe true
-              }
+            val gen = (withNoException, Arbitrary.arbitrary[ZonedDateTime]).flatMap2(addPlanningEntryContaining)
+            "always be true" in forAll(gen) {
+              case (schedule, date) => schedule contains date shouldBe true
             }
           }
           "no interval of the planning contains the date" should {
-            "always be false" in {}
+            val gen = (withNoException, Arbitrary.arbitrary[ZonedDateTime]).flatMap2(removePlanningEntryContaining)
+            "always be false" in forAll(gen) {
+              case (schedule, date) => schedule contains date shouldBe false
+            }
           }
         }
         "with some exceptions" should {
           "an interval of the planning contains the date" when {
+            val withPlanningEntryContaining =
+              (Arbitrary.arbitrary[Schedule], Arbitrary.arbitrary[ZonedDateTime]).flatMap2(addPlanningEntryContaining)
+
             "an exception also contains the date" should {
-              "be false" in {}
+              val andWithAnExceptionContaining = withPlanningEntryContaining.flatMapT(addExceptionContaining)
+
+              "be false" in forAll(andWithAnExceptionContaining) {
+                case (schedule, date) => schedule contains date shouldBe false
+              }
             }
             "no exception contains the date" should {
-              "be true" in {}
+              val gen = withPlanningEntryContaining.mapT(removeExceptionsContaining)
+
+              "be true" in forAll(gen) {
+                case (schedule, date) => schedule contains date shouldBe true
+              }
             }
           }
           "no interval of the planning contains the date" should {
-            "always be false" in {}
+            val gen =
+              (Arbitrary.arbitrary[Schedule], Arbitrary.arbitrary[ZonedDateTime]).map2(removePlanningEntryContaining)
+
+            "always be false" in forAll(gen) {
+              case (schedule, date) => schedule contains date shouldBe false
+            }
           }
         }
       }
@@ -83,6 +95,41 @@ class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropert
         }
       }
     }
+  }
+
+  private def addPlanningEntryContaining(schedule: Schedule, date: ZonedDateTime): Gen[(Schedule, ZonedDateTime)] =
+    for {
+      intervalSurounding <- genPlanningEntrySurrounding(date, schedule.timeZone)
+    } yield schedule.copy(planning = schedule.planning ++ intervalSurounding) -> date
+
+  private def addExceptionContaining(schedule: Schedule, date: ZonedDateTime): Gen[(Schedule, ZonedDateTime)] =
+    for {
+      exceptionContaining <- genExceptionSurronding(date, schedule.timeZone)
+    } yield schedule.copy(exceptions = schedule.exceptions ++ exceptionContaining) -> date
+
+  private def removePlanningEntryContaining(schedule: Schedule, date: ZonedDateTime): (Schedule, ZonedDateTime) = {
+    val datetimeWithSameZone = date.withZoneSameInstant(schedule.timeZone)
+    val time                 = datetimeWithSameZone.toLocalTime
+    val dow                  = datetimeWithSameZone.getDayOfWeek
+    val newDowInvervals =
+      schedule.planning
+        .getOrElse(dow, List.empty)
+        .filterNot(_.contains(time))
+
+    schedule.copy(planning = schedule.planning + (dow -> newDowInvervals)) -> date
+  }
+
+  private def removeExceptionsContaining(schedule: Schedule, date: ZonedDateTime): (Schedule, ZonedDateTime) = {
+    val correctDate = date.withZoneSameInstant(schedule.timeZone)
+    val localTime   = correctDate.toLocalTime
+    val localDate   = correctDate.toLocalDate
+
+    val newExceptionIntervals =
+      schedule.exceptions
+        .getOrElse(localDate, List.empty)
+        .filterNot(_.contains(localTime))
+
+    schedule.copy(exceptions = schedule.exceptions + (localDate -> newExceptionIntervals)) -> date
   }
 
 }
