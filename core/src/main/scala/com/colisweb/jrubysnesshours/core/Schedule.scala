@@ -58,14 +58,6 @@ final case class Schedule private[core] (
     existsPlanning && notExistsException
   }
 
-  // TODO: To Test
-  def isOpenForDurationInDate(date: LocalDate, duration: Duration): Boolean = {
-    val start = ZonedDateTime.of(date, LocalTime.MIN, timeZone)
-    val end   = ZonedDateTime.of(date, LocalTime.MAX, timeZone)
-
-    intervalsBetween(start, end).exists(_.duration >= duration)
-  }
-
   def nextOpenTimeAfter(instant: ZonedDateTime): Option[ZonedDateTime] = {
     if (planning.nonEmpty) {
 
