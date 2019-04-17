@@ -108,8 +108,8 @@ final case class Schedule private[core] (
     Schedule
       .cutExceptions(planningFor(date.getDayOfWeek), additionalExceptions ::: exceptionFor(date))
       .map(interval => TimeIntervalForDate(date = date, interval = interval))
-
 }
+
 object Schedule {
 
   def apply(
