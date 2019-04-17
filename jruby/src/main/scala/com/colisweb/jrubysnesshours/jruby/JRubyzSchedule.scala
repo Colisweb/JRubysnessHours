@@ -54,13 +54,13 @@ object JRubyzSchedule {
   private val ISO_DATE_FORMATTER = DateTimeFormatter.ISO_DATE
   private val ISO_8601_FORMATTER = DateTimeFormatter.ISO_DATE_TIME
 
-  def rubyToDateTimeInterval(startsAt: String, endsAt: String): DateTimeInterval =
+  def dateTimeInterval(startsAt: String, endsAt: String): DateTimeInterval =
     DateTimeInterval(
       start = ZonedDateTime.parse(startsAt).toLocalDateTime,
       end = ZonedDateTime.parse(endsAt).toLocalDateTime
     )
 
-  def rubyToPlanning(rubyWeekDay: Int, startTime: String, endTime: String): TimeIntervalForWeekDay =
+  def planning(rubyWeekDay: Int, startTime: String, endTime: String): TimeIntervalForWeekDay =
     TimeIntervalForWeekDay(
       dayOfWeek = rubyWeekDayToJavaWeekDay(rubyWeekDay),
       interval = TimeInterval(start = LocalTime.parse(startTime), end = LocalTime.parse(endTime))
