@@ -12,9 +12,10 @@ final case class Schedule private[core] (
     exceptions: Map[LocalDate, List[TimeInterval]],
     timeZone: ZoneId
 ) {
-  @inline def planningFor(dayOfWeek: DayOfWeek): List[TimeInterval] = planning.getOrElse(dayOfWeek, Nil)
+  import Schedule._
 
-  @inline def exceptionFor(date: LocalDate): List[TimeInterval] = exceptions.getOrElse(date, Nil)
+  @inline def planningFor(dayOfWeek: DayOfWeek): List[TimeInterval] = planning.getOrElse(dayOfWeek, Nil)
+  @inline def exceptionFor(date: LocalDate): List[TimeInterval]     = exceptions.getOrElse(date, Nil)
 
   def intervalsBetween(start: ZonedDateTime, end: ZonedDateTime): List[TimeIntervalForDate] = {
     val localStart     = start.withZoneSameInstant(timeZone).toLocalDateTime
@@ -42,7 +43,7 @@ final case class Schedule private[core] (
   }
 
   def within(start: ZonedDateTime, end: ZonedDateTime): Duration =
-    intervalsBetween(start, end).map(_.duration).reduce(_ plus _)
+    intervalsBetween(start, end).map(_.duration).reduceOption(_ plus _).getOrElse(zeroSeconds)
 
   // TODO: To Test
   def contains(instant: ZonedDateTime): Boolean = {
@@ -59,11 +60,14 @@ final case class Schedule private[core] (
   }
 
   // TODO: To Test
-  def isOpenForDurationInDate(date: LocalDate, duration: Duration): Boolean = {
-    val start = ZonedDateTime.of(date, LocalTime.MIN, timeZone)
-    val end   = ZonedDateTime.of(date, LocalTime.MAX, timeZone)
+  def contains(timeIntervalForDate: TimeIntervalForDate): Boolean = {
+    @inline def existsPlanning =
+      planningFor(timeIntervalForDate.date.getDayOfWeek).exists(_.encloses(timeIntervalForDate.interval))
 
-    intervalsBetween(start, end).exists(_.duration >= duration)
+    @inline def notExistsException =
+      !exceptionFor(timeIntervalForDate.date).exists(_.encloses(timeIntervalForDate.interval))
+
+    existsPlanning && notExistsException
   }
 
   def nextOpenTimeAfter(instant: ZonedDateTime): Option[ZonedDateTime] = {
@@ -113,6 +117,10 @@ final case class Schedule private[core] (
 
 }
 object Schedule {
+
+  import scala.concurrent.duration._
+
+  private val zeroSeconds = 0.seconds
 
   def apply(
       planning: List[TimeIntervalForWeekDay],
