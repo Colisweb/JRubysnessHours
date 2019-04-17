@@ -4,9 +4,7 @@ import java.time.DayOfWeek._
 import java.time.format.DateTimeFormatter
 import java.time.{DayOfWeek, LocalTime, ZoneId, ZonedDateTime}
 
-import com.colisweb.jrubysnesshours.core.{DateTimeInterval, Schedule, TimeInterval, TimeIntervalForWeekDay}
-
-import scala.concurrent.duration._
+import com.colisweb.jrubysnesshours.core._
 
 final case class RubyTimeSegmentInterval(date: String, startTime: String, endTime: String)
 
@@ -36,8 +34,20 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
       }
       .toArray
 
-  def within(start: String, end: String): Duration =
-    schedule.within(ZonedDateTime.parse(start), ZonedDateTime.parse(end))
+  def contains(start: String, end: String): Boolean = {
+    val startZonedDateTime = ZonedDateTime.parse(start)
+    val endZonedDateTime   = ZonedDateTime.parse(end)
+
+    // TODO : il faudra gérer le cas ou on passe un start et un end qui ne sont pas sur le meme jour.
+    //  Solution possible, merger le résultat de intervalBetween sans se soucier de la date
+
+    val timeIntervalForDate =
+      TimeIntervalForDate.apply(
+        date = startZonedDateTime.toLocalDate,
+        interval = TimeInterval(startZonedDateTime.toLocalTime, endZonedDateTime.toLocalTime)
+      )
+    schedule.contains(timeIntervalForDate)
+  }
 
   def isOpen(time: String): Boolean = schedule.contains(ZonedDateTime.parse(time))
 
