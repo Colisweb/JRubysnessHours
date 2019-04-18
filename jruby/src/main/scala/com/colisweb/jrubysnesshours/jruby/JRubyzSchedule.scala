@@ -35,7 +35,6 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
       .toArray
 
   def contains(start: ZonedDateTime, end: ZonedDateTime): Boolean = {
-
     val startLocalDate = start.toLocalDate
     val endLocalDate   = end.toLocalDate
 
