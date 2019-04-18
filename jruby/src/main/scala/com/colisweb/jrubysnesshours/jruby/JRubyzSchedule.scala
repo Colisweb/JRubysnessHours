@@ -1,7 +1,6 @@
 package com.colisweb.jrubysnesshours.jruby
 
 import java.time.DayOfWeek._
-import java.time.format.DateTimeFormatter
 import java.time._
 
 import com.colisweb.jrubysnesshours.core._
@@ -54,21 +53,17 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
 
   def isOpen(time: ZonedDateTime): Boolean = schedule.contains(time)
 
-  def nextOpentime(time: ZonedDateTime): String =
+  def nextOpentime(time: ZonedDateTime): ZonedDateTime =
     schedule
       .nextOpenTimeAfter(time)
-      .map(_.withZoneSameInstant(UTC).format(ISO_8601_FORMATTER))
+      .map(_.withZoneSameInstant(UTC))
       .orNull
 
 }
 
 object JRubyzSchedule {
 
-  val UTC                = ZoneId.of("UTC")
-  val ISO_DATE_FORMATTER = DateTimeFormatter.ISO_DATE
-  val ISO_8601_FORMATTER = DateTimeFormatter.ISO_DATE_TIME
-
-  def datetime_formatter = ISO_8601_FORMATTER
+  private val UTC: ZoneId = ZoneId.of("UTC")
 
   def exception(startsAt: ZonedDateTime, endsAt: ZonedDateTime): DateTimeInterval =
     DateTimeInterval(
