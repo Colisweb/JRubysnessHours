@@ -52,6 +52,43 @@ final case class Schedule private[core] (
     existsPlanning && notExistsException
   }
 
+  def contains(start: ZonedDateTime, end: ZonedDateTime): Boolean = { //start and end have to be the same day, else return false
+
+    val startLocalDate = start.toLocalDate
+    val endLocalDate   = end.toLocalDate
+
+    val timeInvervalForDate =
+      if (startLocalDate == endLocalDate) {
+        val startLocalDateTime = start.withZoneSameInstant(timeZone).toLocalDateTime
+        val startTime         = startLocalDateTime.toLocalTime
+
+        val endLocalDateTime = end.withZoneSameInstant(timeZone).toLocalDateTime
+        val endTime         = endLocalDateTime.toLocalTime
+
+        Some(
+          TimeIntervalForDate(
+            date = startLocalDate,
+            interval = TimeInterval(start = startTime, end = endTime)
+          )
+        )
+      } else {
+        None
+      }
+
+    timeInvervalForDate.exists { timeIntervalForDate =>
+      @inline def existsPlanning =
+        planningFor(start.toLocalDate.getDayOfWeek).exists(_.encloses(timeIntervalForDate.interval))
+
+      @inline def notExistsException =
+        !exceptionFor(timeIntervalForDate.date).exists(_.encloses(timeIntervalForDate.interval))
+
+      existsPlanning && notExistsException
+    }
+  }
+
+
+
+
   // TODO: To Test
   def contains(timeIntervalForDate: TimeIntervalForDate): Boolean = {
     @inline def existsPlanning =
