@@ -60,10 +60,10 @@ final case class Schedule private[core] (
     val timeInvervalForDate =
       if (startLocalDate == endLocalDate) {
         val startLocalDateTime = start.withZoneSameInstant(timeZone).toLocalDateTime
-        val startTime         = startLocalDateTime.toLocalTime
+        val startTime          = startLocalDateTime.toLocalTime
 
         val endLocalDateTime = end.withZoneSameInstant(timeZone).toLocalDateTime
-        val endTime         = endLocalDateTime.toLocalTime
+        val endTime          = endLocalDateTime.toLocalTime
 
         Some(
           TimeIntervalForDate(
@@ -77,27 +77,16 @@ final case class Schedule private[core] (
 
     timeInvervalForDate.exists { timeIntervalForDate =>
       @inline def existsPlanning =
-        planningFor(start.toLocalDate.getDayOfWeek).exists(_.encloses(timeIntervalForDate.interval))
+        planningFor(startLocalDate.getDayOfWeek).exists(_.encloses(timeIntervalForDate.interval))
 
       @inline def notExistsException =
-        !exceptionFor(timeIntervalForDate.date).exists(_.encloses(timeIntervalForDate.interval))
+        !exceptionFor(timeIntervalForDate.date).exists { exception =>
+          exception.isConnected(timeIntervalForDate.interval) &&
+            !(exception.isBefore(timeIntervalForDate.interval) || exception.isAfter(timeIntervalForDate.interval))
+        }
 
       existsPlanning && notExistsException
     }
-  }
-
-
-
-
-  // TODO: To Test
-  def contains(timeIntervalForDate: TimeIntervalForDate): Boolean = {
-    @inline def existsPlanning =
-      planningFor(timeIntervalForDate.date.getDayOfWeek).exists(_.encloses(timeIntervalForDate.interval))
-
-    @inline def notExistsException =
-      !exceptionFor(timeIntervalForDate.date).exists(_.encloses(timeIntervalForDate.interval))
-
-    existsPlanning && notExistsException
   }
 
   def nextOpenTimeAfter(instant: ZonedDateTime): Option[ZonedDateTime] = {

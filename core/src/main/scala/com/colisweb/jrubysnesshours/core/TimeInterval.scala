@@ -21,6 +21,8 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
     */
   def isBefore(that: TimeInterval): Boolean = this.end.compareTo(that.start) <= 0
 
+  def isAfter(that: TimeInterval): Boolean = this.start.compareTo(that.end) >= 0
+
   /**
     * Copied from `org.threeten.extra.Interval`.
     *
