@@ -1,9 +1,12 @@
 package com.colisweb.jrubysnesshours.core
 
 import java.time._
+import com.colisweb.jrubysnesshours.core.utils.Orderings._
+import scala.math.Ordering.Implicits._
 
 final case class DateTimeInterval(start: LocalDateTime, end: LocalDateTime) {
-  assert(start isBefore end, s"DateTimeInterval error: 'start' ($start) is after 'end' ($end)")
+
+  assert(start < end, s"DateTimeInterval error: 'start' ($start) is after 'end' ($end)")
 }
 
 final case class TimeIntervalForWeekDay(dayOfWeek: DayOfWeek, interval: TimeInterval)
@@ -14,30 +17,17 @@ final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
 }
 
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
-  assert(start isBefore end, s"TimeInterval error: 'start' ($start) is after 'end' ($end)")
+  assert(start < end, s"TimeInterval error: 'start' ($start) must be < 'end' ($end)")
 
-  /**
-    * Copied from `org.threeten.extra.Interval`.
-    */
-  def isBefore(that: TimeInterval): Boolean = this.end.compareTo(that.start) <= 0
+  def isBefore(that: TimeInterval): Boolean = this.end <= that.start
 
-  def isAfter(that: TimeInterval): Boolean = this.start.compareTo(that.end) >= 0
+  def isAfter(that: TimeInterval): Boolean = this.start >= that.end
 
-  /**
-    * Copied from `org.threeten.extra.Interval`.
-    *
-    * But improved thanks to boolean logic.
-    */
   def encloses(that: TimeInterval): Boolean =
-    this.start.compareTo(that.start) <= 0 && that.end.compareTo(this.end) <= 0
+    this.start <= that.start && that.end <= this.end
 
-  /**
-    * Copied from `org.threeten.extra.Interval`.
-    *
-    * But improved thanks to boolean logic.
-    */
   def isConnected(that: TimeInterval): Boolean =
-    this.start.compareTo(that.end) <= 0 && that.start.compareTo(this.end) <= 0
+    this.start <= that.end && that.start <= this.end
 
   /**
     * Non commutative substraction: x - y != y - x
@@ -65,12 +55,7 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
     else this :: Nil
   }
 
-  /**
-    * Copied from `org.threeten.extra.Interval`.
-    *
-    * But improved thanks to boolean logic.
-    */
-  def contains(time: LocalTime): Boolean = !(start.compareTo(time) > 0 || time.compareTo(end) >= 0)
+  def contains(time: LocalTime): Boolean = start <= time && time < end
 
   /**
     * Copied from `org.threeten.extra.Interval`.
