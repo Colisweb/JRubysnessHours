@@ -5,6 +5,7 @@ import java.time.temporal.ChronoUnit
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
+import scala.math.Ordering.Implicits._
 
 final case class Schedule private[core] (
     planning: Map[DayOfWeek, List[TimeInterval]],
@@ -131,7 +132,7 @@ object Schedule {
       def mergeTwoIntervals(interval1: TimeInterval, interval2: TimeInterval): List[TimeInterval] =
         if (interval1 isBefore interval2) List(interval1, interval2)
         else if (interval1 encloses interval2) List(interval1)
-        else List(interval1.union(interval2))
+        else List(interval1 union interval2)
 
       intervals
         .sortBy(_.start)
@@ -164,7 +165,7 @@ object Schedule {
               }
 
             val firstDay =
-              if (localStartTime isBefore LocalTime.MAX) {
+              if (localStartTime < LocalTime.MAX) {
                 ListBuffer(
                   TimeIntervalForDate(
                     date = localStartDate,
@@ -174,7 +175,7 @@ object Schedule {
               } else ListBuffer.empty
 
             val lastDay =
-              if (LocalTime.MIN isBefore localEndTime)
+              if (LocalTime.MIN < localEndTime)
                 ListBuffer(
                   TimeIntervalForDate(
                     date = localEndDate,
@@ -203,7 +204,7 @@ object Schedule {
   private[core] def cutExceptions(intervals: List[TimeInterval], exceptions: List[TimeInterval]): List[TimeInterval] =
     intervals.flatMap { interval =>
       exceptions.foldLeft(List(interval)) { (acc, exception) =>
-        acc.flatMap(_ minus exception)
+        acc.flatMap(_ diff exception)
       }
     }
 }
