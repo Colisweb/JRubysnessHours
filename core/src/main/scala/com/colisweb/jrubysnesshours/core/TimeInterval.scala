@@ -26,54 +26,29 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
   def encloses(that: TimeInterval): Boolean =
     this.start <= that.start && that.end <= this.end
 
+  def enclosesStrict(that: TimeInterval): Boolean =
+    this.start < that.start && that.end < this.end
+
   def isConnected(that: TimeInterval): Boolean =
     this.start <= that.end && that.start <= this.end
 
-  /**
-    * Non commutative substraction: x - y != y - x
-    *
-    * The passed interval will be substracted from the current interval.
-    */
-  def minus(that: TimeInterval): List[TimeInterval] = {
-    val cmpThisStartToThatEnd      = this.start.compareTo(that.end)
-    lazy val cmpThisEndToThatStart = this.end.compareTo(that.start)
-    lazy val cmpStart              = this.start.compareTo(that.start)
-    lazy val cmpEnd                = that.end.compareTo(this.end)
-
-    @inline def areNotConnected      = cmpThisStartToThatEnd > 0 || cmpThisEndToThatStart <= 0
-    @inline def thatEnclosesThis     = !(cmpStart < 0 || cmpEnd < 0)
-    @inline def thisEnclosesThat     = !(cmpStart >= 0 || cmpEnd >= 0)
-    @inline def thatOverlapThisEnd   = !(cmpStart >= 0 || cmpThisEndToThatStart <= 0 || cmpEnd < 0)
-    @inline def thatOverlapThisStart = !(cmpStart < 0 || cmpThisStartToThatEnd >= 0 || cmpEnd >= 0)
-
-    if (areNotConnected) this :: Nil
-    else if (thatEnclosesThis) Nil
-    else if (thisEnclosesThat)
-      TimeInterval(start = this.start, end = that.start) :: TimeInterval(start = that.end, end = this.end) :: Nil
-    else if (thatOverlapThisEnd) TimeInterval(start = this.start, end = that.start) :: Nil
-    else if (thatOverlapThisStart) TimeInterval(start = that.end, end = this.end) :: Nil
+  def diff(that: TimeInterval): List[TimeInterval] = {
+    if (that encloses this) Nil
+    else if (this enclosesStrict that) copy(end = that.start) :: copy(start = that.end) :: Nil
+    else if (that.contains2(this.end)) copy(end = that.start) :: Nil
+    else if (that.contains(this.start)) copy(start = that.end) :: Nil
     else this :: Nil
+  }
+
+  def union(that: TimeInterval): TimeInterval = {
+    assert(isConnected(that), s"Intervals do not connect: $this and $that")
+    if (that encloses this) that
+    else if (this encloses that) this
+    else TimeInterval(start = start min that.start, end = end max that.end)
   }
 
   def contains(time: LocalTime): Boolean = start <= time && time < end
 
-  /**
-    * Copied from `org.threeten.extra.Interval`.
-    *
-    * But improved thanks to boolean logic.
-    */
-  def union(that: TimeInterval): TimeInterval = {
-    if (!isConnected(that)) throw new DateTimeException(s"Intervals do not connect: $this and $that")
+  def contains2(time: LocalTime): Boolean = start < time && time <= end
 
-    val cmpStart = start.compareTo(that.start)
-    val cmpEnd   = end.compareTo(that.end)
-
-    if (!(cmpStart < 0 || cmpEnd > 0)) that
-    else if (!(cmpStart > 0 || cmpEnd < 0)) this
-    else {
-      val newStart = if (cmpStart >= 0) that.start else start
-      val newEnd   = if (cmpEnd <= 0) that.end else end
-      TimeInterval(start = newStart, end = newEnd)
-    }
-  }
 }

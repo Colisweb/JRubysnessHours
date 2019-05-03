@@ -204,7 +204,7 @@ object Schedule {
   private[core] def cutExceptions(intervals: List[TimeInterval], exceptions: List[TimeInterval]): List[TimeInterval] =
     intervals.flatMap { interval =>
       exceptions.foldLeft(List(interval)) { (acc, exception) =>
-        acc.flatMap(_ minus exception)
+        acc.flatMap(_ diff exception)
       }
     }
 }
