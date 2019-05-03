@@ -21,13 +21,15 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
     */
   def isBefore(that: TimeInterval): Boolean = this.end.compareTo(that.start) <= 0
 
+  def isAfter(that: TimeInterval): Boolean = this.start.compareTo(that.end) >= 0
+
   /**
     * Copied from `org.threeten.extra.Interval`.
     *
     * But improved thanks to boolean logic.
     */
   def encloses(that: TimeInterval): Boolean =
-    !(this.start.compareTo(that.start) > 0 || that.end.compareTo(this.end) > 0)
+    this.start.compareTo(that.start) <= 0 && that.end.compareTo(this.end) <= 0
 
   /**
     * Copied from `org.threeten.extra.Interval`.
@@ -35,7 +37,7 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
     * But improved thanks to boolean logic.
     */
   def isConnected(that: TimeInterval): Boolean =
-    !(this.start.compareTo(that.end) > 0 || that.start.compareTo(this.end) > 0)
+    this.start.compareTo(that.end) <= 0 && that.start.compareTo(this.end) <= 0
 
   /**
     * Non commutative substraction: x - y != y - x

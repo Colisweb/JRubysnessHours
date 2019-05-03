@@ -34,21 +34,7 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
       .toArray
 
   def contains(start: ZonedDateTime, end: ZonedDateTime): Boolean = {
-    val startLocalDate = start.toLocalDate
-    val endLocalDate   = end.toLocalDate
-
-    // TODO : il faudra gérer le cas ou on passe un start et un end qui ne sont pas sur le meme jour.
-    //  Solution possible, merger le résultat de intervalBetween sans se soucier de la date
-
-    if (startLocalDate == endLocalDate) {
-      val timeIntervalForDate =
-        TimeIntervalForDate(
-          date = startLocalDate,
-          interval = TimeInterval(start = start.toLocalTime, end = end.toLocalTime)
-        )
-
-      schedule.contains(timeIntervalForDate)
-    } else false
+    schedule.contains(start = start, end = end)
   }
 
   def isOpen(time: ZonedDateTime): Boolean = schedule.contains(time)

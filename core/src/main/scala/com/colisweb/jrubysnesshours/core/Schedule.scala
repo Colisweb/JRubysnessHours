@@ -15,8 +15,8 @@ final case class Schedule private[core] (
   @inline def exceptionFor(date: LocalDate): List[TimeInterval]     = exceptions.getOrElse(date, Nil)
 
   def intervalsBetween(start: ZonedDateTime, end: ZonedDateTime): List[TimeIntervalForDate] = {
-    val localStart     = start.withZoneSameInstant(timeZone).toLocalDateTime
-    val localEnd       = end.withZoneSameInstant(timeZone).toLocalDateTime
+    val localStart     = local(start)
+    val localEnd       = local(end)
     val localStartDate = localStart.toLocalDate
     val localEndDate   = localEnd.toLocalDate
 
@@ -40,7 +40,7 @@ final case class Schedule private[core] (
   }
 
   def contains(instant: ZonedDateTime): Boolean = {
-    val localInstant = instant.withZoneSameInstant(timeZone).toLocalDateTime
+    val localInstant = local(instant)
     val time         = localInstant.toLocalTime
 
     @inline def existsPlanning =
@@ -52,13 +52,22 @@ final case class Schedule private[core] (
     existsPlanning && notExistsException
   }
 
-  // TODO: To Test
-  def contains(timeIntervalForDate: TimeIntervalForDate): Boolean = {
+  def contains(start: ZonedDateTime, end: ZonedDateTime): Boolean = {
+    assert(Schedule.isTheSameDayForZone(start, end, timeZone))
+
+    val startLocalDate = start.toLocalDate
+
+    val interval = TimeInterval(
+      start = start.withZoneSameInstant(timeZone).toLocalTime,
+      end = end.withZoneSameInstant(timeZone).toLocalTime
+    )
     @inline def existsPlanning =
-      planningFor(timeIntervalForDate.date.getDayOfWeek).exists(_.encloses(timeIntervalForDate.interval))
+      planningFor(startLocalDate.getDayOfWeek).exists(_.encloses(interval))
 
     @inline def notExistsException =
-      !exceptionFor(timeIntervalForDate.date).exists(_.encloses(timeIntervalForDate.interval))
+      exceptionFor(startLocalDate).forall { exception =>
+        !exception.isConnected(interval) || exception.isBefore(interval) || exception.isAfter(interval)
+      }
 
     existsPlanning && notExistsException
   }
@@ -73,7 +82,7 @@ final case class Schedule private[core] (
           case Nil           => findNextOpenTimeAfter(date.plusDays(1), Nil)
         }
 
-      val localInstant = instant.withZoneSameInstant(timeZone).toLocalDateTime
+      val localInstant = local(instant)
       val date         = localInstant.toLocalDate
       val time         = localInstant.toLocalTime
 
@@ -107,6 +116,8 @@ final case class Schedule private[core] (
     Schedule
       .cutExceptions(planningFor(date.getDayOfWeek), additionalExceptions ::: exceptionFor(date))
       .map(interval => TimeIntervalForDate(date = date, interval = interval))
+
+  private def local(instant: ZonedDateTime): LocalDateTime = instant.withZoneSameInstant(timeZone).toLocalDateTime
 }
 
 object Schedule {
@@ -116,13 +127,13 @@ object Schedule {
       exceptions: List[DateTimeInterval],
       timeZone: ZoneId
   ): Schedule = {
-    def mergeIntervals(invervals: List[TimeInterval]): List[TimeInterval] = {
+    def mergeIntervals(intervals: List[TimeInterval]): List[TimeInterval] = {
       def mergeTwoIntervals(interval1: TimeInterval, interval2: TimeInterval): List[TimeInterval] =
         if (interval1 isBefore interval2) List(interval1, interval2)
         else if (interval1 encloses interval2) List(interval1)
         else List(interval1.union(interval2))
 
-      invervals
+      intervals
         .sortBy(_.start)
         .foldRight(List.empty[TimeInterval]) {
           case (interval, h :: t) => mergeTwoIntervals(interval, h) ::: t // TODO: `:::` is not in constant time.
@@ -185,6 +196,9 @@ object Schedule {
       timeZone = timeZone
     )
   }
+
+  def isTheSameDayForZone(time1: ZonedDateTime, time2: ZonedDateTime, zone: ZoneId): Boolean =
+    time1.withZoneSameInstant(zone).toLocalDate == time2.withZoneSameInstant(zone).toLocalDate
 
   private[core] def cutExceptions(intervals: List[TimeInterval], exceptions: List[TimeInterval]): List[TimeInterval] =
     intervals.flatMap { interval =>
