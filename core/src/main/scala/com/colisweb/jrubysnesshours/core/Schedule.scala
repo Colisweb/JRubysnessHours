@@ -12,6 +12,10 @@ final case class Schedule private[core] (
     exceptions: Map[LocalDate, List[TimeInterval]],
     timeZone: ZoneId
 ) {
+  def splitTimeSegments(date: LocalDate, hours: Long = 2): List[TimeInterval] = {
+    allIntervalsInDate(date).flatMap(_.interval.roundToFullHours).flatMap(_.split(hours))
+  }
+
   @inline def planningFor(dayOfWeek: DayOfWeek): List[TimeInterval] = planning.getOrElse(dayOfWeek, Nil)
   @inline def exceptionFor(date: LocalDate): List[TimeInterval]     = exceptions.getOrElse(date, Nil)
 

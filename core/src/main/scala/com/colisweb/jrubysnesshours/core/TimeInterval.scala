@@ -1,7 +1,10 @@
 package com.colisweb.jrubysnesshours.core
 
 import java.time._
+import java.time.temporal.ChronoUnit
+
 import com.colisweb.jrubysnesshours.core.utils.Orderings._
+
 import scala.math.Ordering.Implicits._
 
 final case class DateTimeInterval(start: LocalDateTime, end: LocalDateTime) {
@@ -17,7 +20,23 @@ final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
 }
 
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
+
   assert(start < end, s"TimeInterval error: 'start' ($start) must be < 'end' ($end)")
+
+  def roundToFullHours: Option[TimeInterval] = {
+    val roundedStart = start.plusHours(if (start.getMinute > 0) 1 else 0).withMinute(0)
+    val roundedEnd   = end.withMinute(0)
+    if (roundedEnd > roundedStart)
+      Some(TimeInterval(roundedStart, roundedEnd))
+    else None
+  }
+
+  def split(hours: Long): List[TimeInterval] =
+    if (start.until(end, ChronoUnit.HOURS) == hours)
+      List(this)
+    else if (start.until(end, ChronoUnit.HOURS) < hours)
+      Nil
+    else TimeInterval(start, start.plusHours(hours)) :: copy(start = start.plusHours(hours)).split(hours)
 
   def isBefore(that: TimeInterval): Boolean = this.end <= that.start
 
