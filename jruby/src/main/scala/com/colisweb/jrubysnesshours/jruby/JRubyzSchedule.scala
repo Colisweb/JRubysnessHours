@@ -6,28 +6,6 @@ import java.time._
 import com.colisweb.jrubysnesshours.core._
 import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
 
-final case class RubyTimeSegmentInterval(date: LocalDate, startTime: ZonedDateTime, endTime: ZonedDateTime)
-
-object RubyTimeSegmentInterval {
-  def apply(timeIntervalForDate: TimeIntervalForDate, timeZone: ZoneId): RubyTimeSegmentInterval = {
-    val start: ZonedDateTime =
-      ZonedDateTime
-        .of(timeIntervalForDate.date, timeIntervalForDate.start, timeZone)
-        .withZoneSameInstant(UTC)
-
-    val end =
-      ZonedDateTime
-        .of(timeIntervalForDate.date, timeIntervalForDate.end, timeZone)
-        .withZoneSameInstant(UTC)
-
-    RubyTimeSegmentInterval(
-      date = timeIntervalForDate.date,
-      startTime = start,
-      endTime = end
-    )
-  }
-}
-
 final class JRubyzSchedule private[jruby] (schedule: Schedule) {
   def splitTimeSegments(startsAt: ZonedDateTime, endsAt: ZonedDateTime, hours: Long): Array[RubyTimeSegmentInterval] = {
     val localDate = startsAt.toLocalDate
@@ -41,23 +19,7 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
   def timeSegments(startsAt: ZonedDateTime, endsAt: ZonedDateTime): Array[RubyTimeSegmentInterval] =
     schedule
       .intervalsBetween(startsAt, endsAt)
-      .map { timeIntervalForDate =>
-        val start: ZonedDateTime =
-          ZonedDateTime
-            .of(timeIntervalForDate.date, timeIntervalForDate.start, schedule.timeZone)
-            .withZoneSameInstant(UTC)
-
-        val end =
-          ZonedDateTime
-            .of(timeIntervalForDate.date, timeIntervalForDate.end, schedule.timeZone)
-            .withZoneSameInstant(UTC)
-
-        RubyTimeSegmentInterval(
-          date = timeIntervalForDate.date,
-          startTime = start,
-          endTime = end
-        )
-      }
+      .map(RubyTimeSegmentInterval(_, schedule.timeZone))
       .toArray
 
   def contains(start: ZonedDateTime, end: ZonedDateTime): Boolean = {
@@ -78,11 +40,17 @@ object JRubyzSchedule {
 
   val UTC: ZoneId = ZoneId.of("UTC")
 
+  def exception(startsAtZonedDateTime: String, endsAtZonedDateTime: String): DateTimeInterval =
+    exception(ZonedDateTime.parse(startsAtZonedDateTime), ZonedDateTime.parse(endsAtZonedDateTime))
+
   def exception(startsAt: ZonedDateTime, endsAt: ZonedDateTime): DateTimeInterval =
     DateTimeInterval(
       start = startsAt.toLocalDateTime,
       end = endsAt.toLocalDateTime
     )
+
+  def planningEntry(rubyWeekDay: Int, startLocalTime: String, endLocalTime: String): TimeIntervalForWeekDay =
+    planningEntry(rubyWeekDay, LocalTime.parse(startLocalTime), LocalTime.parse(endLocalTime))
 
   def planningEntry(rubyWeekDay: Int, startTime: LocalTime, endTime: LocalTime): TimeIntervalForWeekDay =
     TimeIntervalForWeekDay(

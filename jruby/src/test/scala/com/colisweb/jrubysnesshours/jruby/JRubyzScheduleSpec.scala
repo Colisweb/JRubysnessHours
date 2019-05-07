@@ -1,7 +1,7 @@
 package com.colisweb.jrubysnesshours.jruby
 
 import java.time.DayOfWeek._
-import java.time.{LocalDate, LocalTime, ZonedDateTime}
+import java.time.ZonedDateTime
 
 import com.colisweb.jrubysnesshours.core.{DateTimeInterval, TimeIntervalForWeekDay}
 import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
@@ -11,39 +11,26 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
 
   import SpecUtils._
 
-  "splitTimeSegments" in {
-    val jrubySchedule =
-      schedule(Array(planningEntry(1, LocalTime.parse("12:00"), LocalTime.parse("18:00"))), Array(), "UTC")
-    jrubySchedule.splitTimeSegments(
-      ZonedDateTime.parse("2019-05-06T11:50:39Z"),
-      ZonedDateTime.parse("2019-05-06T16:17:39Z"),
-      2
-    ) shouldBe Array(
-      RubyTimeSegmentInterval(
-        LocalDate.parse("2019-05-06"),
-        ZonedDateTime.parse("2019-05-06T12:00Z[UTC]"),
-        ZonedDateTime.parse("2019-05-06T14:00Z[UTC]")
-      ),
-      RubyTimeSegmentInterval(
-        LocalDate.parse("2019-05-06"),
-        ZonedDateTime.parse("2019-05-06T14:00Z[UTC]"),
-        ZonedDateTime.parse("2019-05-06T16:00Z[UTC]")
-      ),
-      RubyTimeSegmentInterval(
-        LocalDate.parse("2019-05-06"),
-        ZonedDateTime.parse("2019-05-06T16:00Z[UTC]"),
-        ZonedDateTime.parse("2019-05-06T18:00Z[UTC]")
+  "jrubySchedule" should {
+    "split one single date" in {
+      val jrubySchedule =
+        schedule(Array(planningEntry(1, "12:00", "18:00")), Array(), "UTC")
+      jrubySchedule.splitTimeSegments(
+        ZonedDateTime.parse("2019-05-06T11:50:39Z"),
+        ZonedDateTime.parse("2019-05-06T16:17:39Z"),
+        2
+      ) shouldBe Array(
+        RubyTimeSegmentInterval("2019-05-06", "2019-05-06T12:00Z[UTC]", "2019-05-06T14:00Z[UTC]"),
+        RubyTimeSegmentInterval("2019-05-06", "2019-05-06T14:00Z[UTC]", "2019-05-06T16:00Z[UTC]"),
+        RubyTimeSegmentInterval("2019-05-06", "2019-05-06T16:00Z[UTC]", "2019-05-06T18:00Z[UTC]")
       )
-    )
+    }
   }
 
   "rubyToDateTimeInterval" should {
 
     "with UTC timezone the same day" in {
-      val res = exception(
-        ZonedDateTime.parse("2019-04-12T16:17:39Z"),
-        ZonedDateTime.parse("2019-04-12T18:15:40Z")
-      )
+      val res = exception("2019-04-12T16:17:39Z", "2019-04-12T18:15:40Z")
 
       val expectedStart = "2019-04-12" at "16:17:39" -> "Europe/Paris"
       val expectedEnd   = "2019-04-12" at "18:15:40" -> "Europe/Paris"
@@ -51,10 +38,7 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
     }
 
     "with GMT+2 timezone the same day" in {
-      val res = exception(
-        ZonedDateTime.parse("2019-04-12T16:17:39+02:00"),
-        ZonedDateTime.parse("2019-04-12T18:15:40+02:00")
-      )
+      val res = exception("2019-04-12T16:17:39+02:00", "2019-04-12T18:15:40+02:00")
 
       val expectedStart = "2019-04-12" at "16:17:39" -> "Europe/Paris"
       val expectedEnd   = "2019-04-12" at "18:15:40" -> "Europe/Paris"
@@ -62,23 +46,14 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
     }
 
     "UTC timezone and GMT+2 timezone should return the same DateTimeInterval for the same date/hours" in {
-      val resFromUTC = exception(
-        ZonedDateTime.parse("2019-04-12T14:00:00Z"),
-        ZonedDateTime.parse("2019-04-12T18:00:00Z")
-      )
-      val resFromGMT2 = exception(
-        ZonedDateTime.parse("2019-04-12T14:00:00+02:00"),
-        ZonedDateTime.parse("2019-04-12T18:00:00+02:00")
-      )
+      val resFromUTC  = exception("2019-04-12T14:00:00Z", "2019-04-12T18:00:00Z")
+      val resFromGMT2 = exception("2019-04-12T14:00:00+02:00", "2019-04-12T18:00:00+02:00")
 
       resFromUTC shouldEqual resFromGMT2
     }
 
     "If start and end are not the same day" in {
-      val res = exception(
-        ZonedDateTime.parse("2019-04-10T16:17:39Z"),
-        ZonedDateTime.parse("2019-04-15T18:15:40Z")
-      )
+      val res = exception("2019-04-10T16:17:39Z", "2019-04-15T18:15:40Z")
 
       val expectedStart = "2019-04-10" at "16:17:39" -> "Europe/Paris"
       val expectedEnd   = "2019-04-15" at "18:15:40" -> "Europe/Paris"
@@ -118,12 +93,12 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
 
   "rubyToPlanning" should {
     "Return a valid TimeIntervalForWeekDay for Monday" in {
-      val res = planningEntry(1, LocalTime.parse("16:17"), LocalTime.parse("18:15"))
+      val res = planningEntry(1, "16:17", "18:15")
       res shouldEqual TimeIntervalForWeekDay(MONDAY, "16:17" - "18:15")
     }
 
     "Return a valid TimeIntervalForWeekDay for Sunday" in {
-      val res = planningEntry(0, LocalTime.parse("16:17"), LocalTime.parse("18:15"))
+      val res = planningEntry(0, "16:17", "18:15")
       res shouldEqual TimeIntervalForWeekDay(SUNDAY, "16:17" - "18:15")
     }
   }
