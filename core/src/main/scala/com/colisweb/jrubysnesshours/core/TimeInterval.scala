@@ -17,6 +17,10 @@ final case class TimeIntervalForWeekDay(dayOfWeek: DayOfWeek, interval: TimeInte
 final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
   val start: LocalTime = interval.start
   val end: LocalTime   = interval.end
+
+  def roundToFullHours: Option[TimeIntervalForDate] = interval.roundToFullHours.map(i => copy(interval = i))
+
+  def split(hours: Long): List[TimeIntervalForDate] = interval.split(hours).map(i => copy(interval = i))
 }
 
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
@@ -24,8 +28,8 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
   assert(start < end, s"TimeInterval error: 'start' ($start) must be < 'end' ($end)")
 
   def roundToFullHours: Option[TimeInterval] = {
-    val roundedStart = start.plusHours(if (start.getMinute > 0) 1 else 0).withMinute(0)
-    val roundedEnd   = end.withMinute(0)
+    val roundedStart = start.plusHours(if (start.getMinute + start.getSecond > 0) 1 else 0).withMinute(0).withSecond(0)
+    val roundedEnd   = end.withMinute(0).withSecond(0)
     if (roundedEnd > roundedStart)
       Some(TimeInterval(roundedStart, roundedEnd))
     else None

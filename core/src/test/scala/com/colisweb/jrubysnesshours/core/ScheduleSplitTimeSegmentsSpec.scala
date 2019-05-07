@@ -7,8 +7,8 @@ import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class ScheduleSplitTimeSegmentsSpec extends WordSpec with Matchers with ScalaCheckPropertyChecks {
-  val aThursday = "2019-05-02".toLocalDate
-  val aTuesday  = "2019-05-07".toLocalDate
+  private val aThursday = "2019-05-02".toLocalDate
+  private val aTuesday  = "2019-05-07".toLocalDate
 
   "a Schedule with an empty planning" when {
     val emptySchedule = schedule.copy(planning = Map.empty)
@@ -24,6 +24,36 @@ class ScheduleSplitTimeSegmentsSpec extends WordSpec with Matchers with ScalaChe
         List("10:00" - "12:00", "12:00" - "14:00", "14:00" - "16:00", "16:00" - "18:00")
       schedule.splitTimeSegments(aTuesday) shouldBe
         List("10:00" - "12:00", "12:00" - "14:00", "15:00" - "17:00", "17:00" - "19:00")
+    }
+
+    "has a list of split segments for a time range" in {
+      schedule.splitTimeSegments(
+        "2019-05-02" at "10:00" -> FRANCE_TIMEZONE,
+        "2019-05-07" at "18:00" -> FRANCE_TIMEZONE,
+        2
+      ) shouldBe
+        List(
+          "2019-05-02" at "10:00" - "12:00",
+          "2019-05-02" at "12:00" - "14:00",
+          "2019-05-02" at "14:00" - "16:00",
+          "2019-05-02" at "16:00" - "18:00",
+          "2019-05-03" at "10:00" - "12:00",
+          "2019-05-03" at "12:00" - "14:00",
+          "2019-05-03" at "14:00" - "16:00",
+          "2019-05-03" at "16:00" - "18:00",
+          "2019-05-04" at "09:00" - "11:00",
+          "2019-05-04" at "11:00" - "13:00",
+          "2019-05-04" at "15:00" - "17:00",
+          "2019-05-04" at "17:00" - "19:00",
+          "2019-05-06" at "09:00" - "11:00",
+          "2019-05-06" at "11:00" - "13:00",
+          "2019-05-06" at "13:00" - "15:00",
+          "2019-05-06" at "15:00" - "17:00",
+          "2019-05-06" at "17:00" - "19:00",
+          "2019-05-07" at "10:00" - "12:00",
+          "2019-05-07" at "12:00" - "14:00",
+          "2019-05-07" at "15:00" - "17:00",
+        )
     }
   }
 

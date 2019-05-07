@@ -7,14 +7,11 @@ import com.colisweb.jrubysnesshours.core._
 import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
 
 final class JRubyzSchedule private[jruby] (schedule: Schedule) {
-  def splitTimeSegments(startsAt: ZonedDateTime, endsAt: ZonedDateTime, hours: Long): Array[RubyTimeSegmentInterval] = {
-    val localDate = startsAt.toLocalDate
-    println(endsAt)
+  def splitTimeSegments(startsAt: ZonedDateTime, endsAt: ZonedDateTime, hours: Long): Array[RubyTimeSegmentInterval] =
     schedule
-      .splitTimeSegments(localDate, hours)
-      .map(segment => RubyTimeSegmentInterval(TimeIntervalForDate(localDate, segment), schedule.timeZone))
+      .splitTimeSegments(startsAt, endsAt, hours)
+      .map(RubyTimeSegmentInterval(_, schedule.timeZone))
       .toArray
-  }
 
   def timeSegments(startsAt: ZonedDateTime, endsAt: ZonedDateTime): Array[RubyTimeSegmentInterval] =
     schedule

@@ -1,5 +1,6 @@
 package com.colisweb.jrubysnesshours.core
 
+import java.time.LocalTime.{MAX, MIN}
 import java.time._
 import java.time.temporal.ChronoUnit
 
@@ -12,8 +13,14 @@ final case class Schedule private[core] (
     exceptions: Map[LocalDate, List[TimeInterval]],
     timeZone: ZoneId
 ) {
-  def splitTimeSegments(date: LocalDate, hours: Long = 2): List[TimeInterval] = {
-    allIntervalsInDate(date).flatMap(_.interval.roundToFullHours).flatMap(_.split(hours))
+
+  def splitTimeSegments(date: LocalDate, hours: Long = 2): List[TimeInterval] =
+    splitTimeSegments(zoned(date.atTime(MIN)), zoned(date.atTime(MAX)), hours).map(_.interval)
+
+  def splitTimeSegments(start: ZonedDateTime, end: ZonedDateTime, hours: Long): List[TimeIntervalForDate] = {
+    intervalsBetween(start, end)
+      .flatMap(_.roundToFullHours)
+      .flatMap(_.split(hours))
   }
 
   @inline def planningFor(dayOfWeek: DayOfWeek): List[TimeInterval] = planning.getOrElse(dayOfWeek, Nil)
@@ -98,12 +105,12 @@ final case class Schedule private[core] (
   }
 
   private[core] def startOfDayCut(start: LocalTime): List[TimeInterval] =
-    if (start == LocalTime.MIN) Nil
-    else List(TimeInterval(start = LocalTime.MIN, end = start))
+    if (start == MIN) Nil
+    else List(TimeInterval(start = MIN, end = start))
 
   private[core] def endOfDayCut(end: LocalTime): List[TimeInterval] =
-    if (end == LocalTime.MAX) Nil
-    else List(TimeInterval(start = end, end = LocalTime.MAX))
+    if (end == MAX) Nil
+    else List(TimeInterval(start = end, end = MAX))
 
   private[core] def intervalsInStartDay(start: LocalDateTime): List[TimeIntervalForDate] =
     allIntervalsInDate(start.toLocalDate, startOfDayCut(start.toLocalTime))
@@ -123,6 +130,7 @@ final case class Schedule private[core] (
       .map(interval => TimeIntervalForDate(date = date, interval = interval))
 
   private def local(instant: ZonedDateTime): LocalDateTime = instant.withZoneSameInstant(timeZone).toLocalDateTime
+  private def zoned(local: LocalDateTime): ZonedDateTime   = local.atZone(timeZone)
 }
 
 object Schedule {
@@ -164,26 +172,26 @@ object Schedule {
             val midDays =
               (1L until numberOfDays).map { i =>
                 val date        = localStartDate.plusDays(i)
-                val newInterval = TimeInterval(start = LocalTime.MIN, end = LocalTime.MAX)
+                val newInterval = TimeInterval(start = MIN, end = MAX)
                 TimeIntervalForDate(date = date, interval = newInterval)
               }
 
             val firstDay =
-              if (localStartTime < LocalTime.MAX) {
+              if (localStartTime < MAX) {
                 ListBuffer(
                   TimeIntervalForDate(
                     date = localStartDate,
-                    interval = TimeInterval(start = localStartTime, end = LocalTime.MAX)
+                    interval = TimeInterval(start = localStartTime, end = MAX)
                   )
                 )
               } else ListBuffer.empty
 
             val lastDay =
-              if (LocalTime.MIN < localEndTime)
+              if (MIN < localEndTime)
                 ListBuffer(
                   TimeIntervalForDate(
                     date = localEndDate,
-                    interval = TimeInterval(start = LocalTime.MIN, end = localEndTime)
+                    interval = TimeInterval(start = MIN, end = localEndTime)
                   )
                 )
               else ListBuffer.empty
