@@ -4,12 +4,39 @@ import java.time.DayOfWeek._
 import java.time._
 
 import com.colisweb.jrubysnesshours.core._
+import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
 
 final case class RubyTimeSegmentInterval(date: LocalDate, startTime: ZonedDateTime, endTime: ZonedDateTime)
 
-final class JRubyzSchedule private[jruby] (schedule: Schedule) {
+object RubyTimeSegmentInterval {
+  def apply(timeIntervalForDate: TimeIntervalForDate, timeZone: ZoneId): RubyTimeSegmentInterval = {
+    val start: ZonedDateTime =
+      ZonedDateTime
+        .of(timeIntervalForDate.date, timeIntervalForDate.start, timeZone)
+        .withZoneSameInstant(UTC)
 
-  import JRubyzSchedule._
+    val end =
+      ZonedDateTime
+        .of(timeIntervalForDate.date, timeIntervalForDate.end, timeZone)
+        .withZoneSameInstant(UTC)
+
+    RubyTimeSegmentInterval(
+      date = timeIntervalForDate.date,
+      startTime = start,
+      endTime = end
+    )
+  }
+}
+
+final class JRubyzSchedule private[jruby] (schedule: Schedule) {
+  def splitTimeSegments(startsAt: ZonedDateTime, endsAt: ZonedDateTime, hours: Long): Array[RubyTimeSegmentInterval] = {
+    val localDate = startsAt.toLocalDate
+    println(endsAt)
+    schedule
+      .splitTimeSegments(localDate, hours)
+      .map(segment => RubyTimeSegmentInterval(TimeIntervalForDate(localDate, segment), schedule.timeZone))
+      .toArray
+  }
 
   def timeSegments(startsAt: ZonedDateTime, endsAt: ZonedDateTime): Array[RubyTimeSegmentInterval] =
     schedule
@@ -49,7 +76,7 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
 
 object JRubyzSchedule {
 
-  private val UTC: ZoneId = ZoneId.of("UTC")
+  val UTC: ZoneId = ZoneId.of("UTC")
 
   def exception(startsAt: ZonedDateTime, endsAt: ZonedDateTime): DateTimeInterval =
     DateTimeInterval(
