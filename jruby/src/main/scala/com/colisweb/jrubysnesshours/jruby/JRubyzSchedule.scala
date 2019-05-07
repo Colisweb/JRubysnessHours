@@ -7,9 +7,14 @@ import com.colisweb.jrubysnesshours.core._
 import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
 
 final class JRubyzSchedule private[jruby] (schedule: Schedule) {
-  def splitTimeSegments(startsAt: ZonedDateTime, endsAt: ZonedDateTime, hours: Long): Array[RubyTimeSegmentInterval] =
+  def splitTimeSegments(
+      startsAt: ZonedDateTime,
+      endsAt: ZonedDateTime,
+      hours: Long,
+      cutOff: Option[DoubleCutOff] = None
+  ): Array[RubyTimeSegmentInterval] =
     schedule
-      .splitTimeSegments(startsAt, endsAt, hours)
+      .splitTimeSegments(startsAt, endsAt, hours, cutOff)
       .map(RubyTimeSegmentInterval(_, schedule.timeZone))
       .toArray
 

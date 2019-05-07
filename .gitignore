@@ -63,4 +63,4 @@ fabric.properties
 /.idea/
 
 # approvals
-.received
+*.received
