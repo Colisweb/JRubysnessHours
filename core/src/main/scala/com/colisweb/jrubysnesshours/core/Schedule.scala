@@ -14,11 +14,18 @@ final case class Schedule private[core] (
     timeZone: ZoneId
 ) {
 
-  def splitTimeSegments(date: LocalDate, hours: Long = 2): List[TimeInterval] =
+  def splitTimeSegmentsSingleDate(date: LocalDate, hours: Long = 2): List[TimeInterval] =
     splitTimeSegments(zoned(date.atTime(MIN)), zoned(date.atTime(MAX)), hours).map(_.interval)
 
-  def splitTimeSegments(start: ZonedDateTime, end: ZonedDateTime, hours: Long): List[TimeIntervalForDate] = {
-    intervalsBetween(start, end)
+  def splitTimeSegments(
+      start: ZonedDateTime,
+      end: ZonedDateTime,
+      hours: Long,
+      cutOff: Option[DoubleCutOff] = None
+  ): List[TimeIntervalForDate] = {
+    val localStart = local(start)
+    val cutStart   = cutOff.fold(localStart)(_.nextAvailableMoment(localStart))
+    intervalsBetween(cutStart, local(end))
       .flatMap(_.roundToFullHours)
       .flatMap(_.split(hours))
   }
@@ -26,15 +33,16 @@ final case class Schedule private[core] (
   @inline def planningFor(dayOfWeek: DayOfWeek): List[TimeInterval] = planning.getOrElse(dayOfWeek, Nil)
   @inline def exceptionFor(date: LocalDate): List[TimeInterval]     = exceptions.getOrElse(date, Nil)
 
-  def intervalsBetween(start: ZonedDateTime, end: ZonedDateTime): List[TimeIntervalForDate] = {
-    val localStart     = local(start)
-    val localEnd       = local(end)
+  def intervalsBetween(start: ZonedDateTime, end: ZonedDateTime): List[TimeIntervalForDate] =
+    intervalsBetween(local(start), local(end))
+
+  private def intervalsBetween(localStart: LocalDateTime, localEnd: LocalDateTime): List[TimeIntervalForDate] = {
     val localStartDate = localStart.toLocalDate
     val localEndDate   = localEnd.toLocalDate
 
-    if (localStartDate == localEndDate) {
+    if (localStartDate == localEndDate)
       intervalsInSameDay(localStartDate, TimeInterval(localStart.toLocalTime, localEnd.toLocalTime))
-    } else {
+    else {
       val startDayIntervals: List[TimeIntervalForDate] = intervalsInStartDay(localStart)
       val endDayIntervals: List[TimeIntervalForDate]   = intervalsInEndDay(localEnd)
 

@@ -3,25 +3,7 @@ package com.colisweb.jrubysnesshours.core
 import java.time._
 import java.time.temporal.ChronoUnit
 
-import com.colisweb.jrubysnesshours.core.utils.Orderings._
-
 import scala.math.Ordering.Implicits._
-
-final case class DateTimeInterval(start: LocalDateTime, end: LocalDateTime) {
-
-  assert(start < end, s"DateTimeInterval error: 'start' ($start) is after 'end' ($end)")
-}
-
-final case class TimeIntervalForWeekDay(dayOfWeek: DayOfWeek, interval: TimeInterval)
-
-final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
-  val start: LocalTime = interval.start
-  val end: LocalTime   = interval.end
-
-  def roundToFullHours: Option[TimeIntervalForDate] = interval.roundToFullHours.map(i => copy(interval = i))
-
-  def split(hours: Long): List[TimeIntervalForDate] = interval.split(hours).map(i => copy(interval = i))
-}
 
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
 

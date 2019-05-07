@@ -15,24 +15,27 @@ lazy val core =
     .settings(moduleName := "JRubysnessHours")
     .settings(resolvers += Resolver.bintrayRepo("rallyhealth", "maven"))
     .settings(
-      libraryDependencies ++= Seq(
-        "org.scalatest"   %% "scalatest"           % "3.0.7"  % Test,
-        "org.scalacheck"  %% "scalacheck"          % "1.14.0" % Test,
-        "com.rallyhealth" %% "scalacheck-ops_1-14" % "2.2.0"  % Test
-      )
+      libraryDependencies ++= approvalLibraries ++ scalacheckLibraries
     )
 
 lazy val jruby =
   project
     .settings(moduleName := "JRubysnessHoursAdapter")
     .settings(
-      libraryDependencies ++= Seq(
-        "org.scalatest"             %% "scalatest"     % "3.0.7" % Test,
-        "com.lihaoyi"               %% "pprint"        % "0.5.3" % Test,
-        "com.github.writethemfirst" % "approvals-java" % "0.6.0" % Test
-      )
+      libraryDependencies ++= approvalLibraries
     )
     .dependsOn(core)
+
+lazy val approvalLibraries = Seq(
+  "org.scalatest"             %% "scalatest"     % "3.0.7",
+  "com.lihaoyi"               %% "pprint"        % "0.5.3",
+  "com.github.writethemfirst" % "approvals-java" % "0.6.0"
+).map(_ % Test)
+
+lazy val scalacheckLibraries = Seq(
+  "org.scalacheck"  %% "scalacheck"          % "1.14.0",
+  "com.rallyhealth" %% "scalacheck-ops_1-14" % "2.2.0"
+).map(_ % Test)
 
 /**
   * Copied from Cats

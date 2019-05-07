@@ -1,0 +1,43 @@
+package com.colisweb.jrubysnesshours.core
+
+import com.colisweb.Approbation
+import com.colisweb.jrubysnesshours.core.SpecUtils._
+
+class ScheduleWithCutOffSpec extends Approbation {
+  val cutOff = Some(
+    DoubleCutOff(
+      sameDay = CutOff(limit = "08:00".toLocalTime, firstAvailableTime = "18:00".toLocalTime),
+      nextDay = CutOff(limit = "12:00".toLocalTime, firstAvailableTime = "15:00".toLocalTime)
+    )
+  )
+
+  "a Schedule" should "cut start of D day" in { approver =>
+    val slots = schedule.splitTimeSegments(
+      "2019-05-02" at "10:00" -> FRANCE_TIMEZONE,
+      "2019-05-12" at "10:00" -> FRANCE_TIMEZONE,
+      2,
+      cutOff
+    )
+    approver.verify(prettify(slots))
+  }
+
+  it should "keep start of D day" in { approver =>
+    val slots = schedule.splitTimeSegments(
+      "2019-05-02" at "08:00" -> FRANCE_TIMEZONE,
+      "2019-05-12" at "10:00" -> FRANCE_TIMEZONE,
+      2,
+      cutOff
+    )
+    approver.verify(prettify(slots))
+  }
+
+  it should "cut start of D+1 day" in { approver =>
+    val slots = schedule.splitTimeSegments(
+      "2019-05-02" at "12:01" -> FRANCE_TIMEZONE,
+      "2019-05-12" at "10:00" -> FRANCE_TIMEZONE,
+      2,
+      cutOff
+    )
+    approver.verify(prettify(slots))
+  }
+}
