@@ -6,7 +6,7 @@ import com.colisweb.jrubysnesshours.core.SpecUtils._
 class ScheduleWithCutOffSpec extends Approbation {
   val cutOff = Some(
     DoubleCutOff(
-      sameDay = CutOff(limit = "08:00".toLocalTime, firstAvailableTime = "18:00".toLocalTime),
+      sameDay = CutOff(limit = "08:00".toLocalTime, firstAvailableTime = "17:00".toLocalTime),
       nextDay = CutOff(limit = "12:00".toLocalTime, firstAvailableTime = "15:00".toLocalTime)
     )
   )
