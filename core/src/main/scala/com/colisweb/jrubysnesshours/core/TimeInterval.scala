@@ -22,7 +22,7 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
       List(this)
     else if (start.until(end, ChronoUnit.HOURS) < hours)
       Nil
-    else TimeInterval(start, start.plusHours(hours)) :: copy(start = start.plusHours(hours)).split(hours)
+    else TimeInterval(start, start.plusHours(hours)) :: copy(start = start.plusHours(1)).split(hours)
 
   def isBefore(that: TimeInterval): Boolean = this.end <= that.start
 

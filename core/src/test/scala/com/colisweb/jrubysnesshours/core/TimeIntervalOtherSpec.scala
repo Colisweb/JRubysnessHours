@@ -35,14 +35,14 @@ class TimeIntervalOtherSpec extends WordSpec with Matchers {
       interval.split(2) shouldBe List(interval)
     }
 
-    "10:00-14:00 splits to List(10-12, 12-14)" in {
+    "10:00-14:00 splits to List(10-12, 11-13, 12-14)" in {
       val interval = "10:00" - "14:00"
-      interval.split(2) shouldBe List("10:00" - "12:00", "12:00" - "14:00")
+      interval.split(2) shouldBe List("10:00" - "12:00", "11:00" - "13:00", "12:00" - "14:00")
     }
 
-    "10:00-15:00 splits to List(10-12, 12-14)" in {
+    "10:00-15:00 splits to List(10-12, 11-13, 12-14, 13-15)" in {
       val interval = "10:00" - "15:00"
-      interval.split(2) shouldBe List("10:00" - "12:00", "12:00" - "14:00")
+      interval.split(2) shouldBe List("10:00" - "12:00", "11:00" - "13:00", "12:00" - "14:00", "13:00" - "15:00")
     }
 
   }
