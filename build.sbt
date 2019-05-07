@@ -1,8 +1,8 @@
-ThisBuild / organization      := "com.colisweb"
-ThisBuild / scalaVersion      := "2.12.8"
+ThisBuild / organization := "com.colisweb"
+ThisBuild / scalaVersion := "2.12.8"
 ThisBuild / scalafmtOnCompile := true
-ThisBuild / scalafmtCheck     := true
-ThisBuild / scalafmtSbtCheck  := true
+ThisBuild / scalafmtCheck := true
+ThisBuild / scalafmtSbtCheck := true
 
 lazy val root = Project(id = "JRubysnessHours", base = file("."))
   .settings(moduleName := "root")
@@ -27,7 +27,9 @@ lazy val jruby =
     .settings(moduleName := "JRubysnessHoursAdapter")
     .settings(
       libraryDependencies ++= Seq(
-        "org.scalatest" %% "scalatest" % "3.0.7" % Test
+        "org.scalatest"             %% "scalatest"     % "3.0.7" % Test,
+        "com.lihaoyi"               %% "pprint"        % "0.5.3" % Test,
+        "com.github.writethemfirst" % "approvals-java" % "0.6.0" % Test
       )
     )
     .dependsOn(core)
