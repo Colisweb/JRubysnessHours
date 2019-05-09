@@ -14,22 +14,20 @@ lazy val core =
   project
     .settings(moduleName := "JRubysnessHours")
     .settings(resolvers += Resolver.bintrayRepo("rallyhealth", "maven"))
-    .settings(
-      libraryDependencies ++= approvalLibraries ++ scalacheckLibraries
-    )
+    .settings(fork := true)
+    .settings(libraryDependencies ++= approvalLibraries ++ scalacheckLibraries)
 
 lazy val jruby =
   project
     .settings(moduleName := "JRubysnessHoursAdapter")
-    .settings(
-      libraryDependencies ++= approvalLibraries
-    )
+    .settings(fork := true)
+    .settings(libraryDependencies ++= approvalLibraries)
     .dependsOn(core)
 
 lazy val approvalLibraries = Seq(
   "org.scalatest"             %% "scalatest"     % "3.0.7",
   "com.lihaoyi"               %% "pprint"        % "0.5.3",
-  "com.github.writethemfirst" % "approvals-java" % "0.6.0"
+  "com.github.writethemfirst" % "approvals-java" % "0.6.1"
 ).map(_ % Test)
 
 lazy val scalacheckLibraries = Seq(
@@ -53,6 +51,8 @@ inThisBuild(
     homepage := Some(url("https://github.com/Colisweb/JRubysnessHours")),
     bintrayOrganization := Some("colisweb"),
     bintrayReleaseOnPublish := true,
+    resolvers += Resolver.bintrayRepo("writethemfirst", "maven"),
+    scalacOptions += "-Yresolve-term-conflict:object",
     publishMavenStyle := true,
     pomExtra := (
       <scm>
