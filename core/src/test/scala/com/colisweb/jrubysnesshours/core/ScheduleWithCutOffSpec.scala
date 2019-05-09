@@ -40,4 +40,16 @@ class ScheduleWithCutOffSpec extends Approbation {
     )
     approver.verify(prettify(slots))
   }
+
+  it should "cut start of next open day and skip exceptions" in { approver =>
+    val slots = schedule
+      .copy(exceptions = Map("2019-05-08".toLocalDate -> List(TimeInterval.FULL_DAY)))
+      .splitTimeSegments(
+        "2019-05-07" at "12:01" -> FRANCE_TIMEZONE,
+        "2019-05-10" at "10:00" -> FRANCE_TIMEZONE,
+        2,
+        cutOff
+      )
+    approver.verify(prettify(slots))
+  }
 }

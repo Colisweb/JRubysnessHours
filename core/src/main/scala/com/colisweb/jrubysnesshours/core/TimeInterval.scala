@@ -5,6 +5,10 @@ import java.time.temporal.ChronoUnit
 
 import scala.math.Ordering.Implicits._
 
+object TimeInterval {
+  val FULL_DAY = TimeInterval(LocalTime.MIN, LocalTime.MAX)
+}
+
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
 
   assert(start < end, s"TimeInterval error: 'start' ($start) must be < 'end' ($end)")

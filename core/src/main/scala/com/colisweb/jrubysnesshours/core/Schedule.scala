@@ -4,6 +4,8 @@ import java.time.LocalTime.{MAX, MIN}
 import java.time._
 import java.time.temporal.ChronoUnit
 
+import com.colisweb.jrubysnesshours.core.Schedule._
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.math.Ordering.Implicits._
@@ -23,8 +25,10 @@ final case class Schedule private[core] (
       hours: Long,
       cutOff: Option[DoubleCutOff] = None
   ): List[TimeIntervalForDate] = {
-    val localStart = local(start)
-    val cutStart   = cutOff.fold(localStart)(_.nextAvailableMoment(localStart))
+    val startTime = local(start).toLocalTime
+    val available =
+      cutOff.fold(AvailableFrom(availableTime = startTime))(_.nextAvailableMoment(startTime))
+    val cutStart = available.forDate(start.toLocalDate)
     intervalsBetween(cutStart, local(end))
       .flatMap(_.roundToFullHours)
       .flatMap(_.split(hours))
@@ -73,7 +77,7 @@ final case class Schedule private[core] (
   }
 
   def contains(start: ZonedDateTime, end: ZonedDateTime): Boolean = {
-    assert(Schedule.isTheSameDayForZone(start, end, timeZone))
+    assert(isTheSameDayForZone(start, end, timeZone))
 
     val startLocalDate = start.toLocalDate
 
@@ -112,14 +116,6 @@ final case class Schedule private[core] (
     } else None
   }
 
-  private[core] def startOfDayCut(start: LocalTime): List[TimeInterval] =
-    if (start == MIN) Nil
-    else List(TimeInterval(start = MIN, end = start))
-
-  private[core] def endOfDayCut(end: LocalTime): List[TimeInterval] =
-    if (end == MAX) Nil
-    else List(TimeInterval(start = end, end = MAX))
-
   private[core] def intervalsInStartDay(start: LocalDateTime): List[TimeIntervalForDate] =
     allIntervalsInDate(start.toLocalDate, startOfDayCut(start.toLocalTime))
 
@@ -133,8 +129,7 @@ final case class Schedule private[core] (
       date: LocalDate,
       additionalExceptions: List[TimeInterval] = Nil
   ): List[TimeIntervalForDate] =
-    Schedule
-      .cutExceptions(planningFor(date.getDayOfWeek), additionalExceptions ::: exceptionFor(date))
+    cutExceptions(planningFor(date.getDayOfWeek), additionalExceptions ::: exceptionFor(date))
       .map(interval => TimeIntervalForDate(date = date, interval = interval))
 
   private def local(instant: ZonedDateTime): LocalDateTime = instant.withZoneSameInstant(timeZone).toLocalDateTime
@@ -227,4 +222,12 @@ object Schedule {
         acc.flatMap(_ diff exception)
       }
     }
+
+  private[core] def startOfDayCut(start: LocalTime): List[TimeInterval] =
+    if (start == MIN) Nil
+    else List(TimeInterval(start = MIN, end = start))
+
+  private[core] def endOfDayCut(end: LocalTime): List[TimeInterval] =
+    if (end == MAX) Nil
+    else List(TimeInterval(start = end, end = MAX))
 }
