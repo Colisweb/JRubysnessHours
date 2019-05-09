@@ -26,17 +26,15 @@ final case class Schedule private[core] (
       cutOff: Option[DoubleCutOff] = None
   ): List[TimeIntervalForDate] = {
     val startTime = local(start).toLocalTime
+    val available = cutOff.fold(AvailableFrom(availableTime = startTime))(_.nextAvailableMoment(startTime))
+
     for {
-      available <- cutOff
-        .map(_.nextAvailableMoment(startTime))
-        .orElse(Some(AvailableFrom(availableTime = startTime)))
-        .toList
       nextWorkingDay <- nextOpenTimeAfter(start.plusDays(1).withHour(0).withMinute(0)).toList
-      cutStart = available.forDates(start.toLocalDate, nextWorkingDay.toLocalDate)
-      intervals <- intervalsBetween(cutStart, local(end))
-        .flatMap(_.roundToFullHours)
-        .flatMap(_.split(hours))
-    } yield intervals
+      localStart = available.forDates(start.toLocalDate, nextWorkingDay.toLocalDate)
+      interval <- intervalsBetween(localStart, local(end))
+      rounded  <- interval.roundToFullHours
+      segment  <- rounded.split(hours)
+    } yield segment
   }
 
   @inline def planningFor(dayOfWeek: DayOfWeek): List[TimeInterval] = planning.getOrElse(dayOfWeek, Nil)
@@ -113,12 +111,7 @@ final case class Schedule private[core] (
       val localInstant = local(instant)
       val date         = localInstant.toLocalDate
       val time         = localInstant.toLocalTime
-
-      val res = findNextOpenTimeAfter(date, startOfDayCut(time))
-        .map(_.atZone(instant.getZone))
-      println(s"next after $instant  : $res")
-      res
-
+      findNextOpenTimeAfter(date, startOfDayCut(time)).map(_.atZone(instant.getZone))
     } else None
   }
 

@@ -6,7 +6,7 @@ final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
   val start: LocalTime = interval.start
   val end: LocalTime   = interval.end
 
-  def roundToFullHours: Option[TimeIntervalForDate] = interval.roundToFullHours.map(i => copy(interval = i))
+  def roundToFullHours: Iterable[TimeIntervalForDate] = interval.roundToFullHours.map(i => copy(interval = i))
 
   def split(hours: Long): List[TimeIntervalForDate] = interval.split(hours).map(i => copy(interval = i))
 }
