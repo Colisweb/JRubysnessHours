@@ -46,7 +46,7 @@ class ScheduleWithCutOffSpec extends Approbation {
       .copy(exceptions = Map("2019-05-08".toLocalDate -> List(TimeInterval.FULL_DAY)))
       .splitTimeSegments(
         "2019-05-07" at "12:01" -> FRANCE_TIMEZONE,
-        "2019-05-10" at "10:00" -> FRANCE_TIMEZONE,
+        "2019-05-11" at "10:00" -> FRANCE_TIMEZONE,
         2,
         cutOff
       )

@@ -1,10 +1,13 @@
 List(
-  TimeIntervalForDate(2019-05-09, TimeInterval(10:00, 12:00)),
-  TimeIntervalForDate(2019-05-09, TimeInterval(11:00, 13:00)),
-  TimeIntervalForDate(2019-05-09, TimeInterval(12:00, 14:00)),
-  TimeIntervalForDate(2019-05-09, TimeInterval(13:00, 15:00)),
-  TimeIntervalForDate(2019-05-09, TimeInterval(14:00, 16:00)),
   TimeIntervalForDate(2019-05-09, TimeInterval(15:00, 17:00)),
   TimeIntervalForDate(2019-05-09, TimeInterval(16:00, 18:00)),
-  TimeIntervalForDate(2019-05-09, TimeInterval(17:00, 19:00))
+  TimeIntervalForDate(2019-05-09, TimeInterval(17:00, 19:00)),
+  TimeIntervalForDate(2019-05-10, TimeInterval(10:00, 12:00)),
+  TimeIntervalForDate(2019-05-10, TimeInterval(11:00, 13:00)),
+  TimeIntervalForDate(2019-05-10, TimeInterval(12:00, 14:00)),
+  TimeIntervalForDate(2019-05-10, TimeInterval(13:00, 15:00)),
+  TimeIntervalForDate(2019-05-10, TimeInterval(14:00, 16:00)),
+  TimeIntervalForDate(2019-05-10, TimeInterval(15:00, 17:00)),
+  TimeIntervalForDate(2019-05-10, TimeInterval(16:00, 18:00)),
+  TimeIntervalForDate(2019-05-10, TimeInterval(17:00, 19:00))
 )

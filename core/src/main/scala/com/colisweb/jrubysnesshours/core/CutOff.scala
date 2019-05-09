@@ -18,7 +18,7 @@ final case class DoubleCutOff(sameDay: CutOff, nextDay: CutOff) {
 }
 
 final case class AvailableFrom(availableTime: LocalTime, sameDay: Boolean = true) {
-  def forDate(date: LocalDate): LocalDateTime =
+  def forDates(date: LocalDate, nextDate: LocalDate): LocalDateTime =
     if (sameDay) date.atTime(availableTime)
-    else date.plusDays(1).atTime(availableTime)
+    else nextDate.atTime(availableTime)
 }

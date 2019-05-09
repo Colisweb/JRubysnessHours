@@ -26,12 +26,17 @@ final case class Schedule private[core] (
       cutOff: Option[DoubleCutOff] = None
   ): List[TimeIntervalForDate] = {
     val startTime = local(start).toLocalTime
-    val available =
-      cutOff.fold(AvailableFrom(availableTime = startTime))(_.nextAvailableMoment(startTime))
-    val cutStart = available.forDate(start.toLocalDate)
-    intervalsBetween(cutStart, local(end))
-      .flatMap(_.roundToFullHours)
-      .flatMap(_.split(hours))
+    for {
+      available <- cutOff
+        .map(_.nextAvailableMoment(startTime))
+        .orElse(Some(AvailableFrom(availableTime = startTime)))
+        .toList
+      nextWorkingDay <- nextOpenTimeAfter(start.plusDays(1).withHour(0).withMinute(0)).toList
+      cutStart = available.forDates(start.toLocalDate, nextWorkingDay.toLocalDate)
+      intervals <- intervalsBetween(cutStart, local(end))
+        .flatMap(_.roundToFullHours)
+        .flatMap(_.split(hours))
+    } yield intervals
   }
 
   @inline def planningFor(dayOfWeek: DayOfWeek): List[TimeInterval] = planning.getOrElse(dayOfWeek, Nil)
@@ -97,21 +102,22 @@ final case class Schedule private[core] (
   }
 
   def nextOpenTimeAfter(instant: ZonedDateTime): Option[ZonedDateTime] = {
+    @tailrec
+    def findNextOpenTimeAfter(date: LocalDate, additionalException: List[TimeInterval]): Option[LocalDateTime] =
+      allIntervalsInDate(date, additionalException) match {
+        case interval :: _ => Some(LocalDateTime.of(date, interval.start))
+        case Nil           => findNextOpenTimeAfter(date.plusDays(1), Nil)
+      }
+
     if (planning.nonEmpty) {
-
-      @tailrec
-      def findNextOpenTimeAfter(date: LocalDate, additionalException: List[TimeInterval]): Option[LocalDateTime] =
-        allIntervalsInDate(date, additionalException) match {
-          case interval :: _ => Some(LocalDateTime.of(date, interval.start))
-          case Nil           => findNextOpenTimeAfter(date.plusDays(1), Nil)
-        }
-
       val localInstant = local(instant)
       val date         = localInstant.toLocalDate
       val time         = localInstant.toLocalTime
 
-      findNextOpenTimeAfter(date, startOfDayCut(time))
+      val res = findNextOpenTimeAfter(date, startOfDayCut(time))
         .map(_.atZone(instant.getZone))
+      println(s"next after $instant  : $res")
+      res
 
     } else None
   }
