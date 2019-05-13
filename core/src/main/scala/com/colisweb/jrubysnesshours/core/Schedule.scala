@@ -2,10 +2,11 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time.LocalTime.{MAX, MIN}
 import java.time._
-import java.time.temporal.ChronoUnit
+import java.time.temporal.ChronoUnit.DAYS
 
 import com.colisweb.jrubysnesshours.core.Schedule._
 import com.colisweb.jrubysnesshours.core.utils.Orderings._
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.math.Ordering.Implicits._
@@ -44,29 +45,12 @@ final case class Schedule private[core] (
   def intervalsBetween(start: ZonedDateTime, end: ZonedDateTime): List[TimeIntervalForDate] =
     intervalsBetween(local(start), local(end))
 
-  private def intervalsBetween(localStart: LocalDateTime, localEnd: LocalDateTime): List[TimeIntervalForDate] = {
-    val localStartDate = localStart.toLocalDate
-    val localEndDate   = localEnd.toLocalDate
+  private def intervalsBetween(localStart: LocalDateTime, localEnd: LocalDateTime): List[TimeIntervalForDate] =
+    if (localStart < localEnd) intervalsBetween(DateTimeInterval(localStart, localEnd))
+    else Nil
 
-    if (localStart >= localEnd) Nil
-    else if (localStartDate == localEndDate)
-      intervalsInSameDay(localStartDate, TimeInterval(localStart.toLocalTime, localEnd.toLocalTime))
-    else {
-      val startDayIntervals: List[TimeIntervalForDate] = intervalsInStartDay(localStart)
-      val endDayIntervals: List[TimeIntervalForDate]   = intervalsInEndDay(localEnd)
-
-      val numberOfDays = localStartDate.until(localEndDate, ChronoUnit.DAYS)
-
-      val dayRangeIntervals: ListBuffer[TimeIntervalForDate] =
-        (1L until numberOfDays)
-          .foldLeft(ListBuffer.empty[TimeIntervalForDate]) { (acc, i) =>
-            val date = localStartDate.plusDays(i)
-            acc ++ allIntervalsInDate(date)
-          }
-
-      startDayIntervals ++ dayRangeIntervals ++ endDayIntervals
-    }
-  }
+  private def intervalsBetween(interval: DateTimeInterval): List[TimeIntervalForDate] =
+    interval.asSameDateInterval.fold(intervalsInTwoDates(interval.start, interval.end))(intervalsInSameDate)
 
   def contains(instant: ZonedDateTime): Boolean = {
     val localInstant = local(instant)
@@ -120,16 +104,30 @@ final case class Schedule private[core] (
     } else None
   }
 
-  private[core] def intervalsInStartDay(start: LocalDateTime): List[TimeIntervalForDate] =
+  private def intervalsInStartDay(start: LocalDateTime): List[TimeIntervalForDate] =
     allIntervalsInDate(start.toLocalDate, startOfDayCut(start.toLocalTime))
 
-  private[core] def intervalsInEndDay(end: LocalDateTime): List[TimeIntervalForDate] =
+  private def intervalsInEndDay(end: LocalDateTime): List[TimeIntervalForDate] =
     allIntervalsInDate(end.toLocalDate, endOfDayCut(end.toLocalTime))
 
-  private[core] def intervalsInSameDay(date: LocalDate, query: TimeInterval): List[TimeIntervalForDate] =
-    allIntervalsInDate(date, startOfDayCut(query.start) ++ endOfDayCut(query.end))
+  private def intervalsInSameDate(timeIntervalForDate: TimeIntervalForDate): List[TimeIntervalForDate] =
+    allIntervalsInDate(
+      timeIntervalForDate.date,
+      startOfDayCut(timeIntervalForDate.start) ++ endOfDayCut(timeIntervalForDate.end)
+    )
 
-  private[core] def allIntervalsInDate(
+  private def intervalsInTwoDates(localStart: LocalDateTime, localEnd: LocalDateTime): List[TimeIntervalForDate] = {
+    val localStartDate = localStart.toLocalDate
+    val days           = localStartDate.until(localEnd.toLocalDate, DAYS)
+
+    val intervalsInIntermediateDays = (1L until days).flatMap { days =>
+      allIntervalsInDate(localStartDate.plusDays(days))
+    }
+
+    intervalsInStartDay(localStart) ++ intervalsInIntermediateDays ++ intervalsInEndDay(localEnd)
+  }
+
+  private def allIntervalsInDate(
       date: LocalDate,
       additionalExceptions: List[TimeInterval] = Nil
   ): List[TimeIntervalForDate] =
@@ -170,7 +168,7 @@ object Schedule {
           val localStartDate = dateTimeInterval.start.toLocalDate
           val localEndDate   = dateTimeInterval.end.toLocalDate
 
-          val numberOfDays = localStartDate.until(localEndDate, ChronoUnit.DAYS)
+          val numberOfDays = localStartDate.until(localEndDate, DAYS)
 
           if (numberOfDays == 0L) {
             val newInterval = TimeInterval(start = localStartTime, end = localEndTime)
