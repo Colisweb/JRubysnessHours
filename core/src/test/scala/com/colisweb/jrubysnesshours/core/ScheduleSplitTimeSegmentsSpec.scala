@@ -97,10 +97,6 @@ class ScheduleSplitTimeSegmentsSpec extends WordSpec with Matchers with ScalaChe
         )
       )
 
-      schedule
-        .copy(planning = planning.updated(THURSDAY, List.empty))
-        .splitTimeSegmentsSingleDate(aThursday, 2) shouldBe List.empty
-
       "and asking for 2019-05-02 at 12:01 to 23:59 the same day" in {
         val slots =
           schedule
