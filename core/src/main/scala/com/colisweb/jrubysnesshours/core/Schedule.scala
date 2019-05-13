@@ -16,7 +16,7 @@ final case class Schedule private[core] (
     timeZone: ZoneId
 ) {
 
-  def splitTimeSegmentsSingleDate(date: LocalDate, hours: Long = 2): List[TimeInterval] =
+  def splitTimeSegmentsSingleDate(date: LocalDate, hours: Long): List[TimeInterval] =
     splitTimeSegments(zoned(date.atTime(MIN)), zoned(date.atTime(MAX)), hours).map(_.interval)
 
   def splitTimeSegments(
@@ -81,7 +81,10 @@ final case class Schedule private[core] (
   }
 
   def contains(start: ZonedDateTime, end: ZonedDateTime): Boolean = {
-    assert(isTheSameDayForZone(start, end, timeZone), s"start $start and end $end are not the same day for zone $timeZone")
+    assert(
+      isTheSameDayForZone(start, end, timeZone),
+      s"start $start and end $end are not the same day for zone $timeZone"
+    )
 
     val startLocalDate = start.toLocalDate
 
