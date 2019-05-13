@@ -29,7 +29,7 @@ final case class Schedule private[core] (
     val startTime = local(start).toLocalTime
 
     for {
-      nextWorkingDay <- nextOpenTimeAfter(start.plusDays(1).withHour(0).withMinute(0)).toList
+      nextWorkingDay <- nextOpenTimeAfter(start.plusDays(1).truncatedTo(DAYS)).toList
       localStart = cutOff.fold(start.toLocalDateTime)(
         _.nextAvailableMoment(startTime, start.toLocalDate, nextWorkingDay.toLocalDate)
       )
@@ -50,7 +50,7 @@ final case class Schedule private[core] (
     else Nil
 
   private def intervalsBetween(interval: DateTimeInterval): List[TimeIntervalForDate] =
-    interval.asSameDateInterval.fold(intervalsInTwoDates(interval.start, interval.end))(intervalsInSameDate)
+    interval.asSameDateIntervals.flatMap(allIntervalsInDate)
 
   def contains(instant: ZonedDateTime): Boolean = {
     val localInstant = local(instant)
@@ -88,48 +88,29 @@ final case class Schedule private[core] (
     existsPlanning && notExistsException
   }
 
-  def nextOpenTimeAfter(instant: ZonedDateTime): Option[ZonedDateTime] = {
-    @tailrec
-    def findNextOpenTimeAfter(date: LocalDate, additionalException: List[TimeInterval]): Option[LocalDateTime] =
-      allIntervalsInDate(date, additionalException) match {
-        case interval :: _ => Some(LocalDateTime.of(date, interval.start))
-        case Nil           => findNextOpenTimeAfter(date.plusDays(1), Nil)
-      }
-
+  def nextOpenTimeAfter(instant: ZonedDateTime): Option[ZonedDateTime] =
     if (planning.nonEmpty) {
       val localInstant = local(instant)
       val date         = localInstant.toLocalDate
       val time         = localInstant.toLocalTime
       findNextOpenTimeAfter(date, startOfDayCut(time)).map(_.atZone(instant.getZone))
     } else None
-  }
 
-  private def intervalsInStartDay(start: LocalDateTime): List[TimeIntervalForDate] =
-    allIntervalsInDate(start.toLocalDate, startOfDayCut(start.toLocalTime))
-
-  private def intervalsInEndDay(end: LocalDateTime): List[TimeIntervalForDate] =
-    allIntervalsInDate(end.toLocalDate, endOfDayCut(end.toLocalTime))
-
-  private def intervalsInSameDate(timeIntervalForDate: TimeIntervalForDate): List[TimeIntervalForDate] =
-    allIntervalsInDate(
-      timeIntervalForDate.date,
-      startOfDayCut(timeIntervalForDate.start) ++ endOfDayCut(timeIntervalForDate.end)
-    )
-
-  private def intervalsInTwoDates(localStart: LocalDateTime, localEnd: LocalDateTime): List[TimeIntervalForDate] = {
-    val localStartDate = localStart.toLocalDate
-    val days           = localStartDate.until(localEnd.toLocalDate, DAYS)
-
-    val intervalsInIntermediateDays = (1L until days).flatMap { days =>
-      allIntervalsInDate(localStartDate.plusDays(days))
+  @tailrec
+  private def findNextOpenTimeAfter(date: LocalDate, additionalException: List[TimeInterval]): Option[LocalDateTime] =
+    allIntervalsInDate(date, additionalException).headOption match {
+      case Some(interval) => Some(LocalDateTime.of(date, interval.start))
+      case None           => findNextOpenTimeAfter(date.plusDays(1), Nil)
     }
 
-    intervalsInStartDay(localStart) ++ intervalsInIntermediateDays ++ intervalsInEndDay(localEnd)
+  private def allIntervalsInDate(interval: TimeIntervalForDate): List[TimeIntervalForDate] = {
+    cutExceptions(planningFor(interval.date.getDayOfWeek), interval.cutBoth ::: exceptionFor(interval.date))
+      .map(i => TimeIntervalForDate(date = interval.date, interval = i))
   }
 
   private def allIntervalsInDate(
       date: LocalDate,
-      additionalExceptions: List[TimeInterval] = Nil
+      additionalExceptions: List[TimeInterval]
   ): List[TimeIntervalForDate] =
     cutExceptions(planningFor(date.getDayOfWeek), additionalExceptions ::: exceptionFor(date))
       .map(interval => TimeIntervalForDate(date = date, interval = interval))
@@ -225,11 +206,8 @@ object Schedule {
       }
     }
 
-  private[core] def startOfDayCut(start: LocalTime): List[TimeInterval] =
+  private def startOfDayCut(start: LocalTime): List[TimeInterval] =
     if (start == MIN) Nil
     else List(TimeInterval(start = MIN, end = start))
 
-  private[core] def endOfDayCut(end: LocalTime): List[TimeInterval] =
-    if (end == MAX) Nil
-    else List(TimeInterval(start = end, end = MAX))
 }

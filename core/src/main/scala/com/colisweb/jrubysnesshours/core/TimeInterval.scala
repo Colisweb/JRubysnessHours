@@ -1,7 +1,7 @@
 package com.colisweb.jrubysnesshours.core
 
 import java.time._
-import java.time.temporal.ChronoUnit
+import java.time.temporal.ChronoUnit.HOURS
 
 import scala.math.Ordering.Implicits._
 
@@ -15,16 +15,16 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
 
   def roundToFullHours: Option[TimeInterval] = {
     val roundedStart = start.plusHours(if (start.getMinute + start.getSecond > 0) 1 else 0).withMinute(0).withSecond(0)
-    val roundedEnd   = end.withMinute(0).withSecond(0)
+    val roundedEnd   = end.truncatedTo(HOURS)
     if (roundedEnd > roundedStart)
       Some(TimeInterval(roundedStart, roundedEnd))
     else None
   }
 
   def split(hours: Long): List[TimeInterval] =
-    if (start.until(end, ChronoUnit.HOURS) == hours)
+    if (start.until(end, HOURS) == hours)
       List(this)
-    else if (start.until(end, ChronoUnit.HOURS) < hours)
+    else if (start.until(end, HOURS) < hours)
       Nil
     else TimeInterval(start, start.plusHours(hours)) :: copy(start = start.plusHours(1)).split(hours)
 

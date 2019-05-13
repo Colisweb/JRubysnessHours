@@ -50,6 +50,7 @@ class ScheduleNextOpenTimeSpec extends WordSpec with Matchers {
       )
       scheduleWithExceptions.nextOpenTimeAfter("2019-03-11" at "19:00") shouldBe Some("2019-03-12" at "15:00")
       scheduleWithExceptions.nextOpenTimeAfter("2019-03-12" at "19:30") shouldBe Some("2019-03-15" at "09:30")
+      scheduleWithExceptions.nextOpenTimeAfter("2019-03-14" at "09:45") shouldBe Some("2019-03-15" at "09:30")
     }
 
     "return a nextOpenTime after a long period closed by exceptions" in {
