@@ -83,13 +83,13 @@ class ScheduleSplitTimeSegmentsSpec extends WordSpec with Matchers with ScalaChe
         List("09:00" - "11:00", "10:00" - "12:00", "12:00" - "14:00", "13:00" - "15:00")
     }
 
-    "splits when the day is cut 9-12 12-15 and THURSDAY is empty" in {
+    "splits when the day is cut 9-12 12-15 and THURSDAY is empty 1" in {
       schedule
         .copy(planning = planning.updated(THURSDAY, List.empty))
         .splitTimeSegmentsSingleDate(aThursday, 2) shouldBe List.empty
     }
 
-    "splits when the day is cut 9-12 12-15 and THURSDAY is empty" when {
+    "splits when the day is cut 9-12 12-15 and THURSDAY is empty 2" when {
       val cutOff = Some(
         DoubleCutOff(
           sameDay = CutOff(limit = "09:00".toLocalTime, firstAvailableTime = "12:00".toLocalTime),
