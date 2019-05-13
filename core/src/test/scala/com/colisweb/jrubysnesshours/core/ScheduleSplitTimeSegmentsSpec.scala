@@ -89,7 +89,7 @@ class ScheduleSplitTimeSegmentsSpec extends WordSpec with Matchers with ScalaChe
         .splitTimeSegmentsSingleDate(aThursday, 2) shouldBe List.empty
     }
 
-    "splits when the day is cut 9-12 12-15 and THURSDAY is empty and asking for 2019-05-02 at 12:01 to 23:59 the same day" in {
+    "splits when the day is cut 9-12 12-15 and THURSDAY is empty" when {
       val cutOff = Some(
         DoubleCutOff(
           sameDay = CutOff(limit = "09:00".toLocalTime, firstAvailableTime = "12:00".toLocalTime),
@@ -101,20 +101,34 @@ class ScheduleSplitTimeSegmentsSpec extends WordSpec with Matchers with ScalaChe
         .copy(planning = planning.updated(THURSDAY, List.empty))
         .splitTimeSegmentsSingleDate(aThursday, 2) shouldBe List.empty
 
-      val slots =
-        schedule
-          .copy(planning = planning.updated(THURSDAY, List.empty))
-          .splitTimeSegments(
-            "2019-05-02" at "12:01" -> FRANCE_TIMEZONE, // it's a THURSDAY
-            "2019-05-02" at "23:59" -> FRANCE_TIMEZONE, // it's a THURSDAY
-            2,
-            cutOff
-          )
-      slots shouldBe List(
-        "2019-05-03" at "15:00" - "17:00",
-        "2019-05-03" at "16:00" - "18:00",
-        "2019-05-03" at "17:00" - "19:00",
-      )
+      "and asking for 2019-05-02 at 12:01 to 23:59 the same day" in {
+        val slots =
+          schedule
+            .copy(planning = planning.updated(THURSDAY, List.empty))
+            .splitTimeSegments(
+              "2019-05-02" at "12:01" -> FRANCE_TIMEZONE, // it's a THURSDAY
+              "2019-05-02" at "23:59" -> FRANCE_TIMEZONE, // it's a THURSDAY
+              2,
+              cutOff
+            )
+        slots shouldBe List.empty
+      }
+
+      "and asking for 2019-05-02 at 12:01 to 2019-05-03 at 18:00" in {
+        val slots =
+          schedule
+            .copy(planning = planning.updated(THURSDAY, List.empty))
+            .splitTimeSegments(
+              "2019-05-02" at "12:01" -> FRANCE_TIMEZONE, // it's a THURSDAY
+              "2019-05-03" at "18:00" -> FRANCE_TIMEZONE, // it's a FRIDAY
+              2,
+              cutOff
+            )
+        slots shouldBe List(
+          "2019-05-03" at "15:00" - "17:00",
+          "2019-05-03" at "16:00" - "18:00"
+        )
+      }
     }
   }
 
