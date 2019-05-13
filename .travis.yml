@@ -7,8 +7,8 @@ jobs:
   include:
     - stage: build
       script:
-        - sbt "project core"++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
-        - sbt "project jruby"++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
+        - sbt ++$TRAVIS_SCALA_VERSION "project core" clean coverage test coverageReport
+        - sbt ++$TRAVIS_SCALA_VERSION "project jruby" clean coverage test coverageReport
       jdk:
         - openjdk8
         - openjdk11
