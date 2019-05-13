@@ -4,33 +4,24 @@ import java.time.DayOfWeek._
 import java.time._
 
 import com.colisweb.jrubysnesshours.core._
+import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
 
-final case class RubyTimeSegmentInterval(date: LocalDate, startTime: ZonedDateTime, endTime: ZonedDateTime)
-
-final class JRubyzSchedule private[jruby] (schedule: Schedule) {
-
-  import JRubyzSchedule._
+final class JRubyzSchedule private[jruby] (private[jruby] val schedule: Schedule) {
+  def splitTimeSegments(
+      startsAt: ZonedDateTime,
+      endsAt: ZonedDateTime,
+      hours: Long,
+      cutOff: Option[DoubleCutOff] = None
+  ): Array[RubyTimeSegmentInterval] =
+    schedule
+      .splitTimeSegments(startsAt, endsAt, hours, cutOff)
+      .map(RubyTimeSegmentInterval(_, schedule.timeZone))
+      .toArray
 
   def timeSegments(startsAt: ZonedDateTime, endsAt: ZonedDateTime): Array[RubyTimeSegmentInterval] =
     schedule
       .intervalsBetween(startsAt, endsAt)
-      .map { timeIntervalForDate =>
-        val start: ZonedDateTime =
-          ZonedDateTime
-            .of(timeIntervalForDate.date, timeIntervalForDate.start, schedule.timeZone)
-            .withZoneSameInstant(UTC)
-
-        val end =
-          ZonedDateTime
-            .of(timeIntervalForDate.date, timeIntervalForDate.end, schedule.timeZone)
-            .withZoneSameInstant(UTC)
-
-        RubyTimeSegmentInterval(
-          date = timeIntervalForDate.date,
-          startTime = start,
-          endTime = end
-        )
-      }
+      .map(RubyTimeSegmentInterval(_, schedule.timeZone))
       .toArray
 
   def contains(start: ZonedDateTime, end: ZonedDateTime): Boolean = {
@@ -49,13 +40,19 @@ final class JRubyzSchedule private[jruby] (schedule: Schedule) {
 
 object JRubyzSchedule {
 
-  private val UTC: ZoneId = ZoneId.of("UTC")
+  val UTC: ZoneId = ZoneId.of("UTC")
+
+  def exception(startsAtZonedDateTime: String, endsAtZonedDateTime: String): DateTimeInterval =
+    exception(ZonedDateTime.parse(startsAtZonedDateTime), ZonedDateTime.parse(endsAtZonedDateTime))
 
   def exception(startsAt: ZonedDateTime, endsAt: ZonedDateTime): DateTimeInterval =
     DateTimeInterval(
       start = startsAt.toLocalDateTime,
       end = endsAt.toLocalDateTime
     )
+
+  def planningEntry(rubyWeekDay: Int, startLocalTime: String, endLocalTime: String): TimeIntervalForWeekDay =
+    planningEntry(rubyWeekDay, LocalTime.parse(startLocalTime), LocalTime.parse(endLocalTime))
 
   def planningEntry(rubyWeekDay: Int, startTime: LocalTime, endTime: LocalTime): TimeIntervalForWeekDay =
     TimeIntervalForWeekDay(
