@@ -81,7 +81,7 @@ final case class Schedule private[core] (
   }
 
   def contains(start: ZonedDateTime, end: ZonedDateTime): Boolean = {
-    assert(isTheSameDayForZone(start, end, timeZone))
+    assert(isTheSameDayForZone(start, end, timeZone), s"start $start and end $end are not the same day for zone $timeZone")
 
     val startLocalDate = start.toLocalDate
 
