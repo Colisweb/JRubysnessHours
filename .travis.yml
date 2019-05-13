@@ -2,11 +2,20 @@ sudo: false
 language: scala
 scala:
   - 2.12.8
-script:
-  - sbt ++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
-jdk:
-  - openjdk8
-  - openjdk11
 
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+jobs:
+  include:
+    - stage: build
+      script: sbt ++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
+      jdk:
+        - openjdk8
+        - openjdk11
+      after_success:
+      - bash <(curl -s https://codecov.io/bash)
+    - stage: deploy
+      jdk: openjdk8
+      script:
+        - sbt ++$TRAVIS_SCALA_VERSION  publish
+      branches:
+        except:
+          - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
