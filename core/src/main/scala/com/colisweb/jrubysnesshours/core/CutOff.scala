@@ -7,18 +7,15 @@ import scala.math.Ordering.Implicits._
 final case class CutOff(limit: LocalTime, firstAvailableTime: LocalTime)
 
 final case class DoubleCutOff(sameDay: CutOff, nextDay: CutOff) {
-  def nextAvailableMoment(requestTime: LocalTime): AvailableFrom = {
-    if (requestTime <= sameDay.limit)
-      AvailableFrom(availableTime = requestTime)
-    else if (requestTime <= nextDay.limit)
-      AvailableFrom(availableTime = sameDay.firstAvailableTime)
-    else
-      AvailableFrom(availableTime = nextDay.firstAvailableTime, sameDay = false)
-  }
-}
 
-final case class AvailableFrom(availableTime: LocalTime, sameDay: Boolean = true) {
-  def forDates(date: LocalDate, nextDate: LocalDate): LocalDateTime =
-    if (sameDay) date.atTime(availableTime)
-    else nextDate.atTime(availableTime)
+  assert(sameDay.limit < nextDay.limit, s"sameDay $sameDay limit must be < to nextDay $nextDay limit")
+
+  def nextAvailableMoment(requestTime: LocalTime, date: LocalDate, nextDate: LocalDate): LocalDateTime = {
+    if (requestTime <= sameDay.limit)
+      date.atTime(requestTime)
+    else if (requestTime <= nextDay.limit)
+      date.atTime(sameDay.firstAvailableTime)
+    else
+      nextDate.atTime(nextDay.firstAvailableTime)
+  }
 }

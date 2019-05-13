@@ -26,11 +26,12 @@ final case class Schedule private[core] (
       cutOff: Option[DoubleCutOff] = None
   ): List[TimeIntervalForDate] = {
     val startTime = local(start).toLocalTime
-    val available = cutOff.fold(AvailableFrom(availableTime = startTime))(_.nextAvailableMoment(startTime))
 
     for {
       nextWorkingDay <- nextOpenTimeAfter(start.plusDays(1).withHour(0).withMinute(0)).toList
-      localStart = available.forDates(start.toLocalDate, nextWorkingDay.toLocalDate)
+      localStart = cutOff.fold(start.toLocalDateTime)(
+        _.nextAvailableMoment(startTime, start.toLocalDate, nextWorkingDay.toLocalDate)
+      )
       interval <- intervalsBetween(localStart, local(end))
       rounded  <- interval.roundToFullHours
       segment  <- rounded.split(hours)
