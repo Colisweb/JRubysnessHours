@@ -5,7 +5,7 @@ import java.time._
 import java.time.temporal.ChronoUnit
 
 import com.colisweb.jrubysnesshours.core.Schedule._
-
+import com.colisweb.jrubysnesshours.core.utils.Orderings._
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.math.Ordering.Implicits._
@@ -48,9 +48,8 @@ final case class Schedule private[core] (
     val localStartDate = localStart.toLocalDate
     val localEndDate   = localEnd.toLocalDate
 
-    assert(localStart.isBefore(localEnd), s"localStart $localStart should be before localEnd $localEnd")
-
-    if (localStartDate == localEndDate)
+    if (localStart >= localEnd) Nil
+    else if (localStartDate == localEndDate)
       intervalsInSameDay(localStartDate, TimeInterval(localStart.toLocalTime, localEnd.toLocalTime))
     else {
       val startDayIntervals: List[TimeIntervalForDate] = intervalsInStartDay(localStart)
