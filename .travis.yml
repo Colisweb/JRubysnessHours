@@ -3,7 +3,8 @@ language: scala
 scala:
   - 2.12.8
 script:
-  - sbt ++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
+  - sbt "project core" ++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
+  - sbt "project jruby" ++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
 jdk:
   - openjdk8
   - openjdk11
