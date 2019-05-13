@@ -48,6 +48,8 @@ final case class Schedule private[core] (
     val localStartDate = localStart.toLocalDate
     val localEndDate   = localEnd.toLocalDate
 
+    assert(localStart.isBefore(localEnd), s"localStart $localStart should be before localEnd $localEnd")
+
     if (localStartDate == localEndDate)
       intervalsInSameDay(localStartDate, TimeInterval(localStart.toLocalTime, localEnd.toLocalTime))
     else {
