@@ -7,17 +7,14 @@ jobs:
   include:
     - stage: build
       script:
-        - sbt ++$TRAVIS_SCALA_VERSION "project core" clean coverage test coverageReport
-        - sbt ++$TRAVIS_SCALA_VERSION "project jruby" clean coverage test coverageReport
+        - sbt ++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
       jdk:
         - openjdk8
         - openjdk11
       after_success:
         - bash <(curl -s https://codecov.io/bash)
     - stage: deploy
+      if: branch = master
       jdk: openjdk8
       script:
         - sbt ++$TRAVIS_SCALA_VERSION  publish
-      branches:
-        except:
-          - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
