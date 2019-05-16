@@ -2,7 +2,7 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time._
 
-import SpecUtils._
+import com.colisweb.jrubysnesshours.core.SpecUtils._
 import org.scalatest.{Matchers, WordSpec}
 
 class ScheduleIntervalsBetweenSpec extends WordSpec with Matchers {
@@ -202,5 +202,56 @@ class ScheduleIntervalsBetweenSpec extends WordSpec with Matchers {
       }
     }
 
+    "bug found by Florian when timezone is different between schedule and splitTimeSegments arguments" in {
+      val start = ZonedDateTime.parse("2015-03-02T10:00Z[Etc/UTC]") // 11h en france
+      val end   = ZonedDateTime.parse("2015-03-02T23:59:59.000999999Z[Etc/UTC]")
+
+      // 2 mars : lundi, 9h-19h France
+
+      schedule.intervalsBetween(start, end) shouldBe List("2015-03-02" at "11:00" - "19:00")
+      schedule.splitTimeSegments(start, end, 3) shouldBe List(
+        "2015-03-02" at "11:00" - "14:00",
+        "2015-03-02" at "12:00" - "15:00",
+        "2015-03-02" at "13:00" - "16:00",
+        "2015-03-02" at "14:00" - "17:00",
+        "2015-03-02" at "15:00" - "18:00",
+        "2015-03-02" at "16:00" - "19:00",
+      )
+    }
+
+    "between a start > end the same day intervalsBetween is Nil" in {
+      schedule.intervalsBetween(
+        "2019-03-15" at "19:00" -> FRANCE_TIMEZONE,
+        "2019-03-15" at "13:59" -> FRANCE_TIMEZONE
+      ) shouldBe Nil
+    }
+
+    "between a start > end the same day intervalsBetween is Nil in other TZ" in {
+      schedule.intervalsBetween(
+        "2019-03-15" at "19:00" -> "UTC",
+        "2019-03-15" at "13:59" -> "UTC"
+      ) shouldBe Nil
+    }
+
+    "between a start > end yesterday intervalsBetween is Nil" in {
+      schedule.intervalsBetween(
+        "2019-03-15" at "19:00" -> FRANCE_TIMEZONE,
+        "2019-03-14" at "23:59" -> FRANCE_TIMEZONE
+      ) shouldBe Nil
+    }
+
+    "between a start > end yesterday intervalsBetween is Nil with other TZ" in {
+      schedule.intervalsBetween(
+        "2019-03-14" at "12:59" -> "UTC",
+        "2019-03-13" at "23:59" -> "UTC"
+      ) shouldBe Nil
+    }
+
+    "between a start < end same day intervalsBetween is not Nil with other TZ" in {
+      schedule.intervalsBetween(
+        "2019-03-14" at "12:59" -> "UTC",
+        "2019-03-14" at "23:59" -> "UTC"
+      ) should not be empty
+    }
   }
 }
