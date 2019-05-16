@@ -72,11 +72,11 @@ object TimeInterval {
     if (start == MIN) None
     else Some(fromStartOfDay(start))
 
-  def fromStartOfDay(start: LocalTime): TimeInterval =
-    TimeInterval(start = MIN, end = start)
+  def fromStartOfDay(end: LocalTime): TimeInterval =
+    TimeInterval(start = MIN, end = end)
 
-  def toEndOfDay(end: LocalTime) =
-    TimeInterval(start = end, end = MAX)
+  def toEndOfDay(start: LocalTime) =
+    TimeInterval(start = start, end = MAX)
 
   // TODO: can be simplified in scala 2.13
   // https://github.com/scala/scala/blob/v2.13.0-M5/src/library/scala/collection/Iterable.scala#L578
