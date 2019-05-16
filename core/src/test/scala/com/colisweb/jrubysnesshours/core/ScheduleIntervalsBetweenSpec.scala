@@ -218,5 +218,40 @@ class ScheduleIntervalsBetweenSpec extends WordSpec with Matchers {
         "2015-03-02" at "16:00" - "19:00",
       )
     }
+
+    "between a start > end the same day intervalsBetween is Nil" in {
+      schedule.intervalsBetween(
+        "2019-03-15" at "19:00" -> FRANCE_TIMEZONE,
+        "2019-03-15" at "13:59" -> FRANCE_TIMEZONE
+      ) shouldBe Nil
+    }
+
+    "between a start > end the same day intervalsBetween is Nil in other TZ" in {
+      schedule.intervalsBetween(
+        "2019-03-15" at "19:00" -> "UTC",
+        "2019-03-15" at "13:59" -> "UTC"
+      ) shouldBe Nil
+    }
+
+    "between a start > end yesterday intervalsBetween is Nil" in {
+      schedule.intervalsBetween(
+        "2019-03-15" at "19:00" -> FRANCE_TIMEZONE,
+        "2019-03-14" at "23:59" -> FRANCE_TIMEZONE
+      ) shouldBe Nil
+    }
+
+    "between a start > end yesterday intervalsBetween is Nil with other TZ" in {
+      schedule.intervalsBetween(
+        "2019-03-14" at "12:59" -> "UTC",
+        "2019-03-13" at "23:59" -> "UTC"
+      ) shouldBe Nil
+    }
+
+    "between a start < end same day intervalsBetween is not Nil with other TZ" in {
+      schedule.intervalsBetween(
+        "2019-03-14" at "12:59" -> "UTC",
+        "2019-03-14" at "23:59" -> "UTC"
+      ) should not be empty
+    }
   }
 }
