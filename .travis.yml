@@ -5,7 +5,7 @@ scala:
 
 jobs:
   include:
-    - stage: build
+    - stage: test
       script:
         - sbt ++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
       jdk:
@@ -13,8 +13,14 @@ jobs:
         - openjdk11
       after_success:
         - bash <(curl -s https://codecov.io/bash)
+
     - stage: deploy
-      if: branch = master
       jdk: openjdk8
       script:
-        - sbt ++$TRAVIS_SCALA_VERSION  publish
+        - skip
+      deploy:
+        provider: script
+        script: sbt publish
+        on:
+          tags: true
+          repo: colisweb/maven
