@@ -13,8 +13,3 @@ jobs:
         - openjdk11
       after_success:
         - bash <(curl -s https://codecov.io/bash)
-    - stage: deploy
-      if: branch = master
-      jdk: openjdk8
-      script:
-        - sbt ++$TRAVIS_SCALA_VERSION  publish
