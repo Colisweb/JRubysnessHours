@@ -1,9 +1,9 @@
 package com.colisweb.jrubysnesshours.jruby
 
 import java.time.DayOfWeek._
-import java.time.ZonedDateTime
+import java.time.{LocalTime, ZonedDateTime}
 
-import com.colisweb.jrubysnesshours.core.{DateTimeInterval, TimeIntervalForWeekDay}
+import com.colisweb.jrubysnesshours.core.{DateTimeInterval, TimeInterval, TimeIntervalForWeekDay}
 import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
 import com.colisweb.jrubysnesshours.jruby.SampleSchedule._
 import com.colisweb.jrubysnesshours.jruby.SpecUtils._
@@ -14,8 +14,8 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
   "jrubySchedule" should {
     "split on single date" in {
       jrubySchedule.splitTimeSegments(
-        ZonedDateTime.parse("2019-05-06T11:50:39Z"),
-        ZonedDateTime.parse("2019-05-06T16:17:39Z"),
+        "2019-05-06T11:50:39Z",
+        "2019-05-06T16:17:39Z",
         2
       ) shouldBe Array(
         RubyTimeSegmentInterval("2019-05-06", "2019-05-06T12:00Z[UTC]", "2019-05-06T14:00Z[UTC]"),
@@ -70,5 +70,56 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
       res shouldEqual TimeIntervalForWeekDay(SUNDAY, "16:17" - "18:15")
     }
   }
+
+  "bug found by Florian when timezone is different between schedule and splitTimeSegments arguments" when {
+    val schedule = JRubyzSchedule.schedule(
+      Array(TimeIntervalForWeekDay(MONDAY, TimeInterval("09:00", "20:00"))),
+      Array.empty,
+      "Europe/Paris"
+    )
+
+    "for UTC timezone" in {
+      val start = "2015-03-02T10:00Z[Etc/UTC]"
+      val end   = "2015-03-02T23:59:59.000999999Z[Etc/UTC]"
+
+      schedule.timeSegments(start, end) shouldBe
+        Array(RubyTimeSegmentInterval("2015-03-02", "2015-03-02T10:00Z[UTC]", "2015-03-02T19:00Z[UTC]")) // 11h-20h French time
+
+      schedule.splitTimeSegments(start, end, 3L) shouldBe
+        Array(
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T10:00Z[UTC]", "2015-03-02T13:00Z[UTC]"),
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T11:00Z[UTC]", "2015-03-02T14:00Z[UTC]"),
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T12:00Z[UTC]", "2015-03-02T15:00Z[UTC]"),
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T13:00Z[UTC]", "2015-03-02T16:00Z[UTC]"),
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T14:00Z[UTC]", "2015-03-02T17:00Z[UTC]"),
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T15:00Z[UTC]", "2015-03-02T18:00Z[UTC]"),
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T16:00Z[UTC]", "2015-03-02T19:00Z[UTC]")
+        )
+    }
+
+    "for EuropeParis timezone" in {
+
+      val start = "2015-03-02T10:00+01:00[Europe/Paris]"
+      val end   = "2015-03-02T23:59:59.000999999+01:00[Europe/Paris]"
+
+      schedule.timeSegments(start, end) shouldBe
+        Array(RubyTimeSegmentInterval("2015-03-02", "2015-03-02T09:00Z[UTC]", "2015-03-02T19:00Z[UTC]"))
+
+      schedule.splitTimeSegments(start, end, 3L) shouldBe
+        Array(
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T09:00Z[UTC]", "2015-03-02T12:00Z[UTC]"),
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T10:00Z[UTC]", "2015-03-02T13:00Z[UTC]"),
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T11:00Z[UTC]", "2015-03-02T14:00Z[UTC]"),
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T12:00Z[UTC]", "2015-03-02T15:00Z[UTC]"),
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T13:00Z[UTC]", "2015-03-02T16:00Z[UTC]"),
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T14:00Z[UTC]", "2015-03-02T17:00Z[UTC]"),
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T15:00Z[UTC]", "2015-03-02T18:00Z[UTC]"),
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T16:00Z[UTC]", "2015-03-02T19:00Z[UTC]")
+        )
+    }
+  }
+
+  implicit private def toLocalTime(s: String): LocalTime = LocalTime.parse(s)
+  implicit private def toZDT(s: String): ZonedDateTime   = ZonedDateTime.parse(s)
 
 }

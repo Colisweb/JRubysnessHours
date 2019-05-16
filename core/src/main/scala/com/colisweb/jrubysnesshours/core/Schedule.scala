@@ -30,7 +30,7 @@ final case class Schedule private[core] (
 
     for {
       nextWorkingDay <- nextOpenTimeAfter(start.plusDays(1).truncatedTo(DAYS)).toList
-      localStart = cutOff.fold(start.toLocalDateTime)(
+      localStart = cutOff.fold(local(start))(
         _.nextAvailableMoment(startTime, start.toLocalDate, nextWorkingDay.toLocalDate)
       )
       interval <- intervalsBetween(localStart, local(end))

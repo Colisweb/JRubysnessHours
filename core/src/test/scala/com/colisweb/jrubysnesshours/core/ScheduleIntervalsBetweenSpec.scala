@@ -2,7 +2,7 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time._
 
-import SpecUtils._
+import com.colisweb.jrubysnesshours.core.SpecUtils._
 import org.scalatest.{Matchers, WordSpec}
 
 class ScheduleIntervalsBetweenSpec extends WordSpec with Matchers {
@@ -202,5 +202,21 @@ class ScheduleIntervalsBetweenSpec extends WordSpec with Matchers {
       }
     }
 
+    "bug found by Florian when timezone is different between schedule and splitTimeSegments arguments" in {
+      val start = ZonedDateTime.parse("2015-03-02T10:00Z[Etc/UTC]") // 11h en france
+      val end   = ZonedDateTime.parse("2015-03-02T23:59:59.000999999Z[Etc/UTC]")
+
+      // 2 mars : lundi, 9h-19h France
+
+      schedule.intervalsBetween(start, end) shouldBe List("2015-03-02" at "11:00" - "19:00")
+      schedule.splitTimeSegments(start, end, 3) shouldBe List(
+        "2015-03-02" at "11:00" - "14:00",
+        "2015-03-02" at "12:00" - "15:00",
+        "2015-03-02" at "13:00" - "16:00",
+        "2015-03-02" at "14:00" - "17:00",
+        "2015-03-02" at "15:00" - "18:00",
+        "2015-03-02" at "16:00" - "19:00",
+      )
+    }
   }
 }

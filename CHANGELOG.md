@@ -6,6 +6,8 @@ More infos about this file : http://keepachangelog.com/
 
 ## [Unreleased] - no_due_date
 
+Bug fix:
+- **different timezones between schedule and splitTimeSegments args**
 
 ## [v1.1.0] - 2019-05-13
 
