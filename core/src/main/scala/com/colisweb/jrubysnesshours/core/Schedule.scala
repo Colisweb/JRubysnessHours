@@ -17,13 +17,13 @@ final case class Schedule private[core] (
     timeZone: ZoneId
 ) {
 
-  def splitTimeSegmentsSingleDate(date: LocalDate, hours: Long): List[TimeInterval] =
-    splitTimeSegments(zoned(date.atTime(MIN)), zoned(date.atTime(MAX)), hours).map(_.interval)
+  def splitTimeSegmentsSingleDate(date: LocalDate, hours: Int): List[TimeInterval] =
+    splitTimeSegments(zoned(date.atTime(MIN)), zoned(date.atTime(MAX)), Duration.ofHours(hours.toLong)).map(_.interval)
 
   def splitTimeSegments(
       start: ZonedDateTime,
       end: ZonedDateTime,
-      hours: Long,
+      duration: Duration,
       cutOff: Option[DoubleCutOff] = None
   ): List[TimeIntervalForDate] = {
     val startTime = local(start).toLocalTime
@@ -34,8 +34,7 @@ final case class Schedule private[core] (
         _.nextAvailableMoment(startTime, start.toLocalDate, nextWorkingDay.toLocalDate)
       )
       interval <- intervalsBetween(localStart, local(end))
-      rounded  <- interval.roundToFullHours
-      segment  <- rounded.split(hours)
+      segment  <- interval.split(duration)
     } yield segment
   }
 

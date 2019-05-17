@@ -44,4 +44,10 @@ object SpecUtils {
     def at(timeWithZone: (String, String)): ZonedDateTime =
       (string :- timeWithZone._1).atZone(ZoneId.of(timeWithZone._2))
   }
+
+  implicit class DurationOps(self: Int) {
+    def minutes: Duration = Duration.ofMinutes(self.toLong)
+    def hours: Duration   = Duration.ofHours(self.toLong)
+  }
+
 }

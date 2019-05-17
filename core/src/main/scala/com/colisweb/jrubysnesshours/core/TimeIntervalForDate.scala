@@ -1,7 +1,7 @@
 package com.colisweb.jrubysnesshours.core
 
 import java.time.LocalTime.{MAX, MIN}
-import java.time.{LocalDate, LocalTime}
+import java.time.{Duration, LocalDate, LocalTime}
 
 final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
   val start: LocalTime = interval.start
@@ -15,7 +15,5 @@ final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
 
   def cutBoth: List[TimeInterval] = cutStart.toList ++ cutEnd.toList
 
-  def roundToFullHours: Iterable[TimeIntervalForDate] = interval.roundToFullHours.map(i => copy(interval = i))
-
-  def split(hours: Long): List[TimeIntervalForDate] = interval.split(hours).map(i => copy(interval = i))
+  def split(duration: Duration): List[TimeIntervalForDate] = interval.split(duration).map(i => copy(interval = i))
 }

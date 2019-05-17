@@ -15,7 +15,7 @@ class ScheduleWithCutOffSpec extends Approbation {
     val slots = schedule.splitTimeSegments(
       "2019-05-02" at "10:00" -> FRANCE_TIMEZONE,
       "2019-05-12" at "10:00" -> FRANCE_TIMEZONE,
-      2,
+      2.hours,
       cutOff
     )
     approver.verify(prettify(slots))
@@ -25,7 +25,7 @@ class ScheduleWithCutOffSpec extends Approbation {
     val slots = schedule.splitTimeSegments(
       "2019-05-02" at "08:00" -> FRANCE_TIMEZONE,
       "2019-05-12" at "10:00" -> FRANCE_TIMEZONE,
-      2,
+      2.hours,
       cutOff
     )
     approver.verify(prettify(slots))
@@ -35,7 +35,7 @@ class ScheduleWithCutOffSpec extends Approbation {
     val slots = schedule.splitTimeSegments(
       "2019-05-02" at "12:01" -> FRANCE_TIMEZONE,
       "2019-05-12" at "10:00" -> FRANCE_TIMEZONE,
-      2,
+      2.hours,
       cutOff
     )
     approver.verify(prettify(slots))
@@ -47,7 +47,7 @@ class ScheduleWithCutOffSpec extends Approbation {
       .splitTimeSegments(
         "2019-05-07" at "12:01" -> FRANCE_TIMEZONE,
         "2019-05-11" at "10:00" -> FRANCE_TIMEZONE,
-        2,
+        2.hours,
         cutOff
       )
     approver.verify(prettify(slots))

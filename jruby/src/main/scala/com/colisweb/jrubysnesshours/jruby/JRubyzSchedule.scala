@@ -10,11 +10,22 @@ final class JRubyzSchedule private[jruby] (private[jruby] val schedule: Schedule
   def splitTimeSegments(
       startsAt: ZonedDateTime,
       endsAt: ZonedDateTime,
-      hours: Long,
+      minutes: Int,
       cutOff: Option[DoubleCutOff] = None
   ): Array[RubyTimeSegmentInterval] =
     schedule
-      .splitTimeSegments(startsAt, endsAt, hours, cutOff)
+      .splitTimeSegments(startsAt, endsAt, Duration.ofMinutes(minutes.toLong), cutOff)
+      .map(RubyTimeSegmentInterval(_, schedule.timeZone))
+      .toArray
+
+  def splitTimeSegments(
+      startsAt: ZonedDateTime,
+      endsAt: ZonedDateTime,
+      duration: Duration,
+      cutOff: Option[DoubleCutOff]
+  ): Array[RubyTimeSegmentInterval] =
+    schedule
+      .splitTimeSegments(startsAt, endsAt, duration, cutOff)
       .map(RubyTimeSegmentInterval(_, schedule.timeZone))
       .toArray
 

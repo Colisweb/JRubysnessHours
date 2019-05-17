@@ -4,25 +4,37 @@ import java.time.LocalTime.{MAX, MIN}
 import java.time._
 import java.time.temporal.ChronoUnit.HOURS
 
+import com.colisweb.jrubysnesshours.core.TimeInterval._
+
 import scala.math.Ordering.Implicits._
 
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
   assert(start < end, s"TimeInterval error: 'start' ($start) must be < 'end' ($end)")
 
-  def roundToFullHours: Option[TimeInterval] = {
-    val ceilingStart = start.plusHours(if (start.getMinute + start.getSecond > 0) 1 else 0).truncatedTo(HOURS)
-    val floorEnd     = end.truncatedTo(HOURS)
+  private[core] def roundToMinutes(minutes: Long): Option[TimeInterval] = {
+    val ceilingStart = validStart(minutes)
+    val floorEnd     = validEnd(minutes)
     if (floorEnd > ceilingStart)
       Some(TimeInterval(ceilingStart, floorEnd))
     else None
   }
 
-  def split(hours: Long): List[TimeInterval] =
-    if (start.until(end, HOURS) == hours)
-      List(this)
-    else if (start.until(end, HOURS) < hours)
-      Nil
-    else TimeInterval(start, start.plusHours(hours)) :: copy(start = start.plusHours(1)).split(hours)
+  // If range < 60 => round start to next rangeMinutes
+  // if >= 60 => round to next hour
+  private def validStart(rangeMinutes: Long): LocalTime =
+    start.truncatedTo(HOURS).plusMinutes(ceiling(start.getMinute, rangeMinutes min 60L))
+
+  // If range < 60 => round end to previous rangeMinutes
+  // if = 60 => round to previous hour
+  // if 90 => round to previous 30 min
+  // if 135 (2h15) => round to previous 15 min
+  private def validEnd(rangeMinutes: Long): LocalTime = {
+    val rest = rangeMinutes % 60
+    end.truncatedTo(HOURS).plusMinutes(floor(end.getMinute, if (rest == 0) 60 else rest))
+  }
+
+  def split(duration: Duration): List[TimeInterval] =
+    splitMinutes(duration.toMinutes)
 
   def isBefore(that: TimeInterval): Boolean = this.end <= that.start
 
@@ -63,6 +75,18 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
   def contains(time: LocalTime): Boolean = start <= time && time < end
 
   def contains2(time: LocalTime): Boolean = start < time && time <= end
+
+  private def splitMinutes(minutes: Long): List[TimeInterval] =
+    roundToMinutes(minutes).toList.flatMap(_.splitRec(minutes))
+
+  private def splitRec(minutes: Long): List[TimeInterval] =
+    (start plusMinutes minutes).compareTo(end).signum match {
+      case 1 => Nil
+      case 0 => List(this)
+      case -1 =>
+        val nextStart = start.plus(Duration.ofMinutes(minutes) min Duration.ofHours(1))
+        TimeInterval(start, start plusMinutes minutes) :: copy(start = nextStart).splitRec(minutes)
+    }
 }
 
 object TimeInterval {
@@ -92,4 +116,10 @@ object TimeInterval {
         case (interval, h :: t) => (interval merge h) ::: t // TODO: `:::` is not in constant time.
         case (interval, Nil)    => List(interval)
       }
+
+  private def ceiling(number: Int, round: Long): Long = {
+    round * (number / round + (if (number % round > 0) 1 else 0))
+  }
+
+  private def floor(number: Int, round: Long): Long = round * (number / round)
 }
