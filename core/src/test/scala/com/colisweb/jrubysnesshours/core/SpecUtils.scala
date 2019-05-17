@@ -61,4 +61,9 @@ object SpecUtils {
 
   val TimeIntervalMin: String = LocalTime.MIN.toString
   val TimeIntervalMax: String = LocalTime.MAX.toString
+
+  implicit class DurationOps(self: Int) {
+    def minutes: Duration = Duration.ofMinutes(self.toLong)
+    def hours: Duration   = Duration.ofHours(self.toLong)
+  }
 }

@@ -46,7 +46,7 @@ class ScheduleSplitTimeSegmentsSpec extends WordSpec with Matchers with ScalaChe
       schedule.splitTimeSegments(
         "2019-05-02" at "10:00" -> FRANCE_TIMEZONE,
         "2019-05-03" at "18:00" -> FRANCE_TIMEZONE,
-        2
+        2.hours
       ) shouldBe
         List(
           "2019-05-02" at "10:00" - "12:00",
@@ -104,7 +104,7 @@ class ScheduleSplitTimeSegmentsSpec extends WordSpec with Matchers with ScalaChe
             .splitTimeSegments(
               "2019-05-02" at "12:01" -> FRANCE_TIMEZONE, // it's a THURSDAY
               "2019-05-02" at "23:59" -> FRANCE_TIMEZONE, // it's a THURSDAY
-              2,
+              2.hours,
               cutOff
             )
         slots shouldBe List.empty
@@ -117,7 +117,7 @@ class ScheduleSplitTimeSegmentsSpec extends WordSpec with Matchers with ScalaChe
             .splitTimeSegments(
               "2019-05-02" at "12:01" -> FRANCE_TIMEZONE, // it's a THURSDAY
               "2019-05-03" at "18:00" -> FRANCE_TIMEZONE, // it's a FRIDAY
-              2,
+              2.hours,
               cutOff
             )
         slots shouldBe List(

@@ -4,6 +4,8 @@ import java.time.LocalTime.{MAX, MIN}
 import java.time._
 import java.time.temporal.ChronoUnit.HOURS
 
+import com.colisweb.jrubysnesshours.core.TimeInterval._
+
 import scala.math.Ordering.Implicits._
 
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
@@ -17,12 +19,28 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
     else None
   }
 
-  def split(hours: Long): List[TimeInterval] =
-    if (start.until(end, HOURS) == hours)
-      List(this)
-    else if (start.until(end, HOURS) < hours)
-      Nil
-    else TimeInterval(start, start.plusHours(hours)) :: copy(start = start.plusHours(1)).split(hours)
+  def roundToMinutes(m: Long): Option[TimeInterval] = {
+    val ceilingStart = start.truncatedTo(HOURS).plusMinutes(ceiling(start.getMinute, m))
+    val floorEnd     = end.truncatedTo(HOURS).plusMinutes(floor(end.getMinute, m))
+    if (floorEnd > ceilingStart)
+      Some(TimeInterval(ceilingStart, floorEnd))
+    else None
+  }
+
+  private def splitMinutes(minutes: Long): List[TimeInterval] =
+    roundToMinutes(minutes).toList.flatMap(_.splitRec(minutes))
+
+  private def splitRec(minutes: Long): List[TimeInterval] =
+    (start plusMinutes minutes).compareTo(end).signum match {
+      case 1 => Nil
+      case 0 => List(this)
+      case -1 =>
+        val nextStart = start.plus(Duration.ofMinutes(minutes) min Duration.ofHours(1))
+        TimeInterval(start, start plusMinutes minutes) :: copy(start = nextStart).splitRec(minutes)
+    }
+
+  def split(duration: Duration): List[TimeInterval] =
+    splitMinutes(duration.toMinutes)
 
   def isBefore(that: TimeInterval): Boolean = this.end <= that.start
 
@@ -92,4 +110,10 @@ object TimeInterval {
         case (interval, h :: t) => (interval merge h) ::: t // TODO: `:::` is not in constant time.
         case (interval, Nil)    => List(interval)
       }
+
+  private def ceiling(number: Int, round: Long): Long = {
+    round * (number / round + (if (number % round > 0) 1 else 0))
+  }
+
+  private def floor(number: Int, round: Long): Long = round * (number / round)
 }
