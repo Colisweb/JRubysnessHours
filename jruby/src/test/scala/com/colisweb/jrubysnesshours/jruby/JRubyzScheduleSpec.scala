@@ -16,7 +16,8 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
       jrubySchedule.splitTimeSegments(
         "2019-05-06T11:50:39Z",
         "2019-05-06T16:17:39Z",
-        2.hours
+        2.hours,
+        None
       ) shouldBe Array(
         RubyTimeSegmentInterval("2019-05-06", "2019-05-06T12:00Z[UTC]", "2019-05-06T14:00Z[UTC]"),
         RubyTimeSegmentInterval("2019-05-06", "2019-05-06T13:00Z[UTC]", "2019-05-06T15:00Z[UTC]"),
@@ -85,7 +86,7 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
       schedule.timeSegments(start, end) shouldBe
         Array(RubyTimeSegmentInterval("2015-03-02", "2015-03-02T10:00Z[UTC]", "2015-03-02T19:00Z[UTC]")) // 11h-20h French time
 
-      schedule.splitTimeSegments(start, end, 3.hours) shouldBe
+      schedule.splitTimeSegments(start, end, 3.hours, None) shouldBe
         Array(
           RubyTimeSegmentInterval("2015-03-02", "2015-03-02T10:00Z[UTC]", "2015-03-02T13:00Z[UTC]"),
           RubyTimeSegmentInterval("2015-03-02", "2015-03-02T11:00Z[UTC]", "2015-03-02T14:00Z[UTC]"),
@@ -105,7 +106,7 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
       schedule.timeSegments(start, end) shouldBe
         Array(RubyTimeSegmentInterval("2015-03-02", "2015-03-02T09:00Z[UTC]", "2015-03-02T19:00Z[UTC]"))
 
-      schedule.splitTimeSegments(start, end, 3.hours) shouldBe
+      schedule.splitTimeSegments(start, end, 3.hours, None) shouldBe
         Array(
           RubyTimeSegmentInterval("2015-03-02", "2015-03-02T09:00Z[UTC]", "2015-03-02T12:00Z[UTC]"),
           RubyTimeSegmentInterval("2015-03-02", "2015-03-02T10:00Z[UTC]", "2015-03-02T13:00Z[UTC]"),

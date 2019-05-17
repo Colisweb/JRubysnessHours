@@ -14,14 +14,14 @@ import scala.collection.JavaConverters._
 class JRubyzScheduleApprobationSpec extends Approbation {
 
   "jrubySchedule" should "split on 2 weeks" in { approver =>
-    val segments = jrubySchedule.splitTimeSegments("2019-05-06T11:50:39Z", "2019-05-20T16:17:39Z", 2.hours)
+    val segments = jrubySchedule.splitTimeSegments("2019-05-06T11:50:39Z", "2019-05-20T16:17:39Z", 2.hours, None)
 
     approver.verify(prettify(segments))
   }
 
   it should "split in segments of 30 minutes" in { approver =>
     val segments =
-      jrubySchedule.splitTimeSegments("2019-05-06T12:20:39Z", "2019-05-07T16:47:39Z", 30.minutes)
+      jrubySchedule.splitTimeSegments("2019-05-06T12:20:39Z", "2019-05-07T16:47:39Z", 30.minutes, None)
 
     approver.verify(prettify(segments))
   }
