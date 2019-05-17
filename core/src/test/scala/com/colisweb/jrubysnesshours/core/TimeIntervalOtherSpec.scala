@@ -51,6 +51,20 @@ class TimeIntervalOtherSpec extends WordSpec with Matchers {
     }
   }
 
+  "TimeInterval#roundToFullMinutes(90)" when {
+    "12:20 - 16:47 rounds to 13:00 - 16:30" in {
+      val interval = "12:20" - "16:47"
+      interval.roundToMinutes(90) shouldBe Some("13:00" - "16:30")
+    }
+  }
+
+  "TimeInterval#roundToFullMinutes(2h15)" when {
+    "12:20 - 16:47 rounds to 13:00 - 16:45" in {
+      val interval = "12:20" - "16:47"
+      interval.roundToMinutes(135) shouldBe Some("13:00" - "16:45")
+    }
+  }
+
   "TimeInterval#split(2h)" when {
 
     "11:00-12:00 is empty" in {

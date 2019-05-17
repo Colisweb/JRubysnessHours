@@ -11,13 +11,26 @@ import scala.math.Ordering.Implicits._
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
   assert(start < end, s"TimeInterval error: 'start' ($start) must be < 'end' ($end)")
 
-  private[core] def roundToMinutes(m: Long): Option[TimeInterval] = {
-    val minutes      = m min 60L
-    val ceilingStart = start.truncatedTo(HOURS).plusMinutes(ceiling(start.getMinute, minutes))
-    val floorEnd     = end.truncatedTo(HOURS).plusMinutes(floor(end.getMinute, minutes))
+  private[core] def roundToMinutes(minutes: Long): Option[TimeInterval] = {
+    val ceilingStart = validStart(minutes)
+    val floorEnd     = validEnd(minutes)
     if (floorEnd > ceilingStart)
       Some(TimeInterval(ceilingStart, floorEnd))
     else None
+  }
+
+  // If range < 60 => round start to next rangeMinutes
+  // if >= 60 => round to next hour
+  private def validStart(rangeMinutes: Long): LocalTime =
+    start.truncatedTo(HOURS).plusMinutes(ceiling(start.getMinute, rangeMinutes min 60L))
+
+  // If range < 60 => round end to previous rangeMinutes
+  // if = 60 => round to previous hour
+  // if 90 => round to previous 30 min
+  // if 135 (2h15) => round to previous 15 min
+  private def validEnd(rangeMinutes: Long): LocalTime = {
+    val rest = rangeMinutes % 60
+    end.truncatedTo(HOURS).plusMinutes(floor(end.getMinute, if (rest == 0) 60 else rest))
   }
 
   def split(duration: Duration): List[TimeInterval] =
