@@ -1,5 +1,7 @@
 package com.colisweb.jrubysnesshours.core
 
+import java.time.ZonedDateTime
+
 import com.colisweb.jrubysnesshours.core.SpecUtils._
 import org.scalatest.{Matchers, WordSpec}
 
@@ -9,17 +11,17 @@ class TimeIntervalOtherSpec extends WordSpec with Matchers {
 
     "11:00-12:00 stays same" in {
       val interval = "11:00" - "12:00"
-      interval.roundToFullHours shouldBe Some(interval)
+      interval.roundToMinutes(60) shouldBe Some(interval)
     }
 
     "10:01-12:59 rounds to 11:00-12:00" in {
       val interval = "10:01" - "12:59"
-      interval.roundToFullHours shouldBe Some("11:00" - "12:00")
+      interval.roundToMinutes(60) shouldBe Some("11:00" - "12:00")
     }
 
     "10:01-10:59 rounds to None" in {
       val interval = "10:01" - "10:59"
-      interval.roundToFullHours shouldBe empty
+      interval.roundToMinutes(60) shouldBe empty
     }
   }
 
@@ -33,6 +35,14 @@ class TimeIntervalOtherSpec extends WordSpec with Matchers {
     "10:01-12:59 rounds to 10:30-12:30" in {
       val interval = "10:01" - "12:59"
       interval.roundToMinutes(30) shouldBe Some("10:30" - "12:30")
+    }
+
+    "with seconds rounds to 11:30-16:30" in {
+      val interval = TimeInterval(
+        ZonedDateTime.parse("2019-05-06T11:20:39Z").toLocalTime,
+        ZonedDateTime.parse("2019-05-07T16:47:39Z").toLocalTime
+      )
+      interval.roundToMinutes(30) shouldBe Some("11:30" - "16:30")
     }
 
     "10:01-10:59 rounds to None" in {

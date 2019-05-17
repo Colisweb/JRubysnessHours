@@ -20,13 +20,13 @@ class ScheduleIntervalsBetweenSpec extends WordSpec with Matchers {
         )
       }
 
-      "compute 2 intervals between Saturday 13:00 to same Saturday 16:00" in {
+      "compute 2 intervals between Saturday 12:50 to same Saturday 16:10" in {
         schedule.intervalsBetween(
-          "2019-03-23" at "13:00" -> FRANCE_TIMEZONE,
-          "2019-03-23" at "16:00" -> FRANCE_TIMEZONE
+          "2019-03-23" at "12:50" -> FRANCE_TIMEZONE,
+          "2019-03-23" at "16:10" -> FRANCE_TIMEZONE
         ) shouldBe List(
-          "2019-03-23" at "13:00" - "14:00",
-          "2019-03-23" at "15:00" - "16:00"
+          "2019-03-23" at "12:50" - "14:00",
+          "2019-03-23" at "15:00" - "16:10"
         )
       }
 

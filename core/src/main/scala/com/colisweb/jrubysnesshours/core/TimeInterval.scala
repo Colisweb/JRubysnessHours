@@ -11,33 +11,14 @@ import scala.math.Ordering.Implicits._
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
   assert(start < end, s"TimeInterval error: 'start' ($start) must be < 'end' ($end)")
 
-  def roundToFullHours: Option[TimeInterval] = {
-    val ceilingStart = start.plusHours(if (start.getMinute + start.getSecond > 0) 1 else 0).truncatedTo(HOURS)
-    val floorEnd     = end.truncatedTo(HOURS)
+  private[core] def roundToMinutes(m: Long): Option[TimeInterval] = {
+    val minutes      = m min 60L
+    val ceilingStart = start.truncatedTo(HOURS).plusMinutes(ceiling(start.getMinute, minutes))
+    val floorEnd     = end.truncatedTo(HOURS).plusMinutes(floor(end.getMinute, minutes))
     if (floorEnd > ceilingStart)
       Some(TimeInterval(ceilingStart, floorEnd))
     else None
   }
-
-  def roundToMinutes(m: Long): Option[TimeInterval] = {
-    val ceilingStart = start.truncatedTo(HOURS).plusMinutes(ceiling(start.getMinute, m))
-    val floorEnd     = end.truncatedTo(HOURS).plusMinutes(floor(end.getMinute, m))
-    if (floorEnd > ceilingStart)
-      Some(TimeInterval(ceilingStart, floorEnd))
-    else None
-  }
-
-  private def splitMinutes(minutes: Long): List[TimeInterval] =
-    roundToMinutes(minutes).toList.flatMap(_.splitRec(minutes))
-
-  private def splitRec(minutes: Long): List[TimeInterval] =
-    (start plusMinutes minutes).compareTo(end).signum match {
-      case 1 => Nil
-      case 0 => List(this)
-      case -1 =>
-        val nextStart = start.plus(Duration.ofMinutes(minutes) min Duration.ofHours(1))
-        TimeInterval(start, start plusMinutes minutes) :: copy(start = nextStart).splitRec(minutes)
-    }
 
   def split(duration: Duration): List[TimeInterval] =
     splitMinutes(duration.toMinutes)
@@ -81,6 +62,18 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
   def contains(time: LocalTime): Boolean = start <= time && time < end
 
   def contains2(time: LocalTime): Boolean = start < time && time <= end
+
+  private def splitMinutes(minutes: Long): List[TimeInterval] =
+    roundToMinutes(minutes).toList.flatMap(_.splitRec(minutes))
+
+  private def splitRec(minutes: Long): List[TimeInterval] =
+    (start plusMinutes minutes).compareTo(end).signum match {
+      case 1 => Nil
+      case 0 => List(this)
+      case -1 =>
+        val nextStart = start.plus(Duration.ofMinutes(minutes) min Duration.ofHours(1))
+        TimeInterval(start, start plusMinutes minutes) :: copy(start = nextStart).splitRec(minutes)
+    }
 }
 
 object TimeInterval {

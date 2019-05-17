@@ -21,7 +21,7 @@ class JRubyzScheduleApprobationSpec extends Approbation {
 
   it should "split in segments of 30 minutes" in { approver =>
     val segments =
-      jrubySchedule.splitTimeSegments("2019-05-06T11:50:39Z", "2019-05-07T16:17:39Z", 30.minutes)
+      jrubySchedule.splitTimeSegments("2019-05-06T12:20:39Z", "2019-05-07T16:47:39Z", 30.minutes)
 
     approver.verify(prettify(segments))
   }

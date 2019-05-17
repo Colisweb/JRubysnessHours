@@ -15,7 +15,5 @@ final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
 
   def cutBoth: List[TimeInterval] = cutStart.toList ++ cutEnd.toList
 
-  def roundToFullHours: Iterable[TimeIntervalForDate] = interval.roundToFullHours.map(i => copy(interval = i))
-
   def split(duration: Duration): List[TimeIntervalForDate] = interval.split(duration).map(i => copy(interval = i))
 }

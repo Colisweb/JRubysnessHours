@@ -34,8 +34,7 @@ final case class Schedule private[core] (
         _.nextAvailableMoment(startTime, start.toLocalDate, nextWorkingDay.toLocalDate)
       )
       interval <- intervalsBetween(localStart, local(end))
-      rounded  <- interval.roundToFullHours
-      segment  <- rounded.split(duration)
+      segment  <- interval.split(duration)
     } yield segment
   }
 
