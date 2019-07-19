@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - publish
 
 compile scala sources:
   stage: build
@@ -20,3 +21,12 @@ cache:
   key: "sbt-$CI_BUILD_REF_NAME"
   paths:
     - sbt-cache
+
+publish on bintray:
+  stage: publish
+  only:
+    - master
+  before_script:
+    - gpg --import  <(echo "$GITLAB_PGP_PRIVATE_KEY") && source <(gpg -q --decrypt secrets-env.sh.secret)
+  script:
+    - sbt -Dbintray.user=gitlab-ci -Dbintray.pass=$BINTRAY_API_KEY publish

@@ -64,3 +64,6 @@ fabric.properties
 
 # approvals
 *.received
+.gitsecret/keys/random_seed
+secrets-env.sh
+!*.secret
