@@ -25,7 +25,7 @@ lazy val jruby =
     .dependsOn(core)
 
 lazy val approvalLibraries = Seq(
-  "org.scalatest"             %% "scalatest"     % "3.0.7",
+  "org.scalatest"             %% "scalatest"     % "3.0.8",
   "com.lihaoyi"               %% "pprint"        % "0.5.3",
   "com.github.writethemfirst" % "approvals-java" % "0.7.0"
 ).map(_ % Test)
