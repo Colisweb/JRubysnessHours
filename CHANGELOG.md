@@ -6,6 +6,11 @@ More infos about this file : http://keepachangelog.com/
 
 ## [Unreleased] - no_due_date
 
+## [v1.1.5] - 2019-09-19
+
+Bug fix:
+- **split segments for a time range around midnight crash**
+
 ## [v1.1.1] - 2019-05-16
 
 Bug fix:

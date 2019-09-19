@@ -6,6 +6,7 @@ import java.time._
 object SpecUtils {
 
   val FRANCE_TIMEZONE = "Europe/Paris"
+  val UTC_TIMEZONE    = "Etc/UTC"
 
   implicit class DayOfWeekOps(dayOfWeek: DayOfWeek) {
     def at(interval: TimeInterval): TimeIntervalForWeekDay =
