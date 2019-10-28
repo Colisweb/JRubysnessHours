@@ -6,6 +6,8 @@ More infos about this file : http://keepachangelog.com/
 
 ## [Unreleased] - no_due_date
 
+## [v1.1.6] - 2019-10-28
+
 - **Remove `private[core]` on `Schedule`**
 
 ## [v1.1.5] - 2019-09-19
