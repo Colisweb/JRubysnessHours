@@ -11,7 +11,7 @@ import com.colisweb.jrubysnesshours.core.utils.Orderings._
 import scala.annotation.tailrec
 import scala.math.Ordering.Implicits._
 
-final case class Schedule private[core] (
+final case class Schedule(
     planning: Map[DayOfWeek, List[TimeInterval]],
     exceptions: Map[LocalDate, List[TimeInterval]],
     timeZone: ZoneId
