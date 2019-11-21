@@ -8,6 +8,7 @@ import com.colisweb.jrubysnesshours.core.TimeInterval._
 
 import scala.math.Ordering.Implicits._
 
+// This class cannot represent an Interval ending at 00:00
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
   assert(start < end, s"TimeInterval error: 'start' ($start) must be < 'end' ($end)")
 
@@ -79,14 +80,18 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
   private def splitMinutes(minutes: Long): List[TimeInterval] =
     roundToMinutes(minutes).toList.flatMap(_.splitRec(minutes))
 
-  private def splitRec(minutes: Long): List[TimeInterval] =
-    (start plusMinutes minutes).compareTo(end).signum match {
-      case 1 => Nil
+  private def splitRec(minutes: Long): List[TimeInterval] = {
+    val splitEnd = start plusMinutes minutes
+
+    splitEnd.compareTo(end).signum match {
       case 0 => List(this)
-      case -1 =>
-        val nextStart = start.plus(Duration.ofMinutes(minutes) min Duration.ofHours(1))
-        TimeInterval(start, start plusMinutes minutes) :: copy(start = nextStart).splitRec(minutes)
+      case -1 if start < splitEnd =>
+        val split = TimeInterval(start, splitEnd)
+        val shift = Duration.ofMinutes(minutes) min Duration.ofHours(1)
+        split :: copy(start = start.plus(shift)).splitRec(minutes)
+      case _ => Nil
     }
+  }
 }
 
 object TimeInterval {

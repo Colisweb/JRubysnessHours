@@ -1,6 +1,7 @@
 package com.colisweb.jrubysnesshours.core
 
-import java.time.DayOfWeek.THURSDAY
+import java.time.DayOfWeek.{MONDAY, THURSDAY}
+import java.time.{LocalDate, ZoneId}
 
 import com.colisweb.jrubysnesshours.core.SpecUtils._
 import org.scalatest.{Matchers, WordSpec}
@@ -65,6 +66,22 @@ class ScheduleSplitTimeSegmentsSpec extends WordSpec with Matchers with ScalaChe
           "2019-05-03" at "15:00" - "17:00",
           "2019-05-03" at "16:00" - "18:00",
         )
+    }
+
+    "has a list of split segments for a time range around midnight" in {
+
+      val schedule = Schedule(
+        planning = Map(MONDAY -> List("09:00" - "23:00")),
+        exceptions = Map.empty[LocalDate, List[TimeInterval]],
+        timeZone = ZoneId.of(FRANCE_TIMEZONE)
+      )
+
+      schedule.splitTimeSegments(
+        "2019-09-16" at "22:00" -> FRANCE_TIMEZONE,
+        "2019-09-17" at "04:00" -> FRANCE_TIMEZONE,
+        2.hours
+      ) shouldBe
+        Nil
     }
   }
 
