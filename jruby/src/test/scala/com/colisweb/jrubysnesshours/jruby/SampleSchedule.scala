@@ -9,7 +9,7 @@ object SampleSchedule {
     planningEntry(3, "12:00", "18:00"),
     planningEntry(4, "12:00", "18:00"),
     planningEntry(5, "12:00", "18:00"),
-    planningEntry(6, "12:00", "18:00"),
+    planningEntry(6, "12:00", "18:00")
   )
 
   val jrubySchedule: JRubyzSchedule =

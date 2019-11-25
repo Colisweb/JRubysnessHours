@@ -30,7 +30,7 @@ class ScheduleSplitTimeSegmentsSpec extends WordSpec with Matchers with ScalaChe
           "14:00" - "16:00",
           "15:00" - "17:00",
           "16:00" - "18:00",
-          "17:00" - "19:00",
+          "17:00" - "19:00"
         )
       schedule.splitTimeSegmentsSingleDate(aTuesday, 2) shouldBe
         List(
@@ -64,7 +64,7 @@ class ScheduleSplitTimeSegmentsSpec extends WordSpec with Matchers with ScalaChe
           "2019-05-03" at "13:00" - "15:00",
           "2019-05-03" at "14:00" - "16:00",
           "2019-05-03" at "15:00" - "17:00",
-          "2019-05-03" at "16:00" - "18:00",
+          "2019-05-03" at "16:00" - "18:00"
         )
     }
 

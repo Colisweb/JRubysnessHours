@@ -31,7 +31,7 @@ class ScheduleWithCutOffSpec extends Approbation {
     approver.verify(prettify(slots))
   }
 
-  it should "cut start of D+1 day" in { approver =>
+  it should "cut start of D plus 1 day" in { approver =>
     val slots = schedule.splitTimeSegments(
       "2019-05-02" at "12:01" -> FRANCE_TIMEZONE,
       "2019-05-12" at "10:00" -> FRANCE_TIMEZONE,

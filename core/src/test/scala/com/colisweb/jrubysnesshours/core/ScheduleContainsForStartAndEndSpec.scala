@@ -53,7 +53,7 @@ class ScheduleContainsForStartAndEndSpec extends WordSpec with Matchers with Sca
         WEDNESDAY -> List("09:00" - "19:00"),
         THURSDAY  -> List("09:00" - "19:00"),
         FRIDAY    -> List("09:00" - "19:00"),
-        SATURDAY  -> List("09:00" - "19:00"),
+        SATURDAY  -> List("09:00" - "19:00")
       )
 
       "with no exception" when {

@@ -113,7 +113,7 @@ class ScheduleIntervalsBetweenSpec extends WordSpec with Matchers {
             "2019-03-16" at "15:00" - "19:00",
             "2019-03-18" at "09:00" - "13:00",
             "2019-03-18" at "16:00" - "19:00",
-            "2019-03-19" at "09:30" - "13:40",
+            "2019-03-19" at "09:30" - "13:40"
           )
         }
       }
@@ -134,7 +134,7 @@ class ScheduleIntervalsBetweenSpec extends WordSpec with Matchers {
             "2019-03-16" at "09:00" - "14:00",
             "2019-03-16" at "15:00" - "19:00",
             "2019-03-18" at "09:00" - "19:00",
-            "2019-03-19" at "09:30" - "13:40",
+            "2019-03-19" at "09:30" - "13:40"
           )
         }
       }
@@ -196,7 +196,7 @@ class ScheduleIntervalsBetweenSpec extends WordSpec with Matchers {
             "2019-03-15" at "19:00" -> FRANCE_TIMEZONE
           ) shouldBe List(
             "2019-03-15" at "13:40" - "14:00",
-            "2019-03-15" at "16:00" - "19:00",
+            "2019-03-15" at "16:00" - "19:00"
           )
         }
       }
@@ -215,7 +215,7 @@ class ScheduleIntervalsBetweenSpec extends WordSpec with Matchers {
         "2015-03-02" at "13:00" - "16:00",
         "2015-03-02" at "14:00" - "17:00",
         "2015-03-02" at "15:00" - "18:00",
-        "2015-03-02" at "16:00" - "19:00",
+        "2015-03-02" at "16:00" - "19:00"
       )
     }
 
