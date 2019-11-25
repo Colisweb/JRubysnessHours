@@ -2,16 +2,17 @@ package com.colisweb.jrubysnesshours.jruby
 
 import java.time.{LocalTime, ZonedDateTime}
 
-import com.colisweb.Approbation
 import com.colisweb.jrubysnesshours.core.{CutOff, DoubleCutOff}
 import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
 import com.colisweb.jrubysnesshours.jruby.SampleSchedule._
 import com.colisweb.jrubysnesshours.jruby.SpecUtils._
+import com.github.writethemfirst.Approbation
 import com.github.writethemfirst.approvals.utils.FunctionUtils
+import org.scalatest.{Matchers, fixture}
 
 import scala.collection.JavaConverters._
 
-class JRubyzScheduleApprobationSpec extends Approbation {
+class JRubyzScheduleApprobationSpec extends fixture.FlatSpec with Matchers with Approbation {
 
   "jrubySchedule" should "split on 2 weeks" in { approver =>
     val segments = jrubySchedule.splitTimeSegments("2019-05-06T11:50:39Z", "2019-05-20T16:17:39Z", 2.hours, None)

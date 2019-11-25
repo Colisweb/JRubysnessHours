@@ -27,7 +27,7 @@ lazy val jruby =
 lazy val approvalLibraries = Seq(
   "org.scalatest"             %% "scalatest"     % "3.0.8",
   "com.lihaoyi"               %% "pprint"        % "0.5.6",
-  "com.github.writethemfirst" % "approvals-java" % "0.11.1"
+  "com.github.writethemfirst" %% "approvals-scala" % "0.12.1"
 ).map(_ % Test)
 
 lazy val scalacheckLibraries = Seq(

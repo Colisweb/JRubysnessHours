@@ -1,9 +1,10 @@
 package com.colisweb.jrubysnesshours.core
 
-import com.colisweb.Approbation
 import com.colisweb.jrubysnesshours.core.SpecUtils._
+import com.github.writethemfirst.Approbation
+import org.scalatest.{Matchers, fixture}
 
-class ScheduleWithCutOffSpec extends Approbation {
+class ScheduleWithCutOffSpec extends fixture.FlatSpec with Matchers with Approbation {
   val cutOff = Some(
     DoubleCutOff(
       sameDay = CutOff(limit = "08:00".toLocalTime, firstAvailableTime = "17:00".toLocalTime),
