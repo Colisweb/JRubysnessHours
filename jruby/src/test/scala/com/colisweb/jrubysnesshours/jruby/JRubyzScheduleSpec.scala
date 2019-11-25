@@ -21,7 +21,7 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
       ) shouldBe Array(
         RubyTimeSegmentInterval("2019-05-06", "2019-05-06T12:00Z[UTC]", "2019-05-06T14:00Z[UTC]"),
         RubyTimeSegmentInterval("2019-05-06", "2019-05-06T13:00Z[UTC]", "2019-05-06T15:00Z[UTC]"),
-        RubyTimeSegmentInterval("2019-05-06", "2019-05-06T14:00Z[UTC]", "2019-05-06T16:00Z[UTC]"),
+        RubyTimeSegmentInterval("2019-05-06", "2019-05-06T14:00Z[UTC]", "2019-05-06T16:00Z[UTC]")
       )
     }
   }

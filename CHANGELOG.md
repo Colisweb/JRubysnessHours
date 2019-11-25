@@ -6,6 +6,8 @@ More infos about this file : http://keepachangelog.com/
 
 ## [Unreleased] - no_due_date
 
+- **Change approvals-java 0.7.1 to approvals-scala 0.12.1**
+
 ## [v1.1.8] - 2019-11-25
 
 - **Update sbt to 1.3.4**
