@@ -6,6 +6,12 @@ More infos about this file : http://keepachangelog.com/
 
 ## [Unreleased] - no_due_date
 
+- **Update approvals-java to 0.11.1**
+
+## [v1.1.8] - 2019-11-25
+
+- **Update sbt to 1.3.4**
+
 ## [v1.1.7] - 2019-11-20
 
 - **Add a method to `TimeIntervalForDate` to convert between two `timeZone`**
