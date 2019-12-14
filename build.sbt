@@ -31,7 +31,7 @@ lazy val approvalLibraries = Seq(
 ).map(_ % Test)
 
 lazy val scalacheckLibraries = Seq(
-  "org.scalacheck"  %% "scalacheck"          % "1.14.2",
+  "org.scalacheck"  %% "scalacheck"          % "1.14.3",
   "com.rallyhealth" %% "scalacheck-ops_1-14" % "2.2.0"
 ).map(_ % Test)
 
