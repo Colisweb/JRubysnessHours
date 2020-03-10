@@ -1,32 +1,20 @@
-stages:
-  - build
-  - test
-  - publish
+include:
+  - 'https://gitlab.com/colisweb-open-source/ci-common/raw/v7.9.1/templates/scala.yml'
 
-compile scala sources:
-  stage: build
-  script:
-    - sbt test:compile
+test JRubysnessHours:
+  extends: .sbt-test
+  tags: []
 
-sbt test:
-  stage: test
-  script:
-    - sbt coverage test coverageReport
+unused-dependencies:
+  extends: .sbt-unused-dependencies
+  tags: []
 
-image: hseeberger/scala-sbt:11.0.3_1.2.8_2.12.8
-variables:
-  SBT_OPTS: "-Dsbt.global.base=sbt-cache/sbtboot -Dsbt.boot.directory=sbt-cache/boot -Dsbt.ivy.home=sbt-cache/ivy"
-  COURSIER_CACHE: "sbt-cache/coursier"
-cache:
-  key: "sbt-$CI_BUILD_REF_NAME"
-  paths:
-    - sbt-cache
+version:
+  extends: .version
+  tags: []
 
 publish on bintray:
-  stage: publish
-  only:
-    - master
-  before_script:
-    - gpg --import  <(echo "$GITLAB_PGP_PRIVATE_KEY") && source <(gpg -q --decrypt secrets-env.sh.secret)
-  script:
-    - sbt -Dbintray.user=gitlab-ci -Dbintray.pass=$BINTRAY_API_KEY publish
+  extends: .bintray-publish
+  tags: []
+
+
