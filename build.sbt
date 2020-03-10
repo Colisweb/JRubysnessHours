@@ -1,5 +1,5 @@
 ThisBuild / organization := "com.colisweb"
-ThisBuild / scalaVersion := "2.12.8"
+ThisBuild / scalaVersion := "2.12.10"
 ThisBuild / scalafmtOnCompile := true
 ThisBuild / scalafmtCheck := true
 ThisBuild / scalafmtSbtCheck := true
@@ -25,8 +25,8 @@ lazy val jruby =
     .dependsOn(core)
 
 lazy val approvalLibraries = Seq(
-  "org.scalatest"             %% "scalatest"     % "3.0.8",
-  "com.lihaoyi"               %% "pprint"        % "0.5.9",
+  "org.scalatest"             %% "scalatest"       % "3.0.8",
+  "com.lihaoyi"               %% "pprint"          % "0.5.9",
   "com.github.writethemfirst" %% "approvals-scala" % "0.12.1"
 ).map(_ % Test)
 
@@ -46,18 +46,16 @@ def noPublishSettings = Seq(
 
 inThisBuild(
   List(
-    credentials += Credentials(Path.userHome / ".bintray" / ".credentials"),
     licenses := Seq("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")),
-    homepage := Some(url("https://github.com/Colisweb/JRubysnessHours")),
+    homepage := Some(url("https://gitlab.com/colisweb-open-source/scala/JRubysnessHours")),
     bintrayOrganization := Some("colisweb"),
-    bintrayReleaseOnPublish := true,
     resolvers += Resolver.bintrayRepo("writethemfirst", "maven"),
     scalacOptions += "-Yresolve-term-conflict:object",
     publishMavenStyle := true,
     pomExtra := (
       <scm>
-        <url>git@github.com:Colisweb/JRubysnessHours.git</url>
-        <connection>scm:git:git@github.com:Colisweb/JRubysnessHours.git</connection>
+        <url>https://gitlab.com/colisweb-open-source/scala/JRubysnessHours</url>
+        <connection>scm:git:git@gitlab.com:colisweb-open-source/scala/JRubysnessHours.git</connection>
       </scm>
         <developers>
           <developer>
