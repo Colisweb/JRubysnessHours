@@ -1,9 +1,9 @@
 package com.colisweb.jrubysnesshours.core
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class TimeIntervalIsBeforeSpec extends WordSpec with Matchers {
-
+class TimeIntervalIsBeforeSpec extends AnyWordSpec with Matchers {
   import SpecUtils._
 
   /*
@@ -60,5 +60,4 @@ class TimeIntervalIsBeforeSpec extends WordSpec with Matchers {
       interval isBefore interval shouldBe false
     }
   }
-
 }

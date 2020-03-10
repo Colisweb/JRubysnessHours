@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter
 import com.colisweb.jrubysnesshours.core.{DateTimeInterval, TimeInterval, TimeIntervalForDate, TimeIntervalForWeekDay}
 
 object SpecUtils {
-
   val FRANCE_TIMEZONE = "Europe/Paris"
 
   implicit class DayOfWeekOps(dayOfWeek: DayOfWeek) {
@@ -49,5 +48,4 @@ object SpecUtils {
     def minutes: Duration = Duration.ofMinutes(self.toLong)
     def hours: Duration   = Duration.ofHours(self.toLong)
   }
-
 }

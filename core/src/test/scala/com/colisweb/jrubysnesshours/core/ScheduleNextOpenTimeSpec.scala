@@ -2,14 +2,13 @@ package com.colisweb.jrubysnesshours.core
 import java.time.LocalDate.parse
 import java.time.ZoneId
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ScheduleNextOpenTimeSpec extends WordSpec with Matchers {
-
+class ScheduleNextOpenTimeSpec extends AnyWordSpec with Matchers {
   import SpecUtils._
 
   "Schedule#nextOpenTimeAfter" should {
-
     "return no nextOpenTime when the planning is empty" in {
       val emptySchedule = Schedule(Nil, Nil, ZoneId.of(FRANCE_TIMEZONE))
       emptySchedule.nextOpenTimeAfter("2019-03-15" at "15:00") shouldBe None

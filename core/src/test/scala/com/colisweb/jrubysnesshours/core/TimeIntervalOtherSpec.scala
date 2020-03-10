@@ -3,12 +3,11 @@ package com.colisweb.jrubysnesshours.core
 import java.time.ZonedDateTime
 
 import com.colisweb.jrubysnesshours.core.SpecUtils._
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class TimeIntervalOtherSpec extends WordSpec with Matchers {
-
+class TimeIntervalOtherSpec extends AnyWordSpec with Matchers {
   "TimeInterval#roundToFullHours" when {
-
     "11:00-12:00 stays same" in {
       val interval = "11:00" - "12:00"
       interval.roundToMinutes(60) shouldBe Some(interval)
@@ -26,7 +25,6 @@ class TimeIntervalOtherSpec extends WordSpec with Matchers {
   }
 
   "TimeInterval#roundToFullMinutes(30)" when {
-
     "11:00-12:00 stays same" in {
       val interval = "11:00" - "12:00"
       interval.roundToMinutes(30) shouldBe Some(interval)
@@ -66,7 +64,6 @@ class TimeIntervalOtherSpec extends WordSpec with Matchers {
   }
 
   "TimeInterval#split(2h)" when {
-
     "11:00-12:00 is empty" in {
       val interval = "11:00" - "12:00"
       interval.split(2.hours) shouldBe empty
@@ -96,11 +93,9 @@ class TimeIntervalOtherSpec extends WordSpec with Matchers {
         "13:00" - "15:00"
       )
     }
-
   }
 
   "TimeInterval#split(30min)" when {
-
     "11:00-11:15 is empty" in {
       val interval = "11:00" - "11:15"
       interval.split(30.minutes) shouldBe empty
@@ -118,7 +113,6 @@ class TimeIntervalOtherSpec extends WordSpec with Matchers {
   }
 
   "TimeInterval#split(20min)" when {
-
     "11:00-11:15 is empty" in {
       val interval = "11:00" - "11:15"
       interval.split(20.minutes) shouldBe empty
@@ -128,7 +122,5 @@ class TimeIntervalOtherSpec extends WordSpec with Matchers {
       val interval = "10:05" - "11:15"
       interval.split(20.minutes) shouldBe List("10:20" - "10:40", "10:40" - "11:00")
     }
-
   }
-
 }

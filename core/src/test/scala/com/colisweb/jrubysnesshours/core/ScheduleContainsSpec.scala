@@ -4,11 +4,11 @@ import java.time.DayOfWeek._
 import java.time.{LocalTime, ZoneId, ZonedDateTime}
 
 import org.scalacheck.{Arbitrary, Gen}
-import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropertyChecks {
-
+class ScheduleContainsSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks {
   import Generators._
   import org.scalacheck.ops._
 
@@ -131,5 +131,4 @@ class ScheduleContainsSpec extends WordSpec with Matchers with ScalaCheckPropert
 
     schedule.copy(exceptions = schedule.exceptions + (localDate -> newExceptionIntervals)) -> date
   }
-
 }

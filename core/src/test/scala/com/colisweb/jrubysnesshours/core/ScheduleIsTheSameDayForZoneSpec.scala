@@ -3,13 +3,12 @@ package com.colisweb.jrubysnesshours.core
 import java.time.ZoneId
 
 import com.colisweb.jrubysnesshours.core.SpecUtils._
-import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ScheduleIsTheSameDayForZoneSpec extends WordSpec with Matchers with ScalaCheckPropertyChecks {
-
+class ScheduleIsTheSameDayForZoneSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks {
   "Schedule#isTheSameDayForZone" when {
-
     "Same day same zone" in {
       Schedule.isTheSameDayForZone(
         "2019-05-02" at "10:00" -> "UTC",
