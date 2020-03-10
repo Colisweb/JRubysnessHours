@@ -46,11 +46,9 @@ final class JRubyzSchedule private[jruby] (private[jruby] val schedule: Schedule
       .nextOpenTimeAfter(time)
       .map(_.withZoneSameInstant(UTC))
       .orNull
-
 }
 
 object JRubyzSchedule {
-
   val UTC: ZoneId = ZoneId.of("UTC")
 
   def exception(startsAtZonedDateTime: String, endsAtZonedDateTime: String): DateTimeInterval =
@@ -82,5 +80,4 @@ object JRubyzSchedule {
 
   private[jruby] def rubyWeekDayToJavaWeekDay(rubyWeekDay: Int): DayOfWeek =
     if (rubyWeekDay == 0) SUNDAY else DayOfWeek.of(rubyWeekDay)
-
 }

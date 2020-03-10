@@ -16,7 +16,6 @@ final case class Schedule(
     exceptions: Map[LocalDate, List[TimeInterval]],
     timeZone: ZoneId
 ) {
-
   def splitTimeSegmentsSingleDate(date: LocalDate, hours: Int): List[TimeInterval] =
     splitTimeSegments(zoned(date.atTime(MIN)), zoned(date.atTime(MAX)), Duration.ofHours(hours.toLong)).map(_.interval)
 
@@ -118,13 +117,11 @@ final case class Schedule(
 }
 
 object Schedule {
-
   def apply(
       planning: List[TimeIntervalForWeekDay],
       exceptions: List[DateTimeInterval],
       timeZone: ZoneId
   ): Schedule = {
-
     Schedule(
       planning = toMap(planning)(_.dayOfWeek, _.interval),
       exceptions = toMap(exceptions.flatMap(_.splitByDates))(_.date, _.interval),
@@ -141,5 +138,4 @@ object Schedule {
         acc.flatMap(_ diff exception)
       }
     }
-
 }

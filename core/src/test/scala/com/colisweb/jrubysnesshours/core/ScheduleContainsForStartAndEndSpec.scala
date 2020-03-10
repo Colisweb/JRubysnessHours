@@ -4,15 +4,13 @@ import java.time.DayOfWeek
 import java.time.DayOfWeek._
 
 import com.colisweb.jrubysnesshours.core.SpecUtils._
-import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ScheduleContainsForStartAndEndSpec extends WordSpec with Matchers with ScalaCheckPropertyChecks {
-
+class ScheduleContainsForStartAndEndSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks {
   "Schedule#contains for a start and a end ZonedDateTime" when {
-
     "the Schedule has an empty planning" should {
-
       val emptySchedule = schedule.copy(planning = Map.empty)
 
       "for the 2019-05-02 at 09:00 - 11:00" should {

@@ -8,12 +8,12 @@ import com.colisweb.jrubysnesshours.jruby.SampleSchedule._
 import com.colisweb.jrubysnesshours.jruby.SpecUtils._
 import com.github.writethemfirst.Approbation
 import com.github.writethemfirst.approvals.utils.FunctionUtils
-import org.scalatest.{Matchers, fixture}
 
 import scala.collection.JavaConverters._
+import org.scalatest.flatspec
+import org.scalatest.matchers.should.Matchers
 
-class JRubyzScheduleApprobationSpec extends fixture.FlatSpec with Matchers with Approbation {
-
+class JRubyzScheduleApprobationSpec extends flatspec.FixtureAnyFlatSpec with Matchers with Approbation {
   "jrubySchedule" should "split on 2 weeks" in { approver =>
     val segments = jrubySchedule.splitTimeSegments("2019-05-06T11:50:39Z", "2019-05-20T16:17:39Z", 2.hours, None)
 

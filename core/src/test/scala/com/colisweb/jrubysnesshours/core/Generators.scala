@@ -9,7 +9,6 @@ import org.scalacheck.Gen.chooseNum
 import org.scalacheck.{Arbitrary, Gen}
 
 object Generators {
-
   implicit final class GenOps[A](private val self: Gen[A]) {
     def zip[B](other: Gen[B]): Gen[(A, B)] = for { a <- self; b <- other } yield (a, b)
   }
@@ -62,7 +61,6 @@ object Generators {
       endNanos   <- chooseNum(startNanos + 1, 999999999)
 
       end = LocalDateTime.ofEpochSecond(endSeconds, endNanos, UTC)
-
     } yield DateTimeInterval(start = start, end = end)
 
   implicit val arbException: Arbitrary[DateTimeInterval] = Arbitrary(genException)

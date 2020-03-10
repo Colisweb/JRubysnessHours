@@ -4,7 +4,6 @@ import java.time.DayOfWeek._
 import java.time._
 
 object SpecUtils {
-
   val FRANCE_TIMEZONE = "Europe/Paris"
   val UTC_TIMEZONE    = "Etc/UTC"
 
@@ -41,7 +40,6 @@ object SpecUtils {
 
     def at(time: String): ZonedDateTime =
       (string :- time).atZone(ZoneId.of(FRANCE_TIMEZONE))
-
   }
 
   val planning: Map[DayOfWeek, List[TimeInterval]] = Map(

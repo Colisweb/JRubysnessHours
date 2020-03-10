@@ -2,14 +2,13 @@ package com.colisweb.jrubysnesshours.core
 import java.time.DayOfWeek._
 import java.time.ZoneOffset.UTC
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ScheduleApplySpec extends WordSpec with Matchers {
-
+class ScheduleApplySpec extends AnyWordSpec with Matchers {
   import SpecUtils._
 
   "Schedule.apply" should {
-
     "[Bug found by generators] with an empty planning and 1969-12-31T23:59:59 - 1970-01-01T00:00 as exception" in {
       val schedule = Schedule(Nil, List("1969-12-31" :- "23:59:59.999999999" to "1970-01-01" :- "00:00:00"), UTC)
 
@@ -106,5 +105,4 @@ class ScheduleApplySpec extends WordSpec with Matchers {
       )
     }
   }
-
 }

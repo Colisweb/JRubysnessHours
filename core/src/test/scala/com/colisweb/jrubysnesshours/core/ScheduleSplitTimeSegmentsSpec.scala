@@ -4,10 +4,11 @@ import java.time.DayOfWeek.{MONDAY, THURSDAY}
 import java.time.{LocalDate, ZoneId}
 
 import com.colisweb.jrubysnesshours.core.SpecUtils._
-import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ScheduleSplitTimeSegmentsSpec extends WordSpec with Matchers with ScalaCheckPropertyChecks {
+class ScheduleSplitTimeSegmentsSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks {
   private val aThursday = "2019-05-02".toLocalDate
   private val aTuesday  = "2019-05-07".toLocalDate
 
@@ -69,7 +70,6 @@ class ScheduleSplitTimeSegmentsSpec extends WordSpec with Matchers with ScalaChe
     }
 
     "has a list of split segments for a time range around midnight" in {
-
       val schedule = Schedule(
         planning = Map(MONDAY -> List("09:00" - "23:00")),
         exceptions = Map.empty[LocalDate, List[TimeInterval]],

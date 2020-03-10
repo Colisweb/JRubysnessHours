@@ -2,10 +2,10 @@ package com.colisweb.jrubysnesshours.core
 
 import java.time.{LocalDate, LocalTime}
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class CutOffSpec extends WordSpec with Matchers {
-
+class CutOffSpec extends AnyWordSpec with Matchers {
   import SpecUtils._
 
   "DoubleCutOff" should {

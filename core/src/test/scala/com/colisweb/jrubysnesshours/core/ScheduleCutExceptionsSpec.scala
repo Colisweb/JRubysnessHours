@@ -1,13 +1,12 @@
 package com.colisweb.jrubysnesshours.core
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ScheduleCutExceptionsSpec extends WordSpec with Matchers {
-
+class ScheduleCutExceptionsSpec extends AnyWordSpec with Matchers {
   import SpecUtils._
 
   "Schedule.cutExceptions" should {
-
     "Will return Nil" should {
       "including is empty and excluding is 04:00 -> 11:00" in {
         val excludingInterval = "04:00" - "11:00"
@@ -106,7 +105,6 @@ class ScheduleCutExceptionsSpec extends WordSpec with Matchers {
     }
 
     "Will return multiple intervals : (including.start -> excluding.start), (excluding.end -> including.end)" should {
-
       "including is 05:00 -> 10:00 and excluding is 06:00 -> 08:00" in {
         val includingInterval = "05:00" - "10:00"
 
@@ -156,8 +154,6 @@ class ScheduleCutExceptionsSpec extends WordSpec with Matchers {
           "19:00" - "20:00"
         )
       }
-
     }
   }
-
 }

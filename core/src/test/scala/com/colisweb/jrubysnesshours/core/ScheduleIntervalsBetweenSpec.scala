@@ -3,13 +3,12 @@ package com.colisweb.jrubysnesshours.core
 import java.time._
 
 import com.colisweb.jrubysnesshours.core.SpecUtils._
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class ScheduleIntervalsBetweenSpec extends WordSpec with Matchers {
-
+class ScheduleIntervalsBetweenSpec extends AnyWordSpec with Matchers {
   "Schedule#intervalsBetween" when {
     "without exception" should {
-
       "compute 2 intervals between Thursday 18:00 to Friday 10:00" in {
         schedule.intervalsBetween(
           "2019-03-21" at "18:00" -> FRANCE_TIMEZONE,
@@ -95,7 +94,6 @@ class ScheduleIntervalsBetweenSpec extends WordSpec with Matchers {
     }
 
     "With exception" when {
-
       "the exception is not in the first or last day" should {
         val scheduleWithException: Schedule = schedule.copy(
           exceptions = Map(
@@ -183,7 +181,6 @@ class ScheduleIntervalsBetweenSpec extends WordSpec with Matchers {
       }
 
       "between a start and end the same day" should {
-
         val scheduleWithException: Schedule = schedule.copy(
           exceptions = Map(
             LocalDate.parse("2019-03-15") -> List("14:00" - "16:00")

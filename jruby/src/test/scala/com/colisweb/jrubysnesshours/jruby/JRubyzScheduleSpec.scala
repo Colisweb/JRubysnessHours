@@ -7,10 +7,10 @@ import com.colisweb.jrubysnesshours.core.{DateTimeInterval, TimeInterval, TimeIn
 import com.colisweb.jrubysnesshours.jruby.JRubyzSchedule._
 import com.colisweb.jrubysnesshours.jruby.SampleSchedule._
 import com.colisweb.jrubysnesshours.jruby.SpecUtils._
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class JRubyzScheduleSpec extends WordSpec with Matchers {
-
+class JRubyzScheduleSpec extends AnyWordSpec with Matchers {
   "jrubySchedule" should {
     "split on single date" in {
       jrubySchedule.splitTimeSegments(
@@ -27,7 +27,6 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
   }
 
   "rubyToDateTimeInterval" should {
-
     "with UTC timezone the same day" in {
       val res = exception("2019-04-12T16:17:39Z", "2019-04-12T18:15:40Z")
 
@@ -99,7 +98,6 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
     }
 
     "for EuropeParis timezone" in {
-
       val start = "2015-03-02T10:00+01:00[Europe/Paris]"
       val end   = "2015-03-02T23:59:59.000999999+01:00[Europe/Paris]"
 
@@ -122,5 +120,4 @@ class JRubyzScheduleSpec extends WordSpec with Matchers {
 
   implicit private def toLocalTime(s: String): LocalTime = LocalTime.parse(s)
   implicit private def toZDT(s: String): ZonedDateTime   = ZonedDateTime.parse(s)
-
 }
