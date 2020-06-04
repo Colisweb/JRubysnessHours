@@ -83,7 +83,9 @@ class JRubyzScheduleSpec extends AnyWordSpec with Matchers {
       val end   = "2015-03-02T23:59:59.000999999Z[Etc/UTC]"
 
       schedule.timeSegments(start, end) shouldBe
-        Array(RubyTimeSegmentInterval("2015-03-02", "2015-03-02T10:00Z[UTC]", "2015-03-02T19:00Z[UTC]")) // 11h-20h French time
+        Array(
+          RubyTimeSegmentInterval("2015-03-02", "2015-03-02T10:00Z[UTC]", "2015-03-02T19:00Z[UTC]")
+        ) // 11h-20h French time
 
       schedule.splitTimeSegments(start, end, 3.hours, None) shouldBe
         Array(

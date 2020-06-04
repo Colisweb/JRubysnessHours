@@ -3,6 +3,7 @@ package com.colisweb.jrubysnesshours.core
 import java.time.LocalTime.{MAX, MIN}
 import java.time._
 import java.time.temporal.ChronoUnit.HOURS
+import scala.collection.compat._
 
 import com.colisweb.jrubysnesshours.core.TimeInterval._
 
@@ -10,6 +11,10 @@ import scala.math.Ordering.Implicits._
 
 // This class cannot represent an Interval ending at 00:00
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
+
+  //import to use library scala.collection.compat even in scala 2.13
+  implicit val collectionCompat = BuildFrom
+
   assert(start < end, s"TimeInterval error: 'start' ($start) must be < 'end' ($end)")
 
   private[core] def roundToMinutes(minutes: Long): Option[TimeInterval] = {
@@ -83,9 +88,9 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
   private def splitRec(minutes: Long): List[TimeInterval] = {
     val splitEnd = start plusMinutes minutes
 
-    splitEnd.compareTo(end).signum match {
+    splitEnd.compareTo(end) match {
       case 0 => List(this)
-      case -1 if start < splitEnd =>
+      case x if x < 0 && start < splitEnd =>
         val split = TimeInterval(start, splitEnd)
         val shift = Duration.ofMinutes(minutes) min Duration.ofHours(1)
         split :: copy(start = start.plus(shift)).splitRec(minutes)
@@ -107,12 +112,9 @@ object TimeInterval {
   def toEndOfDay(start: LocalTime) =
     TimeInterval(start = start, end = MAX)
 
-  // TODO: can be simplified in scala 2.13
-  // https://github.com/scala/scala/blob/v2.13.0-M5/src/library/scala/collection/Iterable.scala#L578
-  def toMap[T, K](intervals: List[T])(fKey: T => K, fInterval: T => TimeInterval): Map[K, List[TimeInterval]] =
-    intervals
-      .groupBy(fKey)
-      .mapValues(l => mergeIntervals(l.map(fInterval)))
+  def toMap[T, K](intervals: List[T])(fKey: T => K, fInterval: T => TimeInterval): Map[K, List[TimeInterval]] = {
+    intervals.groupMap(fKey)(fInterval).view.mapValues(mergeIntervals).toMap
+  }
 
   def mergeIntervals(intervals: List[TimeInterval]): List[TimeInterval] =
     intervals

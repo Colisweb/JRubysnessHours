@@ -1,48 +1,55 @@
+import CompileFlags._
+
+lazy val scala212               = "2.12.11"
+lazy val scala213               = "2.13.2"
+lazy val supportedScalaVersions = List(scala213, scala212)
+
 ThisBuild / organization := "com.colisweb"
-ThisBuild / scalaVersion := "2.12.10"
+ThisBuild / scalaVersion := scala213
 ThisBuild / scalafmtOnCompile := true
 ThisBuild / scalafmtCheck := true
 ThisBuild / scalafmtSbtCheck := true
+ThisBuild / scalacOptions ++= crossScalacOptions(scalaVersion.value)
 
 lazy val root = Project(id = "JRubysnessHours", base = file("."))
   .settings(moduleName := "root")
   .settings(noPublishSettings: _*)
   .aggregate(core, jruby)
-  .dependsOn(core, jruby)
 
 lazy val core =
   project
     .settings(moduleName := "JRubysnessHours")
     .settings(resolvers += Resolver.bintrayRepo("rallyhealth", "maven"))
     .settings(fork := true)
-    .settings(libraryDependencies ++= approvalLibraries ++ scalacheckLibraries)
+    .settings(crossScalaVersions := supportedScalaVersions)
+    .settings(
+      libraryDependencies ++= Seq(
+        CompileTimeDependencies.scalaCompat
+      ) ++ Seq(
+        TestDependencies.approval,
+        TestDependencies.pprint,
+        TestDependencies.scalatest,
+        TestDependencies.scalatestplus,
+        TestDependencies.scalacheck
+      )
+    )
 
 lazy val jruby =
   project
     .settings(moduleName := "JRubysnessHoursAdapter")
     .settings(fork := true)
-    .settings(libraryDependencies ++= approvalLibraries)
-    .dependsOn(core)
-
-lazy val approvalLibraries = Seq(
-  "org.scalatest"             %% "scalatest"       % "3.1.2",
-  "com.lihaoyi"               %% "pprint"          % "0.5.9",
-  "com.github.writethemfirst" %% "approvals-scala" % "1.0.1"
-).map(_ % Test)
-
-lazy val scalacheckLibraries = Seq(
-  "org.scalatestplus" %% "scalatestplus-scalacheck" % "3.1.0.0-RC2",
-  "com.rallyhealth" %% "scalacheck-ops_1-14" % "2.2.0"
-).map(_ % Test)
+    .dependsOn(core % "test->test;compile->compile")
+    .settings(crossScalaVersions := supportedScalaVersions)
 
 /**
   * Copied from Cats
   */
-def noPublishSettings = Seq(
-  publish := {},
-  publishLocal := {},
-  publishArtifact := false
-)
+def noPublishSettings =
+  Seq(
+    publish := {},
+    publishLocal := {},
+    publishArtifact := false
+  )
 
 inThisBuild(
   List(

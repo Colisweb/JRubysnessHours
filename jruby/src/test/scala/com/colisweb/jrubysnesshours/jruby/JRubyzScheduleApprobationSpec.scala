@@ -9,7 +9,7 @@ import com.colisweb.jrubysnesshours.jruby.SpecUtils._
 import com.github.writethemfirst.Approbation
 import com.github.writethemfirst.approvals.utils.FunctionUtils
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import org.scalatest.flatspec
 import org.scalatest.matchers.should.Matchers
 
