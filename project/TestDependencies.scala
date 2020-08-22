@@ -4,7 +4,7 @@ object TestVersions {
   lazy final val approval      = "1.1.1"
   lazy final val pprint        = "0.5.9"
   lazy final val scalacheck    = "2.5.0"
-  lazy final val scalatest     = "3.2.1"
+  lazy final val scalatest     = "3.2.2"
   lazy final val scalatestplus = "3.1.0.0-RC2"
 }
 
