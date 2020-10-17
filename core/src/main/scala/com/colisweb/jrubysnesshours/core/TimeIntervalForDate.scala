@@ -20,8 +20,7 @@ final case class TimeIntervalForDate(date: LocalDate, interval: TimeInterval) {
   private def changeTimeTimeZone(start: LocalDateTime, originTimeZone: ZoneId, targetTimeZone: ZoneId): LocalDateTime =
     start.atZone(originTimeZone).withZoneSameInstant(targetTimeZone).toLocalDateTime
 
-  /**
-    * Return a new TimeIntervalForDate, corresponding to current interval in targetTimeZone
+  /** Return a new TimeIntervalForDate, corresponding to current interval in targetTimeZone
     * If converted interval straddle 2 days, return None (cannot be converted to unique TimeIntervalForDate)
     */
   def changeIntervalTimeZone(

@@ -34,14 +34,14 @@ class ScheduleContainsSpec extends AnyWordSpec with Matchers with ScalaCheckProp
           val withNoException = Arbitrary.arbitrary[Schedule].map(_.copy(exceptions = Map.empty))
           "an interval of the planning contains the date" should {
             val gen = (withNoException, Arbitrary.arbitrary[ZonedDateTime]).flatMap2(addPlanningEntryContaining)
-            "always be true" in forAll(gen) {
-              case (schedule, date) => schedule contains date shouldBe true
+            "always be true" in forAll(gen) { case (schedule, date) =>
+              schedule contains date shouldBe true
             }
           }
           "no interval of the planning contains the date" should {
             val gen = (withNoException, Arbitrary.arbitrary[ZonedDateTime]).flatMap2(removePlanningEntryContaining)
-            "always be false" in forAll(gen) {
-              case (schedule, date) => schedule contains date shouldBe false
+            "always be false" in forAll(gen) { case (schedule, date) =>
+              schedule contains date shouldBe false
             }
           }
         }
@@ -53,15 +53,15 @@ class ScheduleContainsSpec extends AnyWordSpec with Matchers with ScalaCheckProp
             "an exception also contains the date" should {
               val andWithAnExceptionContaining = withPlanningEntryContaining.flatMapT(addExceptionContaining)
 
-              "be false" in forAll(andWithAnExceptionContaining) {
-                case (schedule, date) => schedule contains date shouldBe false
+              "be false" in forAll(andWithAnExceptionContaining) { case (schedule, date) =>
+                schedule contains date shouldBe false
               }
             }
             "no exception contains the date" should {
               val gen = withPlanningEntryContaining.mapT(removeExceptionsContaining)
 
-              "be true" in forAll(gen) {
-                case (schedule, date) => schedule contains date shouldBe true
+              "be true" in forAll(gen) { case (schedule, date) =>
+                schedule contains date shouldBe true
               }
             }
           }
@@ -69,8 +69,8 @@ class ScheduleContainsSpec extends AnyWordSpec with Matchers with ScalaCheckProp
             val gen =
               (Arbitrary.arbitrary[Schedule], Arbitrary.arbitrary[ZonedDateTime]).map2(removePlanningEntryContaining)
 
-            "always be false" in forAll(gen) {
-              case (schedule, date) => schedule contains date shouldBe false
+            "always be false" in forAll(gen) { case (schedule, date) =>
+              schedule contains date shouldBe false
             }
           }
         }
