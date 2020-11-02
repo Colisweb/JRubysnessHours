@@ -1,6 +1,6 @@
 import CompileFlags._
 
-lazy val scala212               = "2.12.11"
+lazy val scala212               = "2.12.12"
 lazy val scala213               = "2.13.2"
 lazy val supportedScalaVersions = List(scala213, scala212)
 
@@ -10,6 +10,7 @@ ThisBuild / scalafmtOnCompile := true
 ThisBuild / scalafmtCheck := true
 ThisBuild / scalafmtSbtCheck := true
 ThisBuild / scalacOptions ++= crossScalacOptions(scalaVersion.value)
+Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val root = Project(id = "JRubysnessHours", base = file("."))
   .settings(moduleName := "root")
