@@ -1,12 +1,16 @@
 include:
-  - 'https://gitlab.com/colisweb-open-source/ci-common/raw/v9.1.1/templates/scala.yml'
+  - 'https://colisweb-open-source.gitlab.io/ci-common/templates/scala.yml'
 
 format:
   extends: .sbt-format
   tags: []
 
+compile:
+  extends: .sbt-compile-cross
+  tags: []
+
 test JRubysnessHours:
-  extends: .sbt-test
+  extends: .sbt-test-cross
   tags: []
 
 unused-dependencies:
@@ -18,7 +22,7 @@ version:
   tags: []
 
 publish on bintray:
-  extends: .bintray-publish
+  extends: .sonatype-publish
   tags: []
 
 
