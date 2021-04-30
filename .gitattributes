@@ -1,6 +1,0 @@
-# Auto detect text files and perform LF normalization
-* text=auto
-
-# Approved files should keep their line endings
-*.approved.* binary
-*.approved binary
