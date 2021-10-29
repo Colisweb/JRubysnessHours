@@ -12,7 +12,7 @@ import scala.math.Ordering.Implicits._
 // This class cannot represent an Interval ending at 00:00
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
 
-  //import to use library scala.collection.compat even in scala 2.13
+  // import to use library scala.collection.compat even in scala 2.13
   implicit val collectionCompat = BuildFrom
 
   assert(start < end, s"TimeInterval error: 'start' ($start) must be < 'end' ($end)")
