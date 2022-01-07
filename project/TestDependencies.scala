@@ -1,7 +1,7 @@
 import sbt._
 
 object TestVersions {
-  lazy final val approval = "1.2.1"
+  lazy final val approval = "1.3.0"
   lazy final val pprint =
     "0.5.9" // /!\ Ignored by scala-steward because 0.6.0 has different formatting in scala 2.12 and 2.13 !
   lazy final val scalacheck    = "2.6.0"
