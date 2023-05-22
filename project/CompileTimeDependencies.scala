@@ -1,7 +1,7 @@
 import sbt._
 
 object Versions {
-  lazy final val scalaCompat = "2.9.0"
+  lazy final val scalaCompat = "2.10.0"
 }
 
 object CompileTimeDependencies {

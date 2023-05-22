@@ -56,4 +56,4 @@ def noPublishSettings =
   )
 
 // TODO: wip for debug logs
-parallelExecution in test := false
+parallelExecution / test := false
