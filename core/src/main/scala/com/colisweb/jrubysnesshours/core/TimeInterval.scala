@@ -13,7 +13,7 @@ import scala.math.Ordering.Implicits._
 final case class TimeInterval(start: LocalTime, end: LocalTime) {
 
   //import to use library scala.collection.compat even in scala 2.13
-  implicit val collectionCompat = BuildFrom
+  implicit val collectionCompat: BuildFrom.type = BuildFrom
 
   assert(start < end, s"TimeInterval error: 'start' ($start) must be < 'end' ($end)")
 
