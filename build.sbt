@@ -26,6 +26,7 @@ lazy val core =
     .settings(moduleName := "JRubysnessHours")
     .settings(fork := true)
     .settings(crossScalaVersions := supportedScalaVersions)
+    .settings(Test / tpolecatExcludeOptions += ScalacOptions.warnNonUnitStatement)
     .settings(
       libraryDependencies ++= Seq(
         CompileTimeDependencies.scalaCompat
@@ -43,6 +44,7 @@ lazy val jruby =
     .settings(moduleName := "JRubysnessHoursAdapter")
     .settings(fork := true)
     .dependsOn(core % "test->test;compile->compile")
+    .settings(Test / tpolecatExcludeOptions += ScalacOptions.warnNonUnitStatement)
     .settings(crossScalaVersions := supportedScalaVersions)
     .settings(dependencyOverrides += TestDependencies.pprint)
 
