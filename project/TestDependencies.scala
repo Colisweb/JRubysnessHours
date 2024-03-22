@@ -5,7 +5,7 @@ object TestVersions {
   lazy final val pprint =
     "0.5.9" // /!\ Ignored by scala-steward because 0.6.0 has different formatting in scala 2.12 and 2.13 !
   lazy final val scalacheck    = "2.12.0"
-  lazy final val scalatest     = "3.2.17"
+  lazy final val scalatest     = "3.2.18"
   lazy final val scalatestplus = "3.1.0.0-RC2"
 }
 
