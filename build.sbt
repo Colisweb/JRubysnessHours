@@ -1,4 +1,5 @@
 import CompileFlags._
+import org.typelevel.scalacoptions.ScalacOptions
 
 lazy val scala212               = "2.12.19"
 lazy val scala213               = "2.13.13"
