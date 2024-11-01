@@ -73,10 +73,11 @@ final case class TimeInterval(start: LocalTime, end: LocalTime) {
     else TimeInterval(start = start min that.start, end = end max that.end)
   }
 
-  def merge(that: TimeInterval): List[TimeInterval] =
-    if (this isBefore that) List(this, that)
+  def merge(that: TimeInterval): List[TimeInterval] = {
+    if (this isConnected that) List(this union that)
     else if (this encloses that) List(this)
-    else List(this union that)
+    else List(that, this)
+  }
 
   def contains(time: LocalTime): Boolean = start <= time && time < end
 
@@ -120,7 +121,7 @@ object TimeInterval {
     intervals
       .sortBy(_.start)
       .foldRight(List.empty[TimeInterval]) {
-        case (interval, h :: t) => (interval merge h) ::: t // TODO: `:::` is not in constant time.
+        case (interval, h :: t) => (h merge interval) ::: t // TODO: `:::` is not in constant time.
         case (interval, Nil)    => List(interval)
       }
 
