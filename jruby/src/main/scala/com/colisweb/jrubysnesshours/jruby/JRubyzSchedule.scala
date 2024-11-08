@@ -69,6 +69,9 @@ object JRubyzSchedule {
       interval = TimeInterval(start = startTime, end = endTime)
     )
 
+  def addInterval(intervals: Array[TimeInterval], newInterval: TimeInterval): List[TimeInterval] =
+    TimeInterval.mergeIntervals(intervals.toList ::: List(newInterval))
+
   def schedule(
       plannings: Array[TimeIntervalForWeekDay],
       exceptions: Array[DateTimeInterval],
