@@ -34,6 +34,11 @@ class TimeIntervalMergeSpec extends AnyWordSpec with Matchers {
     ))
   }
 
+  "touching intervals" in {
+    val intervals = List(TimeInterval("10:00", "11:00"), TimeInterval("11:00", "15:00"))
+    TimeInterval.mergeIntervals(intervals) shouldEqual (List(TimeInterval("10:00", "15:00")))
+  }
+
   "With extreme values" in {
     val intervals = List(
       TimeInterval("08:00", "12:00"),

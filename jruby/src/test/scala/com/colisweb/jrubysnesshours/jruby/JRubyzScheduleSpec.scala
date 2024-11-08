@@ -71,6 +71,33 @@ class JRubyzScheduleSpec extends AnyWordSpec with Matchers {
     }
   }
 
+  "mergeIntervals" should {
+    "empty array of intervals" in { mergeIntervals(Array()) shouldEqual (Array()) }
+
+    "only one interval" in {
+      mergeIntervals(Array(TimeInterval("08:00", "12:00"))) shouldEqual Array(TimeInterval("08:00", "12:00"))
+    }
+
+    "non overlapping intervals" in {
+      mergeIntervals(Array(TimeInterval("14:00", "18:00"), TimeInterval("08:00", "12:00"))) shouldEqual Array(
+        TimeInterval("08:00", "12:00"),
+        TimeInterval("14:00", "18:00")
+      )
+    }
+
+    "overlapping intervals" in {
+      mergeIntervals(Array(TimeInterval("14:00", "18:00"), TimeInterval("08:00", "16:00"))) shouldEqual Array(
+        TimeInterval("08:00", "18:00")
+      )
+    }
+
+    "touching intervals" in {
+      mergeIntervals(Array(TimeInterval("10:00", "11:00"), TimeInterval("11:00", "15:00"))) shouldEqual (Array(
+        TimeInterval("10:00", "15:00")
+      ))
+    }
+  }
+
   "bug found by Florian when timezone is different between schedule and splitTimeSegments arguments" when {
     val schedule = JRubyzSchedule.schedule(
       Array(TimeIntervalForWeekDay(MONDAY, TimeInterval("09:00", "20:00"))),
