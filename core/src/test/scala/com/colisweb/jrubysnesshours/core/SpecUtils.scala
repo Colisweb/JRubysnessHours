@@ -24,7 +24,7 @@ object SpecUtils {
     def toLocalTime: LocalTime = LocalTime.parse(string)
     def toLocalDate: LocalDate = LocalDate.parse(string)
 
-    def -(to: String): TimeInterval = TimeInterval(string.toLocalTime, to.toLocalTime)
+    def -(to: String): TimeInterval = TimeInterval(toLocalTime, to.toLocalTime)
 
     def at(intervals: List[TimeInterval]): (LocalDate, List[TimeInterval]) =
       LocalDate.parse(string) -> intervals
@@ -36,10 +36,10 @@ object SpecUtils {
       TimeIntervalForDate(date = LocalDate.parse(string), interval = interval)
 
     def at(timeWithZone: (String, String)): ZonedDateTime =
-      (string :- timeWithZone._1).atZone(ZoneId.of(timeWithZone._2))
+      (this :- timeWithZone._1).atZone(ZoneId.of(timeWithZone._2))
 
     def at(time: String): ZonedDateTime =
-      (string :- time).atZone(ZoneId.of(FRANCE_TIMEZONE))
+      (this :- time).atZone(ZoneId.of(FRANCE_TIMEZONE))
   }
 
   val planning: Map[DayOfWeek, List[TimeInterval]] = Map(

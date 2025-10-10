@@ -29,7 +29,7 @@ object SpecUtils {
 
     def toLocalDate: LocalDate = LocalDate.parse(string)
 
-    def -(to: String): TimeInterval = TimeInterval(string.toLocalTime, to.toLocalTime)
+    def -(to: String): TimeInterval = TimeInterval(toLocalTime, to.toLocalTime)
 
     def at(intervals: List[TimeInterval]): (LocalDate, List[TimeInterval]) =
       LocalDate.parse(string) -> intervals
@@ -41,7 +41,7 @@ object SpecUtils {
       TimeIntervalForDate(date = LocalDate.parse(string), interval = interval)
 
     def at(timeWithZone: (String, String)): ZonedDateTime =
-      (string :- timeWithZone._1).atZone(ZoneId.of(timeWithZone._2))
+      (this :- timeWithZone._1).atZone(ZoneId.of(timeWithZone._2))
   }
 
   implicit class DurationOps(self: Int) {
