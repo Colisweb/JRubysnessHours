@@ -1,7 +1,7 @@
 import CompileFlags._
 import org.typelevel.scalacoptions.ScalacOptions
 
-lazy val scala212               = "2.12.20"
+lazy val scala212               = "2.12.21"
 lazy val scala213               = "2.13.18"
 lazy val supportedScalaVersions = List(scala213, scala212)
 
