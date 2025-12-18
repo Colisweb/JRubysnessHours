@@ -1,5 +1,5 @@
 include:
-  - 'https://colisweb-idl.gitlab.io/colisweb-open-source/ci-common/v18.0.0/templates/scala.yml'
+  - 'https://colisweb-idl.gitlab.io/colisweb-open-source/ci-common/v20.2.4/templates/scala.yml'
 
 format:
   extends: .sbt-format
