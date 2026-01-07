@@ -1,4 +1,4 @@
 [submodule "scala-common"]
 	path = scala-common
 	url = ../../../colisweb-open-source/scala/scala-common.git
-	branch = v7.0.1
+	branch = v7.0.2
