@@ -3,29 +3,23 @@ include:
 
 format:
   extends: .sbt-format
-  tags: []
 
 compile:
   extends: .sbt-compile-cross
-  tags: []
 
 test JRubysnessHours:
   extends: .sbt-test-cross
-  tags: []
 
 unused-dependencies:
   extends: .sbt-unused-dependencies
-  tags: []
 
 version:
   extends: .version
-  tags: []
 
 auto-version:
   extends: .auto-version
 
-publish on bintray:
+publish on sonatype:
   extends: .sonatype-publish
-  tags: []
 
 
