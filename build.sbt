@@ -1,7 +1,7 @@
 import CompileFlags._
 import org.typelevel.scalacoptions.ScalacOptions
 
-lazy val scala213               = "2.13.18"
+lazy val scala213               = "3.8.1"
 lazy val supportedScalaVersions = List(scala213)
 
 ThisBuild / organization      := "com.colisweb"
